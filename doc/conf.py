@@ -25,7 +25,7 @@ from timeflux import __version__
 
 # -- Auto-generate API documentation --------------------------------------
 
-api_packages = ['timeflux']
+api_packages = ['timeflux', 'timeflux_example']
 api_path = 'api'
 
 def run_apidoc(_):

@@ -4,7 +4,7 @@ import json
 import pytest
 from timeflux.core.manager import Manager
 
-test_config = {'graphs': [{'nodes': [{'id': 'node_1', 'module': 'timeflux.nodes.random', 'class': 'Random', 'params': {'columns': 5, 'rows_min': 1, 'rows_max': 10, 'value_min': 0, 'value_max': 5, 'seed': 1}}, {'id': 'node_2', 'module': 'timeflux.nodes.arithmetic', 'class': 'Add', 'params': {'value': 1}}, {'id': 'node_3', 'module': 'timeflux.nodes.debug', 'class': 'Display'}], 'edges': [{'source': 'node_1', 'target': 'node_2'}, {'source': 'node_2', 'target': 'node_3'}]}]}
+test_config = {'graphs': [{'nodes': [{'id': 'node_1', 'module': 'timeflux.nodes.random', 'class': 'Random', 'params': {'columns': 5, 'rows_min': 1, 'rows_max': 10, 'value_min': 0, 'value_max': 5, 'seed': 1}}, {'id': 'node_2', 'module': 'timeflux_example.nodes.arithmetic', 'class': 'Add', 'params': {'value': 1}}, {'id': 'node_3', 'module': 'timeflux.nodes.debug', 'class': 'Display'}], 'edges': [{'source': 'node_1', 'target': 'node_2'}, {'source': 'node_2', 'target': 'node_3'}]}]}
 
 
 def test_load_invalid_config():

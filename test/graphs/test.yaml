@@ -12,7 +12,7 @@ graphs:
         value_max: 5
         seed: 1
     - id: node_2
-      module: timeflux.nodes.arithmetic
+      module: timeflux_example.nodes.arithmetic
       class: Add
       params:
         value: 1

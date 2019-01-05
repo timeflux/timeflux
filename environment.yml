@@ -19,3 +19,4 @@ dependencies:
   - pylsl==1.10.5
   - python-osc==1.7.0
   - git+https://github.com/timeflux/timeflux
+  - git+https://github.com/timeflux/timeflux_example
