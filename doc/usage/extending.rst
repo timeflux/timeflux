@@ -1,6 +1,12 @@
 Extending
 =========
 
+Setting a developement environment
+----------------------------------
+
+* Clone example
+* ``pip install -e .``
+
 Best practices
 --------------
 
