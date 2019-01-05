@@ -6,3 +6,4 @@ __pycache__
 *$py.class
 doc/_api
 doc/_build
+*.egg-info
