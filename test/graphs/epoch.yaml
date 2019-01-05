@@ -1,0 +1,22 @@
+graphs:
+
+  # Nothing is displayed because the epoch does not have any event input
+  - id: example
+    nodes:
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
+    - id: epoch
+      module: timeflux.nodes.epoch
+      class: Epoch
+      params:
+        event_trigger: test
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+    - source: random
+      target: epoch
+    - source: epoch
+      target: display
+    rate: 10

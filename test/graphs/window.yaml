@@ -1,0 +1,25 @@
+graphs:
+
+  - id: test
+    nodes:
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
+      params:
+        rows_min: 1
+        rows_max: 1
+    - id: window
+      module: timeflux.nodes.window
+      class: Window
+      params:
+        length: 3
+        step: 1
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+    - source: random
+      target: window
+    - source: window
+      target: display
+    rate: 2

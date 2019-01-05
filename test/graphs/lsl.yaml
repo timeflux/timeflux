@@ -1,0 +1,40 @@
+graphs:
+
+  - id: Sender
+    nodes:
+    - id: replay
+      module: timeflux.nodes.hdf5
+      class: Replay
+      params:
+        filename: test/data/data.hdf5
+        keys:
+          - /nexus/signal/nexus_signal_raw
+        timespan: 1
+    - id: outlet
+      module: timeflux.nodes.lsl
+      class: Send
+      params:
+        name: 'test'
+    edges:
+      - source: replay:nexus_signal_nexus_signal_raw
+        target: outlet
+    rate: 1
+
+  - id: Receiver
+    nodes:
+    - id: inlet
+      module: timeflux.nodes.lsl
+      class: Receive
+      params:
+        name: 'test'
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+      - source: inlet
+        target: display
+    rate: 1
+
+
+
+

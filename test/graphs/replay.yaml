@@ -1,0 +1,21 @@
+graphs:
+
+  - nodes:
+    - id: replay
+      module: timeflux.nodes.hdf5
+      class: Replay
+      params:
+        filename: test/data/data.hdf5
+        keys:
+          - /nexus/signal/nexus_signal_raw
+          - /unity/events/unity_events
+        timespan: .04
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+
+    edges:
+    - source: replay:nexus_signal_nexus_signal_raw
+      target: display
+
+    rate: 0

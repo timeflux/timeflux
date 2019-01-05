@@ -1,0 +1,41 @@
+graphs:
+
+  - id: input
+    nodes:
+    - id: events
+      module: timeflux.nodes.events
+      class: Events
+    - id: outlet
+      module: timeflux.nodes.lsl
+      class: Send
+      params:
+        name: test
+        channel_format: string
+    edges:
+      - source: events
+        target: outlet
+    rate: 1
+
+  - id: output
+    nodes:
+    - id: inlet
+      module: timeflux.nodes.lsl
+      class: Receive
+      params:
+        name: test
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    - id: save
+      module: timeflux.nodes.hdf5
+      class: Save
+      params:
+        min_itemsize:
+          label: 12
+          data: 200
+    edges:
+      # - source: inlet
+      #   target: display
+      - source: inlet
+        target: save
+    rate: 1

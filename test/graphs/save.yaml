@@ -1,0 +1,43 @@
+graphs:
+
+  - id: Broker
+    nodes:
+    - id: proxy
+      module: timeflux.nodes.zmq
+      class: Broker
+    rate: 1
+
+  - id: replayer
+    nodes:
+    - id: replay
+      module: timeflux.nodes.hdf5
+      class: Replay
+      params:
+        filename: test/data/data.hdf5
+        keys:
+          - /nexus/signal/nexus_signal_raw
+        timespan: .04
+    - id: pub
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: 'test'
+    edges:
+       - source: replay:nexus_signal_nexus_signal_raw
+         target: pub
+    rate: 25
+
+  - id: recorder
+    nodes:
+    - id: sub
+      module: timeflux.nodes.zmq
+      class: Sub
+      params:
+        topics: ['test']
+    - id: save
+      module: timeflux.nodes.hdf5
+      class: Save
+    edges:
+      - source: sub:test
+        target: save:foo_bar
+    rate: 1

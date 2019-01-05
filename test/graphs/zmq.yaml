@@ -1,0 +1,44 @@
+graphs:
+
+  - id: Broker
+    nodes:
+    - id: proxy
+      module: timeflux.nodes.zmq
+      class: BrokerMonitored
+      params:
+        timeout: 5
+    rate: 1
+
+  - id: Publisher
+    nodes:
+    - id: node_1
+      module: timeflux.nodes.sequence
+      class: Sequence
+    - id: node_2
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: 'test'
+    edges:
+      - source: node_1
+        target: node_2
+    rate: 1
+
+  - id: Subscriber
+    nodes:
+    - id: node_1
+      module: timeflux.nodes.zmq
+      class: Sub
+      params:
+        topics: ['test']
+    - id: node_2
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+      - source: node_1:test
+        target: node_2
+    rate: 1
+
+
+
+

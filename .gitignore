@@ -1,0 +1,8 @@
+.DS_Store
+.cache
+.pytest_cache
+__pycache__
+*.py[cod]
+*$py.class
+doc/_api
+doc/_build
