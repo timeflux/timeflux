@@ -11,9 +11,9 @@ class Epoch(Node):
     It then sends the epoched data in the default output stream, and set the ``epoch`` field of ``o.meta`` to a dictionary containing the triggering marker and optional event data.
 
     Attributes:
-        i (Port): default data input, expects DataFrame.
-        i_events (Port): event input, expects DataFrame.
-        o (Port): default output, provides DataFrame and meta.
+        i (Port): Default data input, expects DataFrame.
+        i_events (Port): Event input, expects DataFrame.
+        o (Port): Default output, provides DataFrame and meta.
 
     Example:
         .. literalinclude:: /../test/graphs/epoch.yaml
