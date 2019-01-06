@@ -4,6 +4,7 @@
 __pycache__
 *.py[cod]
 *$py.class
-doc/_api
-doc/_build
+doc/api
+doc/build
 *.egg-info
+.idea
