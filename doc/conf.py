@@ -21,19 +21,24 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 from timeflux import __version__
+from sphinx.util import logging
+logger = logging.getLogger(__name__)
 
 
 # -- Auto-generate API documentation --------------------------------------
 
-api_packages = ['timeflux', 'timeflux_example']
+api_packages = ['timeflux', 'timeflux_example', 'timeflux_dsp', 'timeflux_ml', 'timeflux_ui', 'timeflux_eegio']
 api_path = 'api'
 
 def run_apidoc(_):
     from sphinx.ext.apidoc import main
     from importlib.util import find_spec
     for package in api_packages:
-        module_path = find_spec(package).submodule_search_locations[0]
-        main(['--tocfile', 'modules_' + package, '--separate', '--force', '--module-first', '--implicit-namespaces', '-o', api_path, module_path])
+        try:
+            module_path = find_spec(package).submodule_search_locations[0]
+            main(['--tocfile', 'modules_' + package, '--separate', '--force', '--module-first', '--implicit-namespaces', '-o', api_path, module_path])
+        except:
+            logger.warning('Package %s not found.' % package)
 
 # -- Setup-----------------------------------------------------------------
 
