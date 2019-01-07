@@ -1,7 +1,7 @@
 # Timeflux
 
-Timeflux is a free and open-source solution for acquisition and real-time processing of biosignals.
-Use it to bootstrap your research, build brain-computer interfaces, closed-loop biofeedback applications, interactive installations, and more. Written in Python, it works under Linux, MacOS and Windows. Made for researchers and hackers alike.
+Timeflux is a free and open-source solution for the acquisition and real-time processing of biosignals.
+Use it to bootstrap your research, build brain-computer interfaces, closed-loop biofeedback applications, interactive installations, and more. Written in Python, it works on Linux, MacOS and Windows. Made for researchers and hackers alike.
 
 ## Installation
 
