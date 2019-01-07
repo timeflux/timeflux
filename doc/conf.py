@@ -49,6 +49,12 @@ def setup(app):
     #app.add_js_file('js/ui.js')
     app.connect('builder-inited', run_apidoc)
 
+rst_prolog = """
+.. |br| raw:: html
+
+   <br>
+"""
+
 
 # -- General configuration ------------------------------------------------
 
