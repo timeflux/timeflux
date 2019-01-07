@@ -46,7 +46,7 @@ def setup(app):
     #app.add_js_file('https://www.googletagmanager.com/gtag/js?id=UA-25274760-3', async='async')
     app.add_js_file('https://www.googletagmanager.com/gtag/js?id=UA-25274760-3') # kwargs broken?
     app.add_js_file('js/ga.js')
-    app.add_js_file('js/ui.js')
+    #app.add_js_file('js/ui.js')
     app.connect('builder-inited', run_apidoc)
 
 
