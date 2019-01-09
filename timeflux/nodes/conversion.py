@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 
-""" timeflux.nodes.xarray
+"""Conversion
 
-This module contains xarray helpers.
+This module contains nodes to convert Xarray to Pandas and vice versa.
 
 """
 
@@ -12,19 +11,19 @@ import logging
 
 
 class XRTranspose(Node):
-    """ Transpose dimensions of a DaraArray.
+    """Transpose dimensions of a DaraArray.
 
     This node reorders the dimensions of a DataArray object to ``dims``.
 
     Attributes:
-        i (Port): default data input, expects XArray.
-        o (Port): default output, provides XArray.
+        i (Port): default data input, expects DataArray.
+        o (Port): default output, provides DataArray.
 
     """
 
     def __init__(self, dims):
         """
-         Args:
+        Args:
             dims (list, None): By default, reverse the dimensions. Otherwise, reorder the dimensions to this order.
 
         """
@@ -43,12 +42,12 @@ class XRTranspose(Node):
 
 
 class XR_to_DF(Node):
-    """ Convert XArray to DataFrame.
+    """Convert XArray to DataFrame.
 
-    This node converts a XRArray into a flat DataFrame with simple index given by dimension in ``index_dim`` and eventually MultiIndex columns (`nb_levels = n_dim -1`, where n_dim is the number of dimensions of the XArray in input ).
+    This node converts a XArray into a flat DataFrame with simple index given by dimension in ``index_dim`` and eventually MultiIndex columns (`nb_levels = n_dim -1`, where n_dim is the number of dimensions of the XArray in input ).
 
     Attributes:
-        i (Port): default data input, expects XArray.
+        i (Port): default data input, expects DataArray.
         o (Port): default output, provides DataFrame.
 
     """
@@ -57,7 +56,7 @@ class XR_to_DF(Node):
         """
         Args:
             index_dim (str, `time`): Name of the dimension to set the index of the DataFrame.
-         """
+        """
 
         self._index_dim = index_dim
         self._indexes = None
