@@ -99,7 +99,7 @@ release = __version__
 language = None
 exclude_patterns = ['build', 'Thumbs.db', '.DS_Store']
 pygments_style = 'sphinx'
-todo_include_todos = False
+todo_include_todos = True
 
 html_static_path = ['static']
 
