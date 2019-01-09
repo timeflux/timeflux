@@ -1,10 +1,20 @@
 Timeflux documentation
 ======================
 
-Timeflux is an open-source platform for realtime acquisition and processing of biosignals. It can easily be operated by experimenters and hackers with a unique configuration file, in which graphs and processing nodes are expressed using a simple YAML syntax. Written in Python and resting on industry standards such as Pandas, Numpy, and Scipy, it is meant to be easily extensible. Core modules include common signal processing nodes, a monitoring web interface, network communication protocols (Lab Streaming Layer, ZeroMQ, raw TCP, OSC), and HDF5 file handling (saving and replay). Drivers for open and proprietary hardware (EEG, ECG, PPG, GSR, respiration, eye tracking) have already been developed, with more coming.
+Timeflux is a free and open-source solution for the acquisition and real-time processing of biosignals.
+Use it to bootstrap your research, build brain-computer interfaces, closed-loop biofeedback applications, interactive installations, and more. Written in Python, it works on Linux, MacOS and Windows. Made for researchers and hackers alike.
+
+It comes with integrated communication protocols (Lab Streaming Layer, ZeroMQ, OSC), HDF5 file handling (saving and replay) and generic data manipulation tools.
+
+Currently available plugins include signal processing nodes, machine learning tools and a monitoring web interface.
+
+Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye tracking) have already been developed, with more coming.
+
+.. note::
+    Right now, the documentation is quite coarse, and some parts of the code need polishing. We're working on it!
 
 .. warning::
-    Use at your own risk.
+    Timeflux is an early stage project and is actively developed. Use at your own risk.
 
 
 .. toctree::
@@ -25,6 +35,7 @@ Timeflux is an open-source platform for realtime acquisition and processing of b
 
     general/about.rst
     general/concepts.rst
+    general/getting_help.rst
 
 
 .. raw:: latex
@@ -39,7 +50,23 @@ Timeflux is an open-source platform for realtime acquisition and processing of b
     :name: usage
 
     usage/getting_started.rst
-    usage/extending.rst
+    usage/graph.rst
+
+
+.. raw:: latex
+
+    \part{Extending}
+
+
+.. toctree::
+    :hidden:
+    :maxdepth: 1
+    :caption: Extending
+    :name: extending
+
+    extending/plugin.rst
+    extending/branches.rst
+    extending/best_practices.rst
 
 
 .. raw:: latex
