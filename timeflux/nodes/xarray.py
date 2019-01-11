@@ -22,10 +22,10 @@ class XRTranspose(Node):
 
     """
 
-    def __init__(self, dims):
+    def __init__(self, dims=None):
         """
          Args:
-            dims (list, None): By default, reverse the dimensions. Otherwise, reorder the dimensions to this order.
+            dims (list, None): If None, reverse the dimensions. Otherwise, reorder the dimensions to this order. Default: None.
 
         """
 
@@ -56,7 +56,7 @@ class XR_to_DF(Node):
     def __init__(self, index_dim="time"):
         """
         Args:
-            index_dim (str, `time`): Name of the dimension to set the index of the DataFrame.
+            index_dim (str): Name of the dimension to set the index of the DataFrame. Default: `time`
          """
 
         self._index_dim = index_dim

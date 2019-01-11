@@ -83,19 +83,19 @@ class ApplyMethod(Node):
 
     """
 
-    def __init__(self, func=None, module_name="numpy", method_name="mean", method_type="universal", kwds={}, axis=0 , closed="right"):
+    def __init__(self, func, module_name="numpy", method_name="mean", method_type="universal", kwds={}, axis=0 , closed="right"):
         """
            Args:
-               func (func|None): custom function specified directely that takes as input a n_array (eg. lambda x: x+1)
-               module_name (str): name of the module to import, in which the method is defined
-               method_name (str): name of the callable method to apply on the data
-               method_type (str|`universal`): {`universal`, `reduce`, `expand` }.
+               func (func): custom function specified directely that takes as input a n_array (eg. lambda x: x+1).
+               module_name (str): name of the module to import, in which the method is defined. Default: `numpy`
+               method_name (str): name of the callable method to apply on the data. Default: `mean`
+               method_type (str|`universal`): {`universal`, `reduce`, `expand` }. Default: `universal`.
                              -  `universal` if function is a transformation from n_array to n_array
                              -  `reduce` if function is a transformation from n_array to scalar
                              -  `expand` if function is a transformation from n_array to nk_array [not yet implemented]
                kwds (dict): dictionnary with additional keyword arguments to pass as keywords arguments to `func`.
-               axis (int) : if 0, the transformation is applied to columns, if 1 to rows.
-               closed (int) : {`left`, `right`, `center`}: timestamp to transfer in the output, only when method_type is "reduce" and axis = 0, in which case, the output port's lenght is 1.
+               axis (int) : if 0, the transformation is applied to columns, if 1 to rows. Default: `0`
+               closed (int) : {`left`, `right`, `center`}: timestamp to transfer in the output, only when method_type is "reduce" and axis = 0, in which case, the output port's lenght is 1. Default: `right`
 
         """
 

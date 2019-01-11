@@ -89,7 +89,7 @@ class Expression(Node):
         """
             Args:
                expr (str) : Expression of the function to apply to each column or row.
-               eval_on ((`columns` | `ports`), `ports` ): Variable on which the expression is evaluated.
+               eval_on (`columns` | `ports`): Variable on which the expression is evaluated. Default: `ports`
                       If `columns`, the variables passed to the expression are the columns of the data in default input port.
                       If `ports`, the variables passed to the expression are the data of the input ports.
                kwargs : Additional keyword arguments to pass as keywords arguments to `pandas.eval`:
