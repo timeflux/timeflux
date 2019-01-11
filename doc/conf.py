@@ -87,7 +87,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Timeflux'
-copyright = '2018-2019, Pierre Clisson, Raphaëlle Bertrand Lalo and the Timeflux community'
+copyright = '2018-2019, Pierre Clisson, Raphaëlle Bertrand-Lalo and the Timeflux community'
 author = 'Pierre Clisson'
 
 # The short X.Y version.

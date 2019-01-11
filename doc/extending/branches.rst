@@ -1,4 +1,4 @@
-About
-=====
+Branches
+========
 
 .. todo:: Coming soon!
