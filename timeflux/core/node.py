@@ -6,6 +6,10 @@ from timeflux.core.io import Port
 
 class Node(ABC):
 
+    def __init__(self):
+        """Instantiate the node."""
+        pass
+
     def __getattr__(self, name):
         """
         Create input and output ports on the fly.
