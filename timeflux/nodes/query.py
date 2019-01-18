@@ -45,8 +45,8 @@ class SelectRange(Node):
         """
             Args:
              ranges (dict): Dict with keys are level names and values are selection ranges.
-             axis (int): If 0, the level concerns row index, if 1, columns index (`0` or `1`).
-             inclusive (bool) : Whether the boundaries are strict or included.
+             axis (int): If 0, the level concerns row index, if 1, columns index (`0` or `1`). Default: `0`.
+             inclusive (bool) : Whether the boundaries are strict or included. Default: `False`.
 
           """
 
@@ -120,9 +120,9 @@ class XsQuery(Node):
         """
         Args:
            key (str|tuple): Some label contained in the index, or partially in a MultiIndex index.
-           axis (int): Axis to retrieve cross-section on (`0` or `1`).
-           level (str\int|tuple) : In case of a key partially contained in a MultiIndex, indicates which levels are used. Levels can be referred by label or position.
-           drop_level (bool) : If False, returns DataFrame with same level.
+           axis (int): Axis to retrieve cross-section on (`0` or `1`). Default: `0`.
+           level (str|int|tuple) : In case of a key partially contained in a MultiIndex, indicates which levels are used. Levels can be referred by label or position.
+           drop_level (bool) : If False, returns DataFrame with same level. Default: `False`.
 
         """
 
@@ -177,7 +177,7 @@ class LocQuery(Node):
         """
         Args:
            key (str|tuple): Label selection specification.
-           axis (int): Axis to query the label from (`0` or `1`).
+           axis (int): Axis to query the label from (`0` or `1`). Default: `1`.
 
         """
 
