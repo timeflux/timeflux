@@ -1,5 +1,6 @@
 """Tests for epoch.py"""
 
+import pytest
 import pandas as pd
 import helpers
 from pandas.testing import assert_frame_equal
@@ -89,7 +90,7 @@ def test_multiple_events():
     assert node.o.meta['epoch']['onset'] == pd.Timestamp('2018-01-01 00:00:04.598117111')
 
 def test_multiple_triggers():
-    # In case of multiple triggers, only keep the first one
+    # Mutliple epochs should be returned
     node.clear()
     node.i.data = data.next()
     event = pd.DataFrame(
@@ -102,7 +103,8 @@ def test_multiple_triggers():
         ], columns=['label', 'data'])
     node.i_events.data = event
     node.update()
-    assert node.o.meta['epoch']['context'] == 'foo'
+    assert node.o_0.meta['epoch']['context'] == 'foo'
+    assert node.o_1.meta['epoch']['context'] == 'bar'
 
 def test_unsynced_event():
     # The epoch must be fetched even if the trigger time does not match exactly
