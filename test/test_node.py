@@ -3,12 +3,12 @@
 import pytest
 from timeflux.core.node import Node
 
-class Test(Node):
+class DummyNode(Node):
     def update():
         pass
 
 def test_create_ports():
-    n = Test()
+    n = DummyNode()
     assert n.i == n.ports['i']
     assert n.i.data == None
     assert n.i_test.data == None
@@ -16,7 +16,7 @@ def test_create_ports():
     assert id(n.o.data) == id(n.ports['o'].data)
 
 def test_clear_ports():
-    n = Test()
+    n = DummyNode()
     n.o.set([[0,1],[2,3]], [0, 1])
     n.clear()
     assert n.o.data == None
