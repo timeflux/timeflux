@@ -1,7 +1,9 @@
 """Tests for node.py"""
 
 import pytest
+from types import GeneratorType
 from timeflux.core.node import Node
+from timeflux.core.io import Port
 
 class DummyNode(Node):
     def update():
@@ -20,3 +22,16 @@ def test_clear_ports():
     n.o.set([[0,1],[2,3]], [0, 1])
     n.clear()
     assert n.o.data == None
+
+def test_create_dynamic_port():
+    n = DummyNode()
+    assert type(n.i_foo) == Port
+
+def test_iterate():
+    n = DummyNode()
+    n.o_p_0.meta = 'foo'
+    n.o_p_1.meta = 'bar'
+    n.o_p_2.meta = 'baz'
+    expected = ['o_p_0', 'o_p_1', 'o_p_2']
+    result = [port[0] for port in list(n.iterate('o_p_*'))]
+    assert result == expected
