@@ -79,8 +79,7 @@ class Node(ABC):
 
         if self.ports:
             for name, port in self.ports.items():
-                port.data = None
-                port.meta = {}
+                port.clear()
                 if self._re_dynamic_port.match(name):
                     remove.append(name)
 
