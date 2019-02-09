@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 import logging
-
+from ..helpers.xarray import proper_unstack
 class SelectRange(Node):
     """Select a subset of the given data along vertical (index) or horizontal (columns) axis.
 
@@ -206,3 +206,51 @@ class LocQuery(Node):
                             raise ValueError (e)
                     else:
                         self.o.data = self.i.data.loc[:, self._key]
+
+class AverageBands(Node):
+    """Averages the XArray values over a given dimension according to the edges boundaries given in arguments.
+
+    This node selects a subset of values over the chosen dimensions, averages them along this axis and convert the result into a flat dataframe.
+    This node will output as many ports bands as given bands, with their respective name as suffix.
+
+        Attributes:
+            i (Port): default output, provides DataArray with 3 dimensions, eg. (time, freq, space).
+            o (Port): Default output, provides DataFrame.
+            o_* (Port): Dynamic outputs, provide DataFrame.
+        Example:
+
+    """
+    def __init__(self, columns_dimension="space", band_dimension="freq", bands=[{"name": "alpha", "range": [8,12]}, {"name": "beta", "range": [12, 30]}]) :
+
+
+        """
+        Args:
+           dim (str): dimension name on which the selection should apply.
+           bands (list of dictionnaries): Define the band to extract given its name and its range. An output port will be created with the given names as suffix.
+
+        """
+        self._band_dimension = band_dimension
+        self._columns_dimension = columns_dimension
+        self._bands = []
+        for band in bands:
+            self._bands.append(dict(port=getattr(self, 'o_' + band["name"]), slice=slice(band["range"][0], band["range"][1])))
+
+    def update(self):
+
+        # copy the meta
+        self.o = self.i
+
+        # When we have not received data, there is nothing to do
+        if self.i.data is None :
+            return
+
+        # At this point, we are sure that we have some data to process
+        for band in self._bands:
+            columns = self.i.data.coords[self._columns_dimension].values
+            # 1. select the Xarray on freq axis in the range, 2. average along freq axis, 3. convert Xarray to dataframe, # 4. unstack the dataframe
+            band["port"].data = self.i.data.loc[{self._band_dimension: band["slice"]}].mean(self._band_dimension).to_dataframe(self._band_dimension).unstack()
+            # 5. convert the dataframe to mono-index.
+            band["port"].data.columns = band["port"].data.columns.droplevel(0)
+            band["port"].data.index.name = None #6a remove index name
+            band["port"].data.columns.name = None #6b remove columns name
+            band["port"].data =  band["port"].data[columns]
