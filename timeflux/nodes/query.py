@@ -217,7 +217,6 @@ class AverageBands(Node):
             i (Port): default output, provides DataArray with 3 dimensions, eg. (time, freq, space).
             o (Port): Default output, provides DataFrame.
             o_* (Port): Dynamic outputs, provide DataFrame.
-        Example:
 
     """
     def __init__(self, columns_dimension="space", band_dimension="freq", bands=[{"name": "alpha", "range": [8,12]}, {"name": "beta", "range": [12, 30]}]) :
