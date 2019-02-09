@@ -51,6 +51,6 @@ class Worker:
         # TODO: set defaults during validation
         if not 'params' in node: node['params'] = {}
 
-        i = c(**node['params'])
+        n = c(**node['params'])
 
-        return i
+        return n
