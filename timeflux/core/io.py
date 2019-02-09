@@ -12,7 +12,7 @@ class Port:
 
     def clear(self):
         self.data = None
-        self.meta = None
+        self.meta = {}
 
     def set(self, rows, timestamps=None, names=None):
         if timestamps is None:
