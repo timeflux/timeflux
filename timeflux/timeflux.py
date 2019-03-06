@@ -16,7 +16,7 @@ def main():
     Manager(args.config).run()
 
 def _quit(signal, frame):
-    logging.info('Terminating')
+    logging.info('Interrupting')
     sys.exit(0)
 
 def _args():

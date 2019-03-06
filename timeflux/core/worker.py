@@ -1,6 +1,7 @@
 """timeflux.core.worker: spawn processes."""
 
 import importlib
+import logging
 from multiprocessing import Process
 from timeflux.core.graph import Graph
 from timeflux.core.scheduler import Scheduler
@@ -37,7 +38,8 @@ class Worker:
         nodes = {}
         for step in path:
             node = self._load_node(graph.nodes[step['node']])
-            nodes[step['node']] = node
+            if node:
+                nodes[step['node']] = node
 
         # Launch scheduler and run it
         scheduler = Scheduler(path, nodes, self._graph['rate'])
@@ -45,12 +47,19 @@ class Worker:
 
     def _load_node(self, node):
         """Import a module and instantiate class."""
-        m = importlib.import_module(node['module'])
-        c = getattr(m, node['class'])
 
-        # TODO: set defaults during validation
-        if not 'params' in node: node['params'] = {}
+        try:
 
-        n = c(**node['params'])
+            m = importlib.import_module(node['module'])
+            c = getattr(m, node['class'])
 
-        return n
+            # TODO: set defaults during validation
+            if not 'params' in node: node['params'] = {}
+
+            n = c(**node['params'])
+            return n
+
+        except Exception as error:
+            logging.exception(error)
+
+

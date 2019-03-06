@@ -93,3 +93,9 @@ class Node(ABC):
         """Update the input and output ports."""
 
         pass
+
+
+    def terminate(self):
+        """Perform some cleanup upon termination."""
+
+        pass
