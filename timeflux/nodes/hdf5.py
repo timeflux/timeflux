@@ -100,6 +100,9 @@ class Replay(Node):
 
         self._current = max
 
+    def terminate(self):
+        self._store.close()
+
 
 class Save(Node):
 
@@ -129,7 +132,6 @@ class Save(Node):
         logging.info('Saving to %s', fname)
         self._store = pd.HDFStore(fname, complib=complib, complevel=complevel)
         self.min_itemsize = min_itemsize
-        print(min_itemsize)
 
 
     def update(self):
@@ -139,3 +141,6 @@ class Save(Node):
                     if name.startswith('i'):
                         key = '/' + name[2:].replace('_', '/')
                         self._store.append(key, port.data, min_itemsize=self.min_itemsize)
+
+    def terminate(self):
+        self._store.close()
