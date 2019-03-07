@@ -9,6 +9,20 @@ with open('README.md', 'rb') as f:
 with open('timeflux/__init__.py') as f:
     VERSION = re.search('^__version__\s*=\s*\'(.*)\'', f.read(), re.M).group(1)
 
+dependencies = [
+    'networkx',
+    'PyYAML',
+    'numpy',
+    'pandas',
+    'xarray',
+    'scipy',
+    'pyzmq',
+    'coloredlogs',
+    'tables',
+    'pylsl',
+    'python-osc',
+]
+
 setup(
     name='Timeflux',
     packages=find_packages(),
@@ -21,4 +35,5 @@ setup(
     author='Pierre Clisson',
     author_email='contact@timeflux.io',
     url='https://timeflux.io',
+    install_requires=dependencies,
 )
