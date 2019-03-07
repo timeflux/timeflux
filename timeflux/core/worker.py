@@ -40,6 +40,8 @@ class Worker:
             node = self._load_node(graph.nodes[step['node']])
             if node:
                 nodes[step['node']] = node
+            else:
+                return False
 
         # Launch scheduler and run it
         scheduler = Scheduler(path, nodes, self._graph['rate'])
@@ -61,5 +63,4 @@ class Worker:
 
         except Exception as error:
             logging.exception(error)
-
 
