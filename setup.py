@@ -21,6 +21,7 @@ dependencies = [
     'tables',
     'pylsl',
     'python-osc',
+    'python-dotenv',
 ]
 
 setup(

@@ -13,3 +13,4 @@ sphinx>=1.8
 sphinx_rtd_theme
 pylsl==1.10.5
 python-osc==1.7.0
+python-dotenv==0.10.1
