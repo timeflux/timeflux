@@ -15,6 +15,7 @@ dependencies = [
     'numpy',
     'pandas',
     'xarray',
+    'bottleneck',
     'scipy',
     'pyzmq',
     'coloredlogs',

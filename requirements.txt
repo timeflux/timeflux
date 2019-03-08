@@ -3,6 +3,7 @@ PyYAML>=3.13
 numpy>=1.15
 pandas>=0.23.4
 xarray>=0.11
+bottleneck
 scipy>=1.1
 pyzmq>=17.1.2
 coloredlogs>=10.0
