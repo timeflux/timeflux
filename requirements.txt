@@ -15,5 +15,5 @@ sphinx_rtd_theme
 pylsl==1.10.5
 python-osc==1.7.0
 python-dotenv==0.10.1
-#git+https://github.com/timeflux/timeflux	
+jsonschema>=3.0.1
 #git+https://github.com/timeflux/timeflux_example

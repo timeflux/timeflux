@@ -9,7 +9,7 @@ with open('README.md', 'rb') as f:
 with open('timeflux/__init__.py') as f:
     VERSION = re.search('^__version__\s*=\s*\'(.*)\'', f.read(), re.M).group(1)
 
-dependencies = [
+DEPENDENCIES = [
     'networkx',
     'PyYAML',
     'numpy',
@@ -23,6 +23,7 @@ dependencies = [
     'pylsl',
     'python-osc',
     'python-dotenv',
+    'jsonschema'
 ]
 
 setup(
@@ -37,5 +38,5 @@ setup(
     author='Pierre Clisson',
     author_email='contact@timeflux.io',
     url='https://timeflux.io',
-    install_requires=dependencies,
+    install_requires=DEPENDENCIES
 )

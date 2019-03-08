@@ -1,4 +1,4 @@
-"""timeflux.timeflux: provides entry point main()."""
+"""Timeflux entry point"""
 
 import signal
 import sys
@@ -17,10 +17,13 @@ def main():
     LOGGER.info('Timeflux %s' % __version__)
     sys.path.append(os.getcwd())
     args = _args()
-    _env(args.env)
+    load_dotenv(args.env)
     signal.signal(signal.SIGINT, _interrupt)
     _run_hook('pre')
-    Manager(args.app).run()
+    try:
+        Manager(args.app).run()
+    except Exception as error:
+        LOGGER.error(error)
     _terminate()
 
 def _args():
@@ -30,9 +33,6 @@ def _args():
     parser.add_argument('app', help='path to the YAML or JSON application file')
     args = parser.parse_args()
     return args
-
-def _env(path):
-    load_dotenv(path)
 
 def _interrupt(signal, frame):
     LOGGER.info('Interrupting')

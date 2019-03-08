@@ -1,4 +1,7 @@
 name: timeflux
+channels:
+  - conda-forge
+  - defaults
 dependencies:
 - python>=3.6.7
 - networkx>=2.1
@@ -14,10 +17,11 @@ dependencies:
 - pytest>=4.0.2
 - sphinx>=1.8
 - sphinx_rtd_theme
+- jsonschema
+- python-dotenv
 - pip
 - pip:
   - pylsl==1.10.5
-  - python-dotenv==0.10.1
   - python-osc==1.7.0
   - git+https://github.com/timeflux/timeflux
   - git+https://github.com/timeflux/timeflux_example

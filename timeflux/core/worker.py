@@ -14,9 +14,6 @@ class Worker:
     def __init__(self, graph):
         self._graph = graph
 
-         # TODO: set defaults during validation
-        if not 'id' in self._graph: self._graph['id'] = None
-
     def run(self):
         """Run the process"""
         p = Process(target=self._run, name=self._graph['id'])
@@ -30,8 +27,7 @@ class Worker:
         graph = g.build()
         path = g.traverse()
 
-        # TODO: set defaults during validation
-        if not 'rate' in self._graph: self._graph['rate'] = 1
+        # Set rate
         Registry.rate = self._graph['rate']
 
         # Load nodes
@@ -51,16 +47,10 @@ class Worker:
         """Import a module and instantiate class."""
 
         try:
-
             m = importlib.import_module(node['module'])
             c = getattr(m, node['class'])
-
-            # TODO: set defaults during validation
-            if not 'params' in node: node['params'] = {}
-
             n = c(**node['params'])
             return n
-
         except Exception as error:
             logging.exception(error)
 

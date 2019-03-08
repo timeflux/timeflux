@@ -1,8 +1,11 @@
 """timeflux.core.manager: manage workers"""
 
 import logging
+import pathlib
 import json
 import yaml
+from jsonschema.exceptions import ValidationError
+from timeflux.core.validate import ValidateWithDefaults
 from timeflux.core.worker import Worker
 
 class Manager:
@@ -32,9 +35,9 @@ class Manager:
             else:
                 self.config = json.loads(config)
         else:
-            raise ValueError('Could not load config.')
+            raise ValueError('Could not load application file')
         if not self._validate():
-            raise ValueError('Invalid config.')
+            raise ValueError('Invalid application file')
 
     def run(self):
         """Span as many workers as there are graphs."""
@@ -52,5 +55,6 @@ class Manager:
             return json.load(stream)
 
     def _validate(self):
-        # TODO
-        return True
+        path = str(pathlib.Path(__file__).parents[1].joinpath('schema', 'app.json'))
+        schema = self._load_json(path)
+        return ValidateWithDefaults(schema, self.config)

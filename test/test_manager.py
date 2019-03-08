@@ -4,7 +4,7 @@ import json
 import pytest
 from timeflux.core.manager import Manager
 
-test_config = {'graphs': [{'nodes': [{'id': 'node_1', 'module': 'timeflux.nodes.random', 'class': 'Random', 'params': {'columns': 5, 'rows_min': 1, 'rows_max': 10, 'value_min': 0, 'value_max': 5, 'seed': 1}}, {'id': 'node_2', 'module': 'timeflux_example.nodes.arithmetic', 'class': 'Add', 'params': {'value': 1}}, {'id': 'node_3', 'module': 'timeflux.nodes.debug', 'class': 'Display'}], 'edges': [{'source': 'node_1', 'target': 'node_2'}, {'source': 'node_2', 'target': 'node_3'}]}]}
+test_config = {'graphs': [{'nodes': [{'id': 'node_1', 'module': 'timeflux.nodes.random', 'class': 'Random', 'params': {'columns': 5, 'rows_min': 1, 'rows_max': 10, 'value_min': 0, 'value_max': 5, 'seed': 1}}, {'id': 'node_2', 'module': 'timeflux_example.nodes.arithmetic', 'class': 'Add', 'params': {'value': 1}}, {'id': 'node_3', 'module': 'timeflux.nodes.debug', 'class': 'Display', 'params': {}}], 'edges': [{'source': 'node_1', 'target': 'node_2'}, {'source': 'node_2', 'target': 'node_3'}], 'id': None, 'rate': 1}]}
 
 
 def test_load_invalid_config():
@@ -35,11 +35,24 @@ def test_load_dict():
     m = Manager(test_config)
     assert m.config == test_config
 
-# def test_run():
-#    m = Manager(pytest.path + '/zmq.yaml')
-#    assert m.run() == False
+def test_validation_failure():
+    with pytest.raises(ValueError):
+        m = Manager({'graphs!': [{'nodes': [{'id': 'node_id', 'module': 'foobar', 'class': 'Foobar'}]}]})
+    with pytest.raises(ValueError):
+        m = Manager({'graphs': [{'nodes': [{'id': 'node_id', 'module': '.foobar', 'class': 'Foobar'}]}]})
+    with pytest.raises(ValueError):
+        m = Manager({'graphs': [{'nodes': [{'id': 'node_id', 'module': 'foobar.', 'class': 'Foobar'}]}]})
+    with pytest.raises(ValueError):
+        m = Manager({'graphs': [{'nodes': [{'id': 'node_id', 'module': 'foobar.', 'class': 'foobar'}]}]})
+    with pytest.raises(ValueError):
+        m = Manager({'graphs': [{'nodes': [{'id': 'node!', 'module': 'foobar.', 'class': 'foobar'}]}]})
 
-# def test_sub(pipe):
-#     m = Manager(pytest.path + '/test2.yaml')
-#     m.run()
-
+def test_validation_success():
+    m = Manager({'graphs': [{'nodes': [{'id': 'node_id', 'module': 'foobar', 'class': 'Foobar'}]}]})
+    assert m != None
+    m = Manager({'graphs': [{'nodes': [{'id': 'node_id', 'module': 'foobar', 'class': 'Foobar'}], 'edges': [{'source': 'node_id', 'target': 'node_id'}]}]})
+    assert m != None
+    m = Manager({'graphs': [{'nodes': [{'id': 'node_id', 'module': 'foobar', 'class': 'Foobar'}], 'edges': [{'source': 'node:*', 'target': 'node_id'}]}]})
+    assert m != None
+    m = Manager({'graphs': [{'nodes': [{'id': 'node_id', 'module': 'foobar', 'class': 'Foobar'}], 'edges': [{'source': 'node:1', 'target': 'node:abc'}]}]})
+    assert m != None
