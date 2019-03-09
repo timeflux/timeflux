@@ -3,7 +3,7 @@
 import signal
 import sys
 import os
-import logging
+import logging, logging.handlers
 from argparse import ArgumentParser
 from importlib import import_module
 from dotenv import load_dotenv
@@ -19,6 +19,7 @@ def main():
     args = _args()
     load_dotenv(args.env)
     signal.signal(signal.SIGINT, _interrupt)
+    _log_init()
     _run_hook('pre')
     try:
         Manager(args.app).run()
@@ -46,7 +47,14 @@ def _terminate():
             pass
         _run_hook('post')
         LOGGER.info('Terminated')
+        logging.shutdown()
     sys.exit(0)
+
+def _log_init():
+    try:
+        logging.getLogger().setLevel(os.getenv('TIMEFLUX_LOG_LEVEL'))
+    except Exception:
+        pass
 
 def _run_hook(name):
     module = os.getenv('TIMEFLUX_HOOK_' + name.upper())
