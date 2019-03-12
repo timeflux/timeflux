@@ -1,10 +1,8 @@
 
 from timeflux.core.node import Node
-import pandas as pd
 import numpy as np
-
 import logging
-from ..helpers.xarray import proper_unstack
+
 class SelectRange(Node):
     """Select a subset of the given data along vertical (index) or horizontal (columns) axis.
 
