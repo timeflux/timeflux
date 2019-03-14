@@ -45,11 +45,13 @@ class Scheduler:
                     # Get a generator so dynamic ports are expanded
                     src_ports = self._nodes[predecessor['node']].iterate(predecessor['src_port'])
                     for name, suffix, src_port in src_ports:
+                        data = src_port.data
+                        meta = src_port.meta
                         if predecessor['copy']:
-                            if src_port.data is not None:
-                                data = src_port.data.copy(deep=True)
-                            if src_port.meta is not None:
-                                meta = deepcopy(src_port.meta)
+                            if data is not None:
+                                data = data.copy(deep=True)
+                            if meta is not None:
+                                meta = deepcopy(meta)
                         dst_port = getattr(self._nodes[step['node']], predecessor['dst_port'] + suffix)
                         dst_port.data = data
                         dst_port.meta = meta
