@@ -13,6 +13,7 @@ class Scheduler:
         self._nodes = nodes
         self._rate = rate
 
+
     def run(self):
         try:
             while True:
@@ -46,14 +47,15 @@ class Scheduler:
                     for name, suffix, src_port in src_ports:
                         if predecessor['copy']:
                             if src_port.data is not None:
-                                src_port.data = src_port.data.copy(deep=True)
+                                data = src_port.data.copy(deep=True)
                             if src_port.meta is not None:
-                                src_port.meta = deepcopy(src_port.meta)
+                                meta = deepcopy(src_port.meta)
                         dst_port = getattr(self._nodes[step['node']], predecessor['dst_port'] + suffix)
-                        dst_port.data = src_port.data
-                        dst_port.meta = src_port.meta
+                        dst_port.data = data
+                        dst_port.meta = meta
             # Update node
             self._nodes[step['node']].update()
+
 
     def terminate(self):
         for step in self._path:
