@@ -1,10 +1,8 @@
 """Node base class."""
 
-import logging
 import re
 from abc import ABC, abstractmethod
 from timeflux.core.io import Port
-
 
 class Node(ABC):
 
