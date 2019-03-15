@@ -29,6 +29,9 @@ DEPENDENCIES = [
 setup(
     name='Timeflux',
     packages=find_packages(),
+    package_data={
+        'timeflux': ['schema/app.json']
+    },
     entry_points={
         'console_scripts': ['timeflux = timeflux.timeflux:main']
     },
