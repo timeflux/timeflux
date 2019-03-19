@@ -80,20 +80,21 @@ class Epoch(Node):
         # Update epochs
         if self._epochs:
             if self.i.data is not None:
-                complete = 0
-                for epoch in self._epochs:
-                    low = epoch['data'].index[-1]
-                    high = epoch['meta']['onset'] + self._after
-                    last = self.i.data.index[-1]
-                    # Append
-                    mask = (self.i.data.index > low) & (self.i.data.index <= high)
-                    epoch['data'] = epoch['data'].append(self.i.data[mask])
-                    # Send if we have enough data
-                    if last >= high:
-                        o = getattr(self, 'o_' + str(complete))
-                        o.data = epoch['data']
-                        o.meta = {'epoch': epoch['meta']}
-                        complete += 1
-                if complete > 0:
-                    del self._epochs[:complete] # Unqueue
-                    self.o = self.o_0 # Bind default output to the first epoch
+                if not self.i.data.empty:
+                    complete = 0
+                    for epoch in self._epochs:
+                        low = epoch['data'].index[-1]
+                        high = epoch['meta']['onset'] + self._after
+                        last = self.i.data.index[-1]
+                        # Append
+                        mask = (self.i.data.index > low) & (self.i.data.index <= high)
+                        epoch['data'] = epoch['data'].append(self.i.data[mask])
+                        # Send if we have enough data
+                        if last >= high:
+                            o = getattr(self, 'o_' + str(complete))
+                            o.data = epoch['data']
+                            o.meta = {'epoch': epoch['meta']}
+                            complete += 1
+                    if complete > 0:
+                        del self._epochs[:complete] # Unqueue
+                        self.o = self.o_0 # Bind default output to the first epoch
