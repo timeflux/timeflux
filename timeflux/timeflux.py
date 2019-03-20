@@ -3,7 +3,8 @@
 import signal
 import sys
 import os
-import logging, logging.handlers
+import logging
+from logging.config import dictConfig
 from argparse import ArgumentParser
 from importlib import import_module
 from dotenv import load_dotenv
@@ -13,13 +14,54 @@ from timeflux.core.manager import Manager
 LOGGER = logging.getLogger(__name__)
 PID = os.getpid()
 
+
+def init_logs():
+    LEVEL_STYLES = {'debug': {'color': 'white'}, 'info': {'color': 'cyan'}, 'warning': {'color': 'yellow'},
+                    'error': {'color': 'red'}, 'critical': {'color': 'magenta'}}
+    FIELD_STYLES = {'asctime': {'color': 'blue'}, 'levelname': {'color': 'black', 'bright': True},
+                    'processName': {'color': 'green'}}
+
+    logging_config = {
+        'version': 1,
+        'disable_existing_loggers': True,  # set True to suppress existing loggers from other modules
+        'root': {
+            'level': 'INFO',
+            'handlers': ['console'],
+        },
+        'loggers': {
+            'timeflux': {
+                'level': os.getenv('TIMEFLUX_LOG_LEVEL', 'DEBUG'),
+            },
+        },
+        'formatters': {
+            'colored_console': {'()': 'coloredlogs.ColoredFormatter',
+                                'format': "%(asctime)s    %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s",
+                                'datefmt': '%Y-%m-%d %H:%M:%S,%f',
+                                'field_styles': FIELD_STYLES,
+                                'level_styles': LEVEL_STYLES},
+            'format_for_file': {
+                'format': "%(asctime)s :: %(levelname)s :: %(funcName)s in %(filename)s (l:%(lineno)d) :: %(message)s",
+                'datefmt': '%Y-%m-%d %H:%M:%S'},
+        },
+        'handlers': {
+            'console': {
+                'level': 'DEBUG',
+                'class': 'logging.StreamHandler',
+                'formatter': 'colored_console',
+                'stream': 'ext://sys.stdout'
+            },
+        }
+    }
+    dictConfig(logging_config)
+
+
 def main():
+    init_logs()
     LOGGER.info('Timeflux %s' % __version__)
     sys.path.append(os.getcwd())
     args = _args()
     load_dotenv(args.env)
     signal.signal(signal.SIGINT, _interrupt)
-    _log_init()
     _run_hook('pre')
     try:
         Manager(args.app).run()
@@ -49,12 +91,6 @@ def _terminate():
         LOGGER.info('Terminated')
         logging.shutdown()
     sys.exit(0)
-
-def _log_init():
-    try:
-        logging.getLogger().setLevel(os.getenv('TIMEFLUX_LOG_LEVEL'))
-    except Exception:
-        pass
 
 def _run_hook(name):
     module = os.getenv('TIMEFLUX_HOOK_' + name.upper())
