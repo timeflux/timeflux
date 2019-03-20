@@ -1,10 +1,20 @@
 """Node base class."""
 
 import re
+import logging
 from abc import ABC, abstractmethod
 from timeflux.core.io import Port
 
 class Node(ABC):
+
+
+    def __new__(cls, *args, **kwargs):
+        """Create instance and initialize the logger."""
+
+        instance = super().__new__(cls)
+        instance.logger = logging.getLogger(__name__ + '.' + cls.__name__)
+        return instance
+
 
     def __init__(self):
         """Instantiate the node."""
