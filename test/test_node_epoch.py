@@ -2,11 +2,11 @@
 
 import pandas as pd
 import helpers
+from pandas.testing import assert_frame_equal
 from timeflux.nodes.epoch import Epoch
 
 data = helpers.DummyData()
-node = Epoch(event_trigger='test', before=.2, after=.6)
-
+node = Epoch(event_trigger='test')
 
 def test_no_epoch():
     # Send enough data for an epoch, but no event
@@ -40,27 +40,16 @@ def test_receive_epoch():
             [0.176528, 0.220486, 0.186438, 0.779584, 0.350125],
             [0.057843, 0.969103, 0.883786, 0.927752, 0.994908],
             [0.173895, 0.396242, 0.758238, 0.696021, 0.153896],
-            [0.815833, 0.224441, 0.223818, 0.536974, 0.59294],
-            [0.580086, 0.091487, 0.877461, 0.2656, 0.129515],
-            [0.888748, 0.955651, 0.862128, 0.809516, 0.655242],
-            [0.057843, 0.969103, 0.883786, 0.927752, 0.994908],
-            [0.173895, 0.396242, 0.758238, 0.696021, 0.153896],
-            [0.815833, 0.224441, 0.223818, 0.536974, 0.59294],
-            [0.580086, 0.091487, 0.877461, 0.2656, 0.129515],
+            [0.815833, 0.224441, 0.223818, 0.536974, 0.592940],
+            [0.580086, 0.091487, 0.877461, 0.265600, 0.129515],
             [0.888748, 0.955651, 0.862128, 0.809516, 0.655242],
             [0.550857, 0.086987, 0.408453, 0.372689, 0.259754],
-            [0.72342, 0.495876, 0.081046, 0.220183, 0.683259]
+            [0.723420, 0.495876, 0.081046, 0.220183, 0.683259]
         ],
         [
             pd.Timestamp('2018-01-01 00:00:01.897912291'),
             pd.Timestamp('2018-01-01 00:00:02.001118529'),
             pd.Timestamp('2018-01-01 00:00:02.096394939'),
-            pd.Timestamp('2018-01-01 00:00:02.197921447'),
-            pd.Timestamp('2018-01-01 00:00:02.298663618'),
-            pd.Timestamp('2018-01-01 00:00:02.399560700'),
-            pd.Timestamp('2018-01-01 00:00:02.001118529'),
-            pd.Timestamp('2018-01-01 00:00:02.096394939'),
-
             pd.Timestamp('2018-01-01 00:00:02.197921447'),
             pd.Timestamp('2018-01-01 00:00:02.298663618'),
             pd.Timestamp('2018-01-01 00:00:02.399560700'),
@@ -118,23 +107,22 @@ def test_multiple_triggers():
 
 def test_unsynced_event():
     # The epoch must be fetched even if the trigger time does not match exactly
-    node = Epoch(event_trigger='test', before=.1, after=.2)
-    data.reset()
-
     node.clear()
     node.i.data = data.next(20)
-    time = pd.Timestamp('2018-01-01 00:00:00.55')
+    time = pd.Timestamp('2018-01-01 00:00:07.100')
     event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])
     node.i_events.data = event
     node.update()
-
     expected_indices = pd.DatetimeIndex([
-        pd.Timestamp('2018-01-01 00:00:00.496559945'),
-        pd.Timestamp('2018-01-01 00:00:00.595580836'),
-        pd.Timestamp('2018-01-01 00:00:00.703661761'),
-        pd.Timestamp('2018-01-01 00:00:00.496559945'),
-        pd.Timestamp('2018-01-01 00:00:00.595580836'),
-        pd.Timestamp('2018-01-01 00:00:00.703661761'),
+        pd.Timestamp('2018-01-01T00:00:06.904868869'),
+        pd.Timestamp('2018-01-01T00:00:07.002722448'),
+        pd.Timestamp('2018-01-01T00:00:07.096987157'),
+        pd.Timestamp('2018-01-01T00:00:07.195055221'),
+        pd.Timestamp('2018-01-01T00:00:07.303154614'),
+        pd.Timestamp('2018-01-01T00:00:07.402068573'),
+        pd.Timestamp('2018-01-01T00:00:07.502290072'),
+        pd.Timestamp('2018-01-01T00:00:07.602712703'),
+        pd.Timestamp('2018-01-01T00:00:07.695740447')
     ])
     pd.testing.assert_index_equal(node.o.data.index, expected_indices)
 
