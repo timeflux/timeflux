@@ -16,14 +16,15 @@ PID = os.getpid()
 
 
 def init_logs():
-    LEVEL_STYLES = {'debug': {'color': 'white'}, 'info': {'color': 'cyan'}, 'warning': {'color': 'yellow'},
+    level_styles = {'debug': {'color': 'white'}, 'info': {'color': 'cyan'}, 'warning': {'color': 'yellow'},
                     'error': {'color': 'red'}, 'critical': {'color': 'magenta'}}
-    FIELD_STYLES = {'asctime': {'color': 'blue'}, 'levelname': {'color': 'black', 'bright': True},
+    field_styles = {'asctime': {'color': 'blue'}, 'levelname': {'color': 'black', 'bright': True},
                     'processName': {'color': 'green'}}
+    date_format = "%(asctime)s %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s"
 
     logging_config = {
         'version': 1,
-        'disable_existing_loggers': True,  # set True to suppress existing loggers from other modules
+        'disable_existing_loggers': False,
         'root': {
             'level': 'INFO',
             'handlers': ['console'],
@@ -34,21 +35,20 @@ def init_logs():
             },
         },
         'formatters': {
-            'colored_console': {'()': 'coloredlogs.ColoredFormatter',
-                                'format': "%(asctime)s    %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s",
-                                'datefmt': '%Y-%m-%d %H:%M:%S,%f',
-                                'field_styles': FIELD_STYLES,
-                                'level_styles': LEVEL_STYLES},
-            'format_for_file': {
-                'format': "%(asctime)s :: %(levelname)s :: %(funcName)s in %(filename)s (l:%(lineno)d) :: %(message)s",
-                'datefmt': '%Y-%m-%d %H:%M:%S'},
+            'colored_console': {
+                '()': 'coloredlogs.ColoredFormatter',
+                'format': date_format,
+                'datefmt': '%Y-%m-%d %H:%M:%S,%f',
+                'field_styles': field_styles,
+                'level_styles': level_styles,
+            },
         },
         'handlers': {
             'console': {
                 'level': 'DEBUG',
                 'class': 'logging.StreamHandler',
                 'formatter': 'colored_console',
-                'stream': 'ext://sys.stdout'
+                'stream': 'ext://sys.stdout',
             },
         }
     }
@@ -56,11 +56,11 @@ def init_logs():
 
 
 def main():
-    init_logs()
     LOGGER.info('Timeflux %s' % __version__)
     sys.path.append(os.getcwd())
     args = _args()
     load_dotenv(args.env)
+    init_logs()
     signal.signal(signal.SIGINT, _interrupt)
     _run_hook('pre')
     try:
