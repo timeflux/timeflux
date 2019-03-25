@@ -87,13 +87,11 @@ class Epoch(Node):
                         last = self.i.data.index[-1]
                         if epoch['data'].empty:
                             low = epoch['meta']['onset'] - self._before
-                            # Append
-                            mask = (self.i.data.index > low) & (self.i.data.index <= high)
+                            mask = (self.i.data.index >= low) & (self.i.data.index <= high)
                         else:
                             low = epoch['data'].index[-1]
-                            # Append
-                            mask = (self.i.data.index >= low) & (self.i.data.index <= high)
-
+                            mask = (self.i.data.index > low) & (self.i.data.index <= high)
+                        # Append
                         epoch['data'] = epoch['data'].append(self.i.data[mask])
                         # Send if we have enough data
                         if last >= high:
