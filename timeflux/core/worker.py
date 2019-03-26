@@ -20,7 +20,7 @@ class Worker:
         p.start()
         return p.pid
 
-    def _run(self):
+    def load(self):
 
         # Build the graph and compute the traversal path
         g = Graph(self._graph)
@@ -38,6 +38,13 @@ class Worker:
                 nodes[step['node']] = node
             else:
                 return False
+
+        return path, nodes
+
+    def _run(self):
+
+        # Initialize the graph and instantiate the nodes
+        path, nodes = self.load()
 
         # Launch scheduler and run it
         scheduler = Scheduler(path, nodes, self._graph['rate'])
