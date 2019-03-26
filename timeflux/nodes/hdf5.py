@@ -14,7 +14,7 @@ class Replay(Node):
 
     """Replay a HDF5 file."""
 
-    def __init__(self, filename, keys, timespan=.04):
+    def __init__(self, filename, keys, timespan=.04, resync=True):
         """
         Initialize.
 
@@ -26,6 +26,8 @@ class Replay(Node):
             The list of keys to replay.
         timespan: float
             The timespan of each chunk, in seconds.
+        resync: boolean
+            If False, timestamps will not be resync'ed to current time
         """
 
         # Load store
@@ -39,6 +41,7 @@ class Replay(Node):
         self._start = pd.Timestamp.max
         self._stop = pd.Timestamp.min
         self._timespan = pd.Timedelta(f'{timespan}s')
+        self._resync = resync
 
         for key in keys:
             try:
@@ -93,7 +96,8 @@ class Replay(Node):
             data = self._store.select(key, 'index >= min & index < max')
 
             # Add offset
-            data.index += self._offset
+            if self._resync:
+                data.index += self._offset
 
             # Update port
             getattr(self, source['name']).data = data
