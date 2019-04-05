@@ -22,6 +22,17 @@ def init_logs():
                     'processName': {'color': 'green'}}
     date_format = "%(asctime)s %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s"
 
+    # On windows, the colors will not work unless we initialize the console with colorama
+    if sys.platform.startswith('win'):
+        try:
+            import colorama
+            colorama.init()
+        except ImportError:
+            # On windows, without colorama, do not use the colors
+            level_styles = {}
+            field_styles = {}
+
+
     logging_config = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -56,11 +67,11 @@ def init_logs():
 
 
 def main():
-    LOGGER.info('Timeflux %s' % __version__)
     sys.path.append(os.getcwd())
     args = _args()
     load_dotenv(args.env)
     init_logs()
+    LOGGER.info('Timeflux %s',  __version__)
     signal.signal(signal.SIGINT, _interrupt)
     _run_hook('pre')
     try:
