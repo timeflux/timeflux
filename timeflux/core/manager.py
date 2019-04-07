@@ -87,7 +87,7 @@ class Manager:
 
     def _load_yaml(self, filename):
         with open(filename) as stream:
-            return yaml.load(stream)
+            return yaml.safe_load(stream)
 
 
     def _load_json(self, filename):
