@@ -21,18 +21,18 @@ $ conda activate timeflux
 
 For a minimal working example:
 ```
-$ curl -O https://raw.githubusercontent.com/sylvchev/timeflux/master/test/graphs/test.yaml
+$ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/test/graphs/test.yaml
 $ timeflux test.yaml
 ```
 
 If you install also [timeflux_ui](https://github.com/timeflux/timeflux_ui), you could run a sample visualization:
 ```
-$ curl -O https://raw.githubusercontent.com/sylvchev/timeflux/master/test/graphs/ui.yaml
+$ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/test/graphs/ui.yaml
 $ timeflux ui.yaml
 ```
 Once it is launched, you could access it in [your browser](http://0.0.0.0:8000)
 
-Some example of Timeflux graphs are available in [test/graphs](https://github.com/timeflux/timeflux/tree/master/test/graphs)
+More examples of Timeflux graphs are available in [test/graphs](https://github.com/timeflux/timeflux/tree/master/test/graphs)
 
 ## Fair warning
 
