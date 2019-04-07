@@ -74,7 +74,7 @@ class Manager:
 
     def _terminate(self, processes):
         # https://bugs.python.org/issue26350
-        sig = signal.CTRL_BREAK_EVENT if sys.platform == 'win32' else signal.SIGTERM
+        sig = signal.CTRL_C_EVENT if sys.platform == 'win32' else signal.SIGINT
         # Try to terminate gracefully
         for process in processes:
             if process.is_running() and process.status() != psutil.STATUS_ZOMBIE:
@@ -89,9 +89,11 @@ class Manager:
         with open(filename) as stream:
             return yaml.load(stream)
 
+
     def _load_json(self, filename):
         with open(filename) as stream:
             return json.load(stream)
+
 
     def _validate(self):
         path = str(pathlib.Path(__file__).parents[1].joinpath('schema', 'app.json'))

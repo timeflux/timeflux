@@ -1,7 +1,5 @@
 """timeflux.core.schedule: run nodes"""
 
-import sys
-import signal
 import logging
 from time import time, sleep
 from copy import deepcopy
@@ -14,8 +12,6 @@ class Scheduler:
         self._path = path
         self._nodes = nodes
         self._rate = rate
-        sig = signal.SIGBREAK if sys.platform == 'win32' else signal.SIGTERM
-        signal.signal(sig, self.interrupt)
 
 
     def run(self):
@@ -32,6 +28,8 @@ class Scheduler:
                     sleep(max(0, max_duration - duration))
         except WorkerInterrupt as error:
             logging.debug(error)
+        except KeyboardInterrupt as error:
+            logging.debug('Interrupting')
         except Exception as error:
             logging.exception(error)
         finally:
@@ -61,10 +59,6 @@ class Scheduler:
                         dst_port.meta = meta
             # Update node
             self._nodes[step['node']].update()
-
-
-    def interrupt(self, signal, frame):
-        raise WorkerInterrupt('Interrupting')
 
 
     def terminate(self):
