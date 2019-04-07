@@ -1,8 +1,8 @@
 """Timeflux entry point"""
 
-import signal
 import sys
 import os
+import psutil
 import logging, logging.handlers
 from argparse import ArgumentParser
 from importlib import import_module
@@ -18,11 +18,12 @@ def main():
     sys.path.append(os.getcwd())
     args = _args()
     load_dotenv(args.env)
-    signal.signal(signal.SIGINT, _interrupt)
-    _log_init()
+    _init_logging()
     _run_hook('pre')
     try:
         Manager(args.app).run()
+    except KeyboardInterrupt:
+        LOGGER.info('Interrupting')
     except Exception as error:
         LOGGER.error(error)
     _terminate()
@@ -35,22 +36,15 @@ def _args():
     args = parser.parse_args()
     return args
 
-def _interrupt(signal, frame):
-    LOGGER.info('Interrupting')
-    _terminate()
-
 def _terminate():
     if os.getpid() == PID:
-        try:
-            os.waitpid(-1, 0)
-        except Exception:
-            pass
+        psutil.wait_procs(psutil.Process().children())
         _run_hook('post')
         LOGGER.info('Terminated')
         logging.shutdown()
     sys.exit(0)
 
-def _log_init():
+def _init_logging():
     try:
         logging.getLogger().setLevel(os.getenv('TIMEFLUX_LOG_LEVEL'))
     except Exception:

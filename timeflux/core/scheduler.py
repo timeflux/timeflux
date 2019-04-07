@@ -28,6 +28,8 @@ class Scheduler:
                     sleep(max(0, max_duration - duration))
         except WorkerInterrupt as error:
             logging.debug(error)
+        except KeyboardInterrupt as error:
+            logging.debug('Interrupting')
         except Exception as error:
             logging.exception(error)
         finally:
