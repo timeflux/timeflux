@@ -16,7 +16,7 @@ class Worker:
 
     def run(self):
         """Run the process"""
-        p = Process(target=self._run, name=self._graph['id'])
+        p = Process(target=self._run, args=(logging.getLogger().getEffectiveLevel(),), name=self._graph['id'])
         p.start()
         return p.pid
 
@@ -41,7 +41,10 @@ class Worker:
 
         return path, nodes
 
-    def _run(self):
+    def _run(self, logging_level):
+
+        # Set the root logging level, which is is not propagated on Windows
+        logging.getLogger().setLevel(logging_level)
 
         # Initialize the graph and instantiate the nodes
         path, nodes = self.load()
