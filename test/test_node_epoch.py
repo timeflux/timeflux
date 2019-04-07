@@ -125,3 +125,55 @@ def test_unsynced_event():
         pd.Timestamp('2018-01-01T00:00:07.695740447')
     ])
     pd.testing.assert_index_equal(node.o.data.index, expected_indices)
+
+
+def test_receives_event_before_data():
+    # receives event before data
+    # NB: this use case can also happen if before<0
+    data.reset()
+    node = Epoch(event_trigger='test', before=0, after=.6)
+    node.clear()
+    node.i.data = data.next(5)
+    time = data._data.index[6]  # Sync event right after last sample
+    event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])  # Generate a trigger event
+    node.i_events.data = event
+    node.update()
+    node.i_events.data = None
+    node.i.data = data.next(10)
+    node.update()
+    expected_data = pd.DataFrame(
+        [
+            [0.037008, 0.59627, 0.230009, 0.120567, 0.076953],
+            [0.696289, 0.339875, 0.724767, 0.065356, 0.31529],
+            [0.539491, 0.790723, 0.318753, 0.625891, 0.885978],
+            [0.615863, 0.232959, 0.024401, 0.870099, 0.021269],
+            [0.874702, 0.528937, 0.939068, 0.798783, 0.997934],
+            [0.350712, 0.767188, 0.401931, 0.479876, 0.627505]
+        ],
+        [
+            pd.Timestamp('2018-01-01 00:00:00.595580836'),
+            pd.Timestamp('2018-01-01 00:00:00.703661761'),
+            pd.Timestamp('2018-01-01 00:00:00.801011149'),
+            pd.Timestamp('2018-01-01 00:00:00.902080726'),
+            pd.Timestamp('2018-01-01 00:00:00.995205845'),
+            pd.Timestamp('2018-01-01 00:00:01.104699099'),
+        ]
+    )
+    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:00.595580836'), 'context': 'foobar'}}
+    assert node.o.meta == expected_meta
+    pd.testing.assert_frame_equal(node.o.data, expected_data)
+
+
+def test_empty_epoch():
+    # no data received in the epoch
+    data = helpers.DummyData(rate=.1)
+    node = Epoch(event_trigger='test', before=-1, after=1)
+    node.clear()
+    node.i.data = data.next(5)
+    time = pd.Timestamp("2018-01-01 00:00:10.450714306")  # Sync event to second sample
+    event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])  # Generate a trigger event
+    node.i_events.data = event
+    node.update()
+    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:10.450714306'), 'context': 'foobar'}}
+    assert node.o.meta == expected_meta
+    assert node.o.data.empty
