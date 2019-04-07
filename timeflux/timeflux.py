@@ -14,11 +14,11 @@ LOGGER = logging.getLogger(__name__)
 PID = os.getpid()
 
 def main():
-    LOGGER.info('Timeflux %s' % __version__)
     sys.path.append(os.getcwd())
     args = _args()
+    LOGGER.info('Timeflux %s' % __version__)
     load_dotenv(args.env)
-    _init_logging()
+    _init_logging(args.debug)
     _run_hook('pre')
     try:
         Manager(args.app).run()
@@ -31,6 +31,7 @@ def main():
 def _args():
     parser = ArgumentParser()
     parser.add_argument('-v', '--version', action='version', version='Timeflux %s' % __version__)
+    parser.add_argument('-d', '--debug', default=False, action='store_true', help='enable debug messages')
     parser.add_argument('-e', '--env', help='path to an environment file')
     parser.add_argument('app', help='path to the YAML or JSON application file')
     args = parser.parse_args()
@@ -44,11 +45,14 @@ def _terminate():
         logging.shutdown()
     sys.exit(0)
 
-def _init_logging():
-    try:
-        logging.getLogger().setLevel(os.getenv('TIMEFLUX_LOG_LEVEL'))
-    except Exception:
-        pass
+def _init_logging(debug):
+    if debug:
+        logging.getLogger().setLevel('DEBUG')
+    else:
+        try:
+            logging.getLogger().setLevel(os.getenv('TIMEFLUX_LOG_LEVEL'))
+        except Exception:
+            logging.getLogger().setLevel('INFO')
 
 def _run_hook(name):
     module = os.getenv('TIMEFLUX_HOOK_' + name.upper())

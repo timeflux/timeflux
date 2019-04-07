@@ -14,3 +14,6 @@ LEVEL_STYLES = {'debug': {'color': 'white'}, 'info': {'color': 'cyan'}, 'warning
 FIELD_STYLES = {'asctime': {'color': 'blue'}, 'levelname': {'color': 'black', 'bright': True}, 'processName': {'color': 'green'}}
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 coloredlogs.install(fmt=FORMAT, level='DEBUG', milliseconds=True, level_styles=LEVEL_STYLES, field_styles=FIELD_STYLES)
+
+# Reduce Matplotlib loggging level, which is automatically imported by networkx if available
+logging.getLogger('matplotlib').setLevel(logging.INFO)
