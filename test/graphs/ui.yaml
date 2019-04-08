@@ -22,7 +22,7 @@ graphs:
         value_max: 100
         seed: 1
     - id: viz
-      module: timeflux.nodes.ui.ui
+      module: timeflux_ui.nodes.ui
       class: UI
     edges:
     - source: data1

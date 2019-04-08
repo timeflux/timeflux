@@ -7,7 +7,7 @@ Use it to bootstrap your research, build brain-computer interfaces, closed-loop 
 
 First, get the [Anaconda distribution](https://www.anaconda.com/download/).
 
-You can then install Timeflux and its depedencies:
+You can then install Timeflux and its dependencies:
 
 ```
 $ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/environment.yml
@@ -18,6 +18,21 @@ $ conda activate timeflux
 ## Getting started
 
 [Read the documentation](https://doc.timeflux.io).
+
+For a minimal working example:
+```
+$ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/test/graphs/test.yaml
+$ timeflux test.yaml
+```
+
+If you install also [timeflux_ui](https://github.com/timeflux/timeflux_ui), you could run a sample visualization:
+```
+$ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/test/graphs/ui.yaml
+$ timeflux ui.yaml
+```
+Once it is launched, you could access it in [your browser](http://0.0.0.0:8000)
+
+More examples of Timeflux graphs are available in [test/graphs](https://github.com/timeflux/timeflux/tree/master/test/graphs)
 
 ## Fair warning
 
