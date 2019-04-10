@@ -6,8 +6,9 @@ from timeflux.core.scheduler import Scheduler
 
 class Branch(Node):
 
-    def __init__(self):
-        pass
+    def __init__(self, graph=None):
+        if graph:
+            self.load(graph)
 
     def update(self):
         run()
