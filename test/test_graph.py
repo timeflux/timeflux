@@ -17,11 +17,11 @@ def test_build():
 
 def test_path_dag():
     p = Graph(test_dag).traverse()
-    assert p == [{'node': 'node_1', 'predecessors': []}, {'node': 'node_2', 'predecessors': [{'node': 'node_1', 'src_port': 'o', 'dst_port': 'i', 'copy': True}]}, {'node': 'node_3', 'predecessors': [{'node': 'node_2', 'src_port': 'o', 'dst_port': 'i', 'copy': True}]}]
+    assert p == [{'node': 'node_1', 'predecessors': []}, {'node': 'node_2', 'predecessors': [{'node': 'node_1', 'src_port': 'o', 'dst_port': 'i', 'copy': False}]}, {'node': 'node_3', 'predecessors': [{'node': 'node_2', 'src_port': 'o', 'dst_port': 'i', 'copy': False}]}]
 
 def test_path_dag_complex():
     p = Graph(test_dag_complex).traverse()
-    assert p == [{'node': 'node_4', 'predecessors': []}, {'node': 'node_1', 'predecessors': []}, {'node': 'node_2', 'predecessors': [{'node': 'node_1', 'src_port': 'o', 'dst_port': 'i', 'copy': True}]}, {'node': 'node_5', 'predecessors': [{'node': 'node_2', 'src_port': 'o', 'dst_port': 'i', 'copy': True}]}, {'node': 'node_3', 'predecessors': [{'node': 'node_2', 'src_port': 'o', 'dst_port': 'i', 'copy': True}, {'node': 'node_4', 'src_port': 'o', 'dst_port': 'i', 'copy': True}]}]
+    assert p == [{'node': 'node_4', 'predecessors': []}, {'node': 'node_1', 'predecessors': []}, {'node': 'node_2', 'predecessors': [{'node': 'node_1', 'src_port': 'o', 'dst_port': 'i', 'copy': False}]}, {'node': 'node_5', 'predecessors': [{'node': 'node_2', 'src_port': 'o', 'dst_port': 'i', 'copy': True}]}, {'node': 'node_3', 'predecessors': [{'node': 'node_2', 'src_port': 'o', 'dst_port': 'i', 'copy': False}, {'node': 'node_4', 'src_port': 'o', 'dst_port': 'i', 'copy': False}]}]
 
 def test_path_cyclic():
     with pytest.raises(NetworkXUnfeasible):

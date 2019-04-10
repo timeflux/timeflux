@@ -43,14 +43,18 @@ class Graph:
             id = node.pop('id')
             self.graph.add_node(id, **node)
         if 'edges' in self._graph:
+            sources = set()
             for edge in self._graph['edges']:
                 src = edge['source'].split(':')
                 src_node = src[0]
                 src_port = 'o_' + src[1] if len(src) > 1 else 'o'
+                src = src_node + ':' + src_port
+                copy = src in sources
+                sources.add(src)
                 dst = edge['target'].split(':')
                 dst_node = dst[0]
                 dst_port = 'i_' + dst[1] if len(dst) > 1 else 'i'
-                self.graph.add_edge(src_node, dst_node, src_port=src_port, dst_port=dst_port)
+                self.graph.add_edge(src_node, dst_node, src_port=src_port, dst_port=dst_port, copy=copy)
         return self.graph
 
     def traverse(self):
@@ -75,10 +79,11 @@ class Graph:
                         'node': predecessor,
                         'src_port': edge['src_port'],
                         'dst_port': edge['dst_port'],
-                        'copy': True
+                        'copy': edge['copy']
                     })
             self.path.append({
                 'node': node,
                 'predecessors': predecessors
             })
         return self.path
+
