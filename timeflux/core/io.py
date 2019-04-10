@@ -14,6 +14,9 @@ class Port:
         self.data = None
         self.meta = {}
 
+    def ready(self):
+        return self.data is not None and not self.data.empty
+
     def set(self, rows, timestamps=None, names=None):
         if timestamps is None:
             rate = 1 if Registry.rate == 0 else Registry.rate
