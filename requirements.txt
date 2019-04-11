@@ -12,7 +12,7 @@ Cython>=0.29.6
 pytest>=4.0.2
 sphinx>=1.8
 sphinx_rtd_theme
-pylsl==1.10.5
+pylsl==1.13.1
 python-osc==1.7.0
 python-dotenv==0.10.1
 jsonschema>=3.0.1
