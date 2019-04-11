@@ -132,6 +132,7 @@ class Save(Node):
             see: http://pandas.pydata.org/pandas-docs/stable/io.html#string-columns
 
         """
+        os.makedirs(path, exist_ok=True)
         fname = os.path.join(path, time.strftime('%Y%m%d-%H%M%S.hdf5', time.gmtime()))
         logging.info('Saving to %s', fname)
         self._store = pd.HDFStore(fname, complib=complib, complevel=complevel)
