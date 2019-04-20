@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 # -- Auto-generate API documentation --------------------------------------
 
-api_packages = ['timeflux', 'timeflux_example', 'timeflux_dsp', 'timeflux_ml', 'timeflux_ui', 'timeflux_eegio']
+api_packages = ['timeflux', 'timeflux_example', 'timeflux_dsp', 'timeflux_ml', 'timeflux_ui', 'timeflux_gazepoint', 'timeflux_amti']
 api_path = 'api'
 
 def run_apidoc(_):
