@@ -3,11 +3,15 @@
 import pytest
 from networkx.exception import NetworkXUnfeasible
 from timeflux.core.graph import Graph
+from timeflux.core.exceptions import GraphDuplicateNode, GraphUndefinedNode
 
 
 test_dag = {'nodes': [{'id': 'node_1', 'module': 'timeflux.nodes.random', 'class': 'Random', 'params': {'columns': 5, 'rows_min': 1, 'rows_max': 10, 'value_min': 0, 'value_max': 5}}, {'id': 'node_2', 'module': 'timeflux.nodes.arithmetic', 'class': 'Add', 'params': {'value': 1}}, {'id': 'node_3', 'module': 'timeflux.nodes.debug', 'class': 'Log'}], 'edges': [{'source': 'node_1', 'target': 'node_2'}, {'source': 'node_2', 'target': 'node_3'}]}
 test_dag_complex = {'nodes': [{'id': 'node_1'}, {'id': 'node_2'}, {'id': 'node_3'}, {'id': 'node_4'}, {'id': 'node_5'}], 'edges': [{'source': 'node_1', 'target': 'node_2'}, {'source': 'node_2', 'target': 'node_3'}, {'source': 'node_4', 'target': 'node_3'}, {'source': 'node_2', 'target': 'node_5'}]}
 test_cyclic = {'nodes': [{'id': 'node_1'}, {'id': 'node_2'}, {'id': 'node_3'}], 'edges': [{'source': 'node_1', 'target': 'node_2'}, {'source': 'node_2', 'target': 'node_3'}, {'source': 'node_3', 'target': 'node_1'}]}
+test_duplicate = {'nodes': [{'id': 'node_1'}, {'id': 'node_1'}]}
+test_undefined_src = {'nodes': [{'id': 'node_1'}], 'edges': [{'source': 'foo', 'target': 'bar'}]}
+test_undefined_dst = {'nodes': [{'id': 'node_1'}], 'edges': [{'source': 'node_1', 'target': 'bar'}]}
 
 
 def test_build():
@@ -26,3 +30,13 @@ def test_path_dag_complex():
 def test_path_cyclic():
     with pytest.raises(NetworkXUnfeasible):
         Graph(test_cyclic).traverse()
+
+def test_duplicate_node():
+    with pytest.raises(GraphDuplicateNode):
+        g = Graph(test_duplicate).build()
+
+def test_undefined_node():
+    with pytest.raises(GraphUndefinedNode):
+        g = Graph(test_undefined_src).build()
+    with pytest.raises(GraphUndefinedNode):
+        g = Graph(test_undefined_dst).build()
