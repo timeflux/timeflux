@@ -3,10 +3,9 @@
 import pandas as pd
 import numpy as np
 import uuid
-from pylsl import StreamInfo, StreamOutlet, StreamInlet, resolve_stream, pylsl
+from pylsl import StreamInfo, StreamOutlet, StreamInlet, resolve_stream, resolve_byprop, pylsl
 from time import time
 from timeflux.core.node import Node
-import logging
 
 class Send(Node):
 
@@ -63,9 +62,10 @@ class Receive(Node):
 
     def update(self):
         if not self._inlet:
-            logging.debug('Resolving stream: ' + self._name)
-            streams = resolve_stream('name', self._name)
-            logging.debug('Stream acquired')
+            self.logger.debug('Resolving stream: ' + self._name)
+            streams = resolve_byprop('name', self._name, timeout=1)
+            if not streams: return
+            self.logger.debug('Stream acquired')
             self._inlet = StreamInlet(streams[0])
             if isinstance(self._channels, list):
                 self._labels = self._channels
