@@ -11,7 +11,7 @@ class Branch(Node):
             self.load(graph)
 
     def update(self):
-        run()
+        self.run()
 
     def load(self, graph):
         graph['rate'] = 0
