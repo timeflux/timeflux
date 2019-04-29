@@ -65,7 +65,7 @@ class Manager:
 
         # Wait for workers to terminate
         self._loop()
-        self._terminate()
+        self.terminate()
 
 
     def terminate(self):
