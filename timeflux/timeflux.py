@@ -21,9 +21,11 @@ def main():
     _init_logging(args.debug)
     _run_hook('pre')
     try:
-        Manager(args.app).run()
+        m = Manager(args.app)
+        m.run()
     except KeyboardInterrupt:
         LOGGER.info('Interrupting')
+        m.terminate()
     except Exception as error:
         LOGGER.error(error)
     _terminate()
