@@ -7,12 +7,14 @@ from timeflux.core.registry import Registry
 
 class Port:
 
-    def __init__(self, mutable=True):
+    def __init__(self, persistant=False):
+        self.persistant = persistant
         self.clear()
 
     def clear(self):
-        self.data = None
-        self.meta = {}
+        if not self.persistant:
+            self.data = None
+            self.meta = {}
 
     def ready(self):
         return self.data is not None and not self.data.empty
