@@ -22,5 +22,10 @@ class Branch(Node):
     def run(self):
         self._scheduler.next()
 
-    def port(self, node_id, port_id='o'):
+    def get_port(self, node_id, port_id='o'):
         return getattr(self._scheduler._nodes[node_id], port_id)
+
+    def set_port(self, node_id, port_id='i', data=None, meta=None):
+        port = self.get_port(node_id, port_id)
+        if data: port.data = data
+        if meta: port.meta = meta
