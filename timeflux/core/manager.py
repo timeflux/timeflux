@@ -90,9 +90,12 @@ class Manager:
             if process.is_running() and process.status() != psutil.STATUS_ZOMBIE:
                 process.send_signal(sig)
         # Kill the remaining ones
-        gone, alive = psutil.wait_procs(self._processes, timeout=5)
-        for process in alive:
-            process.kill()
+        try:
+            gone, alive = psutil.wait_procs(self._processes, timeout=10)
+            for process in alive:
+                process.kill()
+        except:
+            pass
 
 
     def _load_yaml(self, filename):
