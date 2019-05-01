@@ -28,9 +28,6 @@ class Manager:
 
         """
 
-        # Set running status
-        self._running = False
-
         # Load config
         if isinstance(config, dict):
             self.config = config
@@ -51,26 +48,41 @@ class Manager:
 
 
     def run(self):
-        """Span as many workers as there are graphs."""
+        """Launch as many workers as there are graphs."""
+        try:
+            # Launch workers
+            self._launch()
+            # Monitor them
+            self._monitor()
+        except KeyboardInterrupt:
+            # Ignore further interrupts
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            logging.info('Interrupting')
+        # Terminate gracefully
+        self._terminate()
 
-        self._running = True
+
+    def _launch(self):
+        """Launch workers."""
         self._processes = []
-
-        # Launch workers
         for graph in self.config['graphs']:
             worker = Worker(graph)
             pid = worker.run()
             self._processes.append(psutil.Process(pid))
             logging.debug("Worker spawned with PID %d", pid)
 
-        # Wait for workers to terminate
-        self._loop()
-        self.terminate()
+
+    def _monitor(self):
+        """Wait for at least one worker to terminate."""
+        while True:
+            for process in self._processes:
+                if not process.is_running() or process.status() == psutil.STATUS_ZOMBIE:
+                    return
+            time.sleep(.1)
 
 
-    def terminate(self):
-        # Stop looping
-        self._running = False
+    def _terminate(self):
+        """Terminate all workers."""
         # https://bugs.python.org/issue26350
         sig = signal.CTRL_C_EVENT if sys.platform == 'win32' else signal.SIGINT
         # Try to terminate gracefully
@@ -81,14 +93,6 @@ class Manager:
         gone, alive = psutil.wait_procs(self._processes, timeout=5)
         for process in alive:
             process.kill()
-
-
-    def _loop(self):
-        while self._running:
-            for process in self._processes:
-                if not process.is_running() or process.status() == psutil.STATUS_ZOMBIE:
-                    return
-            time.sleep(.1)
 
 
     def _load_yaml(self, filename):

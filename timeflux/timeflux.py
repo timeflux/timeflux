@@ -3,7 +3,7 @@
 import sys
 import os
 import psutil
-import logging, logging.handlers
+import logging
 from argparse import ArgumentParser
 from importlib import import_module
 from dotenv import load_dotenv
@@ -11,7 +11,6 @@ from timeflux import __version__
 from timeflux.core.manager import Manager
 
 LOGGER = logging.getLogger(__name__)
-PID = os.getpid()
 
 def main():
     sys.path.append(os.getcwd())
@@ -21,11 +20,7 @@ def main():
     _init_logging(args.debug)
     _run_hook('pre')
     try:
-        m = Manager(args.app)
-        m.run()
-    except KeyboardInterrupt:
-        LOGGER.info('Interrupting')
-        m.terminate()
+        Manager(args.app).run()
     except Exception as error:
         LOGGER.error(error)
     _terminate()
@@ -40,11 +35,10 @@ def _args():
     return args
 
 def _terminate():
-    if os.getpid() == PID:
-        psutil.wait_procs(psutil.Process().children())
-        _run_hook('post')
-        LOGGER.info('Terminated')
-        logging.shutdown()
+    psutil.wait_procs(psutil.Process().children())
+    _run_hook('post')
+    LOGGER.info('Terminated')
+    logging.shutdown()
     sys.exit(0)
 
 def _init_logging(debug):

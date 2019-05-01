@@ -3,8 +3,8 @@
 import logging
 from time import time, sleep
 from copy import deepcopy
-from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.core.registry import Registry
+
 
 class Scheduler:
 
@@ -15,26 +15,16 @@ class Scheduler:
 
 
     def run(self):
-        try:
-            while True:
-                start = time()
-                Registry.cycle_start = start
-                self.next()
-                duration = time() - start
-                if self._rate > 0:
-                    max_duration = 1. / self._rate
-                    if duration > max_duration:
-                        logging.debug('Congestion')
-                    sleep(max(0, max_duration - duration))
-        except WorkerInterrupt as error:
-            logging.debug(error)
-        except KeyboardInterrupt as error:
-            logging.debug('Interrupting')
-        except Exception as error:
-            logging.exception(error)
-        finally:
-            logging.info('Terminating')
-            self.terminate()
+        while True:
+            start = time()
+            Registry.cycle_start = start
+            self.next()
+            duration = time() - start
+            if self._rate > 0:
+                max_duration = 1. / self._rate
+                if duration > max_duration:
+                    logging.debug('Congestion')
+                sleep(max(0, max_duration - duration))
 
 
     def next(self):

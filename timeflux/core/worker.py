@@ -6,7 +6,9 @@ from multiprocessing import Process
 from timeflux.core.graph import Graph
 from timeflux.core.scheduler import Scheduler
 from timeflux.core.registry import Registry
-from timeflux.core.exceptions import WorkerLoadError
+from timeflux.core.exceptions import WorkerInterrupt, WorkerLoadError
+
+import signal
 
 class Worker:
 
@@ -39,24 +41,33 @@ class Worker:
 
         return path, nodes
 
+
     def _run(self, logging_level='INFO'):
 
         # Set the root logging level, which is is not propagated on Windows
         logging.getLogger().setLevel(logging_level)
 
-        # Initialize the graph and instantiate the nodes
+        scheduler = None
+
         try:
+            # Initialize the graph and instantiate the nodes
             path, nodes = self.load()
-        except KeyboardInterrupt as error:
+            # Launch scheduler and run it
+            scheduler = Scheduler(path, nodes, self._graph['rate'])
+            scheduler.run()
+        except KeyboardInterrupt:
+            # Ignore further interrupts
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
             logging.debug('Interrupting')
-            return False
+        except WorkerInterrupt as error:
+             logging.debug(error)
         except Exception as error:
             logging.error(error)
-            return False
 
-        # Launch scheduler and run it
-        scheduler = Scheduler(path, nodes, self._graph['rate'])
-        scheduler.run()
+        if scheduler is not None:
+            logging.info('Terminating')
+            scheduler.terminate()
+
 
     def _load_node(self, node, nid):
         """Import a module and instantiate class."""
