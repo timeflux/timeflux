@@ -69,12 +69,12 @@ def test_branch():
     }
     branch = Branch(graph)
     branch.run()
-    assert branch.port('node_3').data[0][0] == 7
-    assert branch.port('node_4').data[0][0] == 6
-    assert id(branch.port('node_1', 'o').data) == id(branch.port('node_2', 'i').data)
-    assert id(branch.port('node_2', 'i').data) == id(branch.port('node_2', 'o').data)
-    assert id(branch.port('node_2', 'o').data) == id(branch.port('node_3', 'i').data)
-    assert id(branch.port('node_3', 'i').data) == id(branch.port('node_3', 'o').data)
-    assert id(branch.port('node_1', 'o').data) != id(branch.port('node_4', 'i').data)
-    assert id(branch.port('node_4', 'i').data) == id(branch.port('node_4', 'o').data)
+    assert branch.get_port('node_3').data[0][0] == 7
+    assert branch.get_port('node_4').data[0][0] == 6
+    assert id(branch.get_port('node_1', 'o').data) == id(branch.get_port('node_2', 'i').data)
+    assert id(branch.get_port('node_2', 'i').data) == id(branch.get_port('node_2', 'o').data)
+    assert id(branch.get_port('node_2', 'o').data) == id(branch.get_port('node_3', 'i').data)
+    assert id(branch.get_port('node_3', 'i').data) == id(branch.get_port('node_3', 'o').data)
+    assert id(branch.get_port('node_1', 'o').data) != id(branch.get_port('node_4', 'i').data)
+    assert id(branch.get_port('node_4', 'i').data) == id(branch.get_port('node_4', 'o').data)
 
