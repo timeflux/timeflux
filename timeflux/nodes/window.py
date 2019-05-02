@@ -3,8 +3,6 @@
 from timeflux.core.node import Node
 import pandas as pd
 
-import logging
-
 
 class Window(Node):
 

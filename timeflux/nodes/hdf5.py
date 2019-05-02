@@ -3,7 +3,6 @@
 import pandas as pd
 import numpy as np
 import timeflux.helpers.clock as clock
-import logging
 import os
 import time
 from timeflux.core.exceptions import WorkerInterrupt
@@ -47,7 +46,7 @@ class Replay(Node):
             try:
                 # Check format
                 if not self._store.get_storer(key).is_table:
-                    logging.warning('%s: Fixed format. Will be skipped.', key)
+                    self.logger.warning('%s: Fixed format. Will be skipped.', key)
                     continue
                 # Get first index
                 first = self._store.select(key, start=0, stop=1).index[0]
@@ -56,7 +55,7 @@ class Replay(Node):
                 last = self._store.select(key, start=nrows-1, stop=nrows).index[0]
                 # Check index type
                 if type(first) != pd.Timestamp:
-                    logging.warning('%s: Invalid index. Will be skipped.', key)
+                    self.logger.warning('%s: Invalid index. Will be skipped.', key)
                     continue
                 # Find lowest and highest indices across stores
                 if first < self._start:
@@ -73,7 +72,7 @@ class Replay(Node):
                     'name': name
                 }
             except KeyError:
-                logging.warning('%s: Key not found.', key)
+                self.logger.warning('%s: Key not found.', key)
 
         # Time offset
         self._offset = pd.Timestamp(clock.now()) - self._start
@@ -134,7 +133,7 @@ class Save(Node):
         """
         os.makedirs(path, exist_ok=True)
         fname = os.path.join(path, time.strftime('%Y%m%d-%H%M%S.hdf5', time.gmtime()))
-        logging.info('Saving to %s', fname)
+        self.logger.info('Saving to %s', fname)
         self._store = pd.HDFStore(fname, complib=complib, complevel=complevel)
         self.min_itemsize = min_itemsize
 

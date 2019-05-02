@@ -1,6 +1,5 @@
 """timeflux.nodes.zmq: a simple 0MQ pub/sub broker"""
 
-import logging
 import time
 import pandas
 import zmq
@@ -27,7 +26,7 @@ class Broker(Node):
             self._backend = context.socket(zmq.XPUB)
             self._backend.bind(address_out)
         except zmq.ZMQError as e:
-            logging.error(e)
+            self.logger.error(e)
 
     def update(self):
         """Start a blocking proxy."""
@@ -65,7 +64,7 @@ class BrokerMonitored(Node):
             proxy.start()
 
         except zmq.ZMQError as error:
-            logging.error(error)
+            self.logger.error(error)
 
     def update(self):
         """Monitor proxy"""
@@ -80,7 +79,7 @@ class BrokerMonitored(Node):
                 count += 1
         except zmq.ZMQError:
             if count > 0:
-                logging.debug('Received %d messages', count)
+                self.logger.debug('Received %d messages', count)
             if (now - self._last_event) > self._timeout:
                 raise WorkerInterrupt('No data after %d seconds' % self._timeout)
 
@@ -101,7 +100,7 @@ class BrokerLVC(Node):
             self._poller.register(self._frontend, zmq.POLLIN)
             self._poller.register(self._backend, zmq.POLLIN)
         except zmq.ZMQError as error:
-            logging.error(error)
+            self.logger.error(error)
 
     def update(self):
         """Main poll loop."""
@@ -124,7 +123,7 @@ class BrokerLVC(Node):
                 if event[0] == 1:
                     topic = event[1:]
                     if topic in cache:
-                        logging.debug('Sending cached topic %s', topic.decode('utf-8'))
+                        self.logger.debug('Sending cached topic %s', topic.decode('utf-8'))
                         self._backend.send_multipart([topic, cache[topic]])
 
 
@@ -141,7 +140,7 @@ class Pub(Node):
             self._socket.setsockopt(zmq.LINGER, 0)
             self._socket.connect(address)
         except zmq.ZMQError as e:
-            logging.error(e)
+            self.logger.error(e)
 
         # Quick fix to the slow joiner syndrome
         # TODO: remove when Last Value Caching is implemented
@@ -157,7 +156,7 @@ class Pub(Node):
             try:
                 self._socket.send_serialized([self._topic, self.i.data], self._serializer)
             except zmq.ZMQError as e:
-                logging.error(e)
+                self.logger.error(e)
 
 
 class Sub(Node):
@@ -175,7 +174,7 @@ class Sub(Node):
                         raise ValueError('Invalid topic name: %s' % topic)
             self._deserializer = getattr(timeflux.core.message, deserializer + '_deserialize')
         except zmq.ZMQError as e:
-            logging.error(e)
+            self.logger.error(e)
 
     def update(self):
         self._frames = {}

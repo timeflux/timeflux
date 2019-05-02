@@ -9,6 +9,7 @@ from timeflux.core.registry import Registry
 class Scheduler:
 
     def __init__(self, path, nodes, rate):
+        self.logger = logging.getLogger(__name__)
         self._path = path
         self._nodes = nodes
         self._rate = rate
@@ -23,7 +24,7 @@ class Scheduler:
             if self._rate > 0:
                 max_duration = 1. / self._rate
                 if duration > max_duration:
-                    logging.debug('Congestion')
+                    self.logger.debug('Congestion')
                 sleep(max(0, max_duration - duration))
 
 

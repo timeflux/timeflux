@@ -1,6 +1,5 @@
 """timeflux.nodes.debug: dubugging"""
 
-import logging
 import csv
 import pandas as pd
 from timeflux.core.node import Node
@@ -11,7 +10,7 @@ class Display(Node):
 
     def update(self):
         if self.i.data is not None:
-            logging.debug('\n %s' % self.i.data)
+            self.logger.debug('\n %s' % self.i.data)
 
 
 class Dump(Node):

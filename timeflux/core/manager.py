@@ -28,6 +28,9 @@ class Manager:
 
         """
 
+        # Initialize logger
+        self.logger = logging.getLogger(__name__)
+
         # Load config
         if isinstance(config, dict):
             self.config = config
@@ -57,7 +60,7 @@ class Manager:
         except KeyboardInterrupt:
             # Ignore further interrupts
             signal.signal(signal.SIGINT, signal.SIG_IGN)
-            logging.info('Interrupting')
+            self.logger.info('Interrupting')
         # Terminate gracefully
         self._terminate()
 
@@ -69,7 +72,7 @@ class Manager:
             worker = Worker(graph)
             pid = worker.run()
             self._processes.append(psutil.Process(pid))
-            logging.debug("Worker spawned with PID %d", pid)
+            self.logger.debug("Worker spawned with PID %d", pid)
 
 
     def _monitor(self):

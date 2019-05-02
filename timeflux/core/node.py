@@ -12,7 +12,7 @@ class Node(ABC):
         """Create instance and initialize the logger."""
 
         instance = super().__new__(cls)
-        instance.logger = logging.getLogger(cls.__module__ + '.' + cls.__name__)
+        instance.logger = logging.getLogger('timeflux.' + cls.__module__ + '.' + cls.__name__)
         return instance
 
 

@@ -4,6 +4,7 @@ import importlib
 import logging
 import signal
 from multiprocessing import Process
+from timeflux.core.logging import queue, init_sender
 from timeflux.core.graph import Graph
 from timeflux.core.scheduler import Scheduler
 from timeflux.core.registry import Registry
@@ -18,7 +19,7 @@ class Worker:
 
     def run(self):
         """Run the process"""
-        p = Process(target=self._run, args=(logging.getLogger().getEffectiveLevel(),), name=self._graph['id'])
+        p = Process(target=self._run, args=(queue,), name=self._graph['id'])
         p.start()
         return p.pid
 
@@ -41,10 +42,11 @@ class Worker:
         return path, nodes
 
 
-    def _run(self, logging_level='INFO'):
+    def _run(self, queue):
 
-        # Set the root logging level, which is is not propagated on Windows
-        logging.getLogger().setLevel(logging_level)
+        # Initialize logging
+        init_sender(queue)
+        logger = logging.getLogger(__name__)
 
         scheduler = None
 
@@ -57,16 +59,16 @@ class Worker:
         except KeyboardInterrupt:
             # Ignore further interrupts
             signal.signal(signal.SIGINT, signal.SIG_IGN)
-            logging.debug('Interrupting')
+            logger.debug('Interrupting')
         except (GraphDuplicateNode, GraphUndefinedNode, WorkerLoadError) as error:
-            logging.error(error)
+            logger.error(error)
         except WorkerInterrupt as error:
-             logging.info(error)
+             logger.info(error)
         except Exception as error:
-            logging.exception(error)
+            logger.exception(error)
 
         if scheduler is not None:
-            logging.info('Terminating')
+            logger.info('Terminating')
             scheduler.terminate()
 
 

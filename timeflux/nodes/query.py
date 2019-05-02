@@ -1,7 +1,6 @@
 
 from timeflux.core.node import Node
 import numpy as np
-import logging
 
 class SelectRange(Node):
     """Select a subset of the given data along vertical (index) or horizontal (columns) axis.
@@ -200,7 +199,7 @@ class LocQuery(Node):
                             self.o.data = self.i.data.loc[:, self._key]
                             self._check_args = True
                         except KeyError as e:
-                            logging.error(e)
+                            self.logger.error(e)
                             raise ValueError (e)
                     else:
                         self.o.data = self.i.data.loc[:, self._key]

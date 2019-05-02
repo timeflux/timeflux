@@ -7,7 +7,6 @@ This module contains nodes to convert Xarray to Pandas and vice versa.
 
 from timeflux.core.node import Node
 import xarray as xr
-import logging
 
 
 class XRTranspose(Node):
@@ -38,7 +37,7 @@ class XRTranspose(Node):
                 try:
                     self.o.data = self.i.data.transpose(*self._dims)
                 except ValueError as msg:
-                    logging.error(msg)
+                    self.logger.error(msg)
 
 
 class XR_to_DF(Node):

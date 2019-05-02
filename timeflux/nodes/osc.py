@@ -1,6 +1,5 @@
 """timeflux.nodes.osc: Simple OSC client and server"""
 
-import logging
 import pandas as pd
 from pythonosc import dispatcher
 from pythonosc import osc_server

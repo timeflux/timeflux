@@ -8,6 +8,7 @@ from argparse import ArgumentParser
 from importlib import import_module
 from dotenv import load_dotenv
 from timeflux import __version__
+from timeflux.core.logging import init_listener, terminate_listener
 from timeflux.core.manager import Manager
 
 LOGGER = logging.getLogger(__name__)
@@ -15,9 +16,9 @@ LOGGER = logging.getLogger(__name__)
 def main():
     sys.path.append(os.getcwd())
     args = _args()
-    LOGGER.info('Timeflux %s' % __version__)
     load_dotenv(args.env)
     _init_logging(args.debug)
+    LOGGER.info('Timeflux %s' % __version__)
     _run_hook('pre')
     try:
         Manager(args.app).run()
@@ -38,17 +39,12 @@ def _terminate():
     psutil.wait_procs(psutil.Process().children())
     _run_hook('post')
     LOGGER.info('Terminated')
-    logging.shutdown()
+    terminate_listener()
     sys.exit(0)
 
 def _init_logging(debug):
-    if debug:
-        logging.getLogger().setLevel('DEBUG')
-    else:
-        try:
-            logging.getLogger().setLevel(os.getenv('TIMEFLUX_LOG_LEVEL'))
-        except Exception:
-            logging.getLogger().setLevel('INFO')
+    level = 'DEBUG' if debug else os.getenv('TIMEFLUX_LOG_LEVEL', 'INFO')
+    init_listener(level)
 
 def _run_hook(name):
     module = os.getenv('TIMEFLUX_HOOK_' + name.upper())

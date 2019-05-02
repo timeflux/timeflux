@@ -2,6 +2,8 @@ import logging
 from jsonschema import Draft7Validator, validators
 from jsonschema.exceptions import ValidationError
 
+LOGGER = logging.getLogger(__name__)
+
 def extend_with_defaults(validator_class):
 
     validate_properties = validator_class.VALIDATORS['properties']
@@ -25,6 +27,6 @@ def ValidateWithDefaults(schema, instance):
     try:
         Validator(schema).validate(instance)
     except ValidationError as error:
-        logging.error(error)
+        LOGGER.error(error)
         return False
     return True
