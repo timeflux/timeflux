@@ -2,13 +2,12 @@
 
 import importlib
 import logging
+import signal
 from multiprocessing import Process
 from timeflux.core.graph import Graph
 from timeflux.core.scheduler import Scheduler
 from timeflux.core.registry import Registry
-from timeflux.core.exceptions import WorkerInterrupt, WorkerLoadError
-
-import signal
+from timeflux.core.exceptions import *
 
 class Worker:
 
@@ -59,10 +58,12 @@ class Worker:
             # Ignore further interrupts
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             logging.debug('Interrupting')
-        except WorkerInterrupt as error:
-             logging.debug(error)
-        except Exception as error:
+        except (GraphDuplicateNode, GraphUndefinedNode, WorkerLoadError) as error:
             logging.error(error)
+        except WorkerInterrupt as error:
+             logging.info(error)
+        except Exception as error:
+            logging.exception(error)
 
         if scheduler is not None:
             logging.info('Terminating')
