@@ -42,10 +42,10 @@ class Worker:
         return path, nodes
 
 
-    def _run(self, queue):
+    def _run(self, queue=None):
 
         # Initialize logging
-        init_sender(queue)
+        if queue: init_sender(queue)
         logger = logging.getLogger(__name__)
 
         scheduler = None
