@@ -14,7 +14,7 @@ class Replay(Node):
 
     """Replay a HDF5 file."""
 
-    def __init__(self, filename, keys, timespan=.04, resync=True):
+    def __init__(self, filename, keys, timespan=.04, resync=True, loop=False):
         """
         Initialize.
 
@@ -42,6 +42,7 @@ class Replay(Node):
         self._stop = pd.Timestamp.min
         self._timespan = pd.Timedelta(f'{timespan}s')
         self._resync = resync
+        self._loop = loop
 
         for key in keys:
             try:
@@ -85,7 +86,10 @@ class Replay(Node):
     def update(self):
 
         if self._current > self._stop:
-            raise WorkerInterrupt('No more data.')
+            if not self._loop:
+                raise WorkerInterrupt('No more data.')
+            else:
+                self._current = self._start
 
         min = self._current
         max = min + self._timespan
