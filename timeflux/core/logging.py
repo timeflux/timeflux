@@ -35,6 +35,7 @@ def init_listener(level):
             level_styles = {}
             field_styles = {}
 
+    # Define config
     config = {
         'version': 1,
         'disable_existing_loggers': False,
