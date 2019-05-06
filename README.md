@@ -1,3 +1,5 @@
+![](https://avatars3.githubusercontent.com/u/44117793?v=4&s=100)
+
 # Timeflux
 
 Timeflux is a free and open-source solution for the acquisition and real-time processing of biosignals.
