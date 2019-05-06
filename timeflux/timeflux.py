@@ -36,7 +36,10 @@ def _args():
     return args
 
 def _terminate():
-    psutil.wait_procs(psutil.Process().children())
+    try:
+        psutil.wait_procs(psutil.Process().children())
+    except:
+        pass
     _run_hook('post')
     LOGGER.info('Terminated')
     terminate_listener()
