@@ -30,8 +30,10 @@ graphs:
       params:
         addresses:
           - /test
-    rate: 0
-
-
-
-
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+      - source: osc_server:test
+        target: display
+    rate: 1
