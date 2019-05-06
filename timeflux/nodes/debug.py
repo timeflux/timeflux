@@ -9,7 +9,7 @@ class Display(Node):
     """Display input."""
 
     def update(self):
-        if self.i.data is not None:
+        if self.i.ready():
             self.logger.debug('\n %s' % self.i.data)
 
 
@@ -21,7 +21,7 @@ class Dump(Node):
         self.writer = csv.writer(open(fname, 'a'))
 
     def update(self):
-        if self.i.data is not None:
+        if self.i.ready():
             self.i.data['index'] = self.i.data.index
             self.i.data['index'] = pd.to_timedelta(self.i.data['index']).dt.total_seconds()
             self.writer.writerows(self.i.data.values.tolist())
