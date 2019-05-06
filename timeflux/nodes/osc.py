@@ -3,14 +3,14 @@
 import pandas as pd
 from threading import Thread, Lock
 from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import ThreadingOSCUDPServer, BlockingOSCUDPServer #AsyncIOOSCUDPServer
+from pythonosc.osc_server import BlockingOSCUDPServer
 from pythonosc.udp_client import SimpleUDPClient
 from timeflux.helpers.clock import now
 from timeflux.core.node import Node
 
 class Server(Node):
 
-    """A simple OSC server with no forwarding capabilities. Useful for debugging."""
+    """A simple OSC server."""
 
     def __init__(self, addresses=[], ip='127.0.0.1', port=5005):
         self._server = None
@@ -38,7 +38,6 @@ class Server(Node):
 
     def _handler(self, address, *args):
         time = now()
-        address = '/' + address if not address.startswith('/') else address
         port = self._address_to_port(address)
         values = list(args)
         with self._lock:
