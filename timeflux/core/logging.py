@@ -19,7 +19,7 @@ class Handler():
         self.logger.handle(record)
 
 
-def init_listener(level='DEBUG'):
+def init_listener(level='DEBUG', file=None):
 
     q = get_queue()
 
@@ -27,7 +27,7 @@ def init_listener(level='DEBUG'):
                     'error': {'color': 'red'}, 'critical': {'color': 'magenta'}}
     field_styles = {'asctime': {'color': 'blue'}, 'levelname': {'color': 'black', 'bright': True},
                     'processName': {'color': 'green'}}
-    date_format = '%(asctime)s %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s'
+    record_format = '%(asctime)s %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s'
 
     # On Windows, the colors will not work unless we initialize the console with colorama
     if sys.platform.startswith('win'):
@@ -53,27 +53,38 @@ def init_listener(level='DEBUG'):
             },
         },
         'formatters': {
-            'colored_console': {
+            'console': {
                 '()': 'coloredlogs.ColoredFormatter',
-                'format': date_format,
+                'format': record_format,
                 'datefmt': '%Y-%m-%d %H:%M:%S,%f',
                 'field_styles': field_styles,
                 'level_styles': level_styles,
             },
-            'detailed': {
+            'file': {
                 'class': 'logging.Formatter',
-                'format': '%(asctime)s %(name)-15s %(levelname)-8s %(processName)-10s %(message)s'
+                'format': record_format
             }
         },
         'handlers': {
             'console': {
                 'level': 'DEBUG',
                 'class': 'logging.StreamHandler',
-                'formatter': 'colored_console',
+                'formatter': 'console',
                 'stream': 'ext://sys.stdout',
+            },
+            'file': {
+                'class': 'logging.FileHandler',
+                'filename': 'timeflux.log',
+                'mode': 'a',
+                'delay': True,
+                'formatter': 'file',
             },
         }
     }
+
+    if file:
+        config['root']['handlers'].append('file')
+        config['handlers']['file']['filename'] = file
 
     logging.config.dictConfig(config)
 
