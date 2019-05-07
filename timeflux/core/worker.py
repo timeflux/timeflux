@@ -4,7 +4,7 @@ import importlib
 import logging
 import signal
 from multiprocessing import Process
-from timeflux.core.logging import queue, init_sender
+from timeflux.core.logging import get_queue, init_worker
 from timeflux.core.graph import Graph
 from timeflux.core.scheduler import Scheduler
 from timeflux.core.registry import Registry
@@ -19,7 +19,9 @@ class Worker:
 
     def run(self):
         """Run the process"""
-        p = Process(target=self._run, args=(queue,), name=self._graph['id'])
+        log_queue = get_queue()
+        log_level = logging.getLogger('timeflux').getEffectiveLevel()
+        p = Process(target=self._run, args=(log_queue, log_level,), name=self._graph['id'])
         p.start()
         return p.pid
 
@@ -42,10 +44,11 @@ class Worker:
         return path, nodes
 
 
-    def _run(self, queue=None):
+    def _run(self, log_queue=None, log_level='DEBUG'):
 
         # Initialize logging
-        if queue: init_sender(queue)
+        if log_queue:
+            init_worker(log_queue, log_level)
         logger = logging.getLogger(__name__)
 
         scheduler = None
@@ -63,7 +66,7 @@ class Worker:
         except (GraphDuplicateNode, GraphUndefinedNode, WorkerLoadError) as error:
             logger.error(error)
         except WorkerInterrupt as error:
-             logger.info(error)
+             logger.debug(error)
         except Exception as error:
             logger.exception(error)
 

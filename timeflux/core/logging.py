@@ -2,22 +2,26 @@ import os
 import sys
 import threading
 import logging
-from logging.config import dictConfig
-from logging.handlers import QueueHandler, QueueListener
+import logging.config
+import logging.handlers
 from multiprocessing import Queue
 
-queue = Queue()
-_thread = None
 
-def listener(queue):
-    root = logging.getLogger()
-    while True:
-        message = queue.get()
-        if message is None:
-            break
-        root.handle(message)
+_QUEUE = None
 
-def init_listener(level):
+
+class Handler():
+
+    def __init__(self):
+        self.logger = logging.getLogger()
+
+    def handle(self, record):
+        self.logger.handle(record)
+
+
+def init_listener(level='DEBUG'):
+
+    q = get_queue()
 
     level_styles = {'debug': {'color': 'white'}, 'info': {'color': 'cyan'}, 'warning': {'color': 'yellow'},
                     'error': {'color': 'red'}, 'critical': {'color': 'magenta'}}
@@ -70,19 +74,45 @@ def init_listener(level):
             },
         }
     }
-    dictConfig(config)
 
-    # Start thread
-    globals()['_thread'] = threading.Thread(target=listener, args=(queue,))
-    globals()['_thread'].start()
+    logging.config.dictConfig(config)
+
+    queue = get_queue()
+    listener = logging.handlers.QueueListener(queue, Handler())
+    listener.start()
 
 
 def terminate_listener():
-    if _thread:
-        queue.put_nowait(None)
+    if _QUEUE:
+        _QUEUE.put_nowait(None)
 
-def init_sender(queue):
-    root = logging.getLogger()
-    root.handlers = []
-    handler = QueueHandler(queue)
-    root.addHandler(handler)
+
+def init_worker(queue, level='DEBUG'):
+
+    config = {
+        'version': 1,
+        'disable_existing_loggers': True,
+        'handlers': {
+            'queue': {
+                'class': 'logging.handlers.QueueHandler',
+                'queue': queue,
+            },
+        },
+        'loggers': {
+            'timeflux': {
+                'level' : level
+            }
+        },
+        'root': {
+            'level': 'INFO',
+            'handlers': ['queue']
+        }
+    }
+
+    logging.config.dictConfig(config)
+
+
+def get_queue():
+    if not _QUEUE:
+        globals()['_QUEUE'] = Queue()
+    return _QUEUE
