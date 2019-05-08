@@ -2,7 +2,6 @@
 
 import sys
 import os
-import psutil
 import logging
 from argparse import ArgumentParser
 from importlib import import_module
@@ -36,10 +35,6 @@ def _args():
     return args
 
 def _terminate():
-    try:
-        psutil.wait_procs(psutil.Process().children())
-    except:
-        pass
     _run_hook('post')
     LOGGER.info('Terminated')
     terminate_listener()

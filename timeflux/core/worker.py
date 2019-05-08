@@ -23,7 +23,7 @@ class Worker:
         log_level = logging.getLogger('timeflux').getEffectiveLevel()
         p = Process(target=self._run, args=(log_queue, log_level,), name=self._graph['id'])
         p.start()
-        return p.pid
+        return p
 
     def load(self):
 

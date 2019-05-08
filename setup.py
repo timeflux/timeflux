@@ -23,7 +23,6 @@ DEPENDENCIES = [
     'pylsl',
     'python-osc',
     'python-dotenv',
-    'psutil',
     'jsonschema'
 ]
 

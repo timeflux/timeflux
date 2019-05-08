@@ -16,5 +16,4 @@ pylsl==1.13.1
 python-osc==1.7.0
 python-dotenv==0.10.1
 jsonschema>=3.0.1
-psutil>=5.6.1
 #git+https://github.com/timeflux/timeflux_example

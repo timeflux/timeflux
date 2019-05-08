@@ -1,31 +1,25 @@
 #!/usr/bin/env python
 
-""" Terminate any Timeflux instance
+""" Terminate a Timeflux instance
 
 Use as a script or invoke with ``python -m timeflux.helpers.terminate``.
 
 """
 
-import sys
+import logging
+import subprocess
 import signal
-import psutil
+import os
 
-def terminate():
-    # Get all processes
-    process = None
-    for p in psutil.process_iter(attrs=['cmdline']):
-        if p.info['cmdline'] and len(p.info['cmdline']) > 2:
-            if p.info['cmdline'][1].endswith('timeflux'):
-                if not process:
-                    process = p
-                else:
-                    # Keep only the master process
-                    if p.ppid() != process.pid:
-                        process = p
-    # Send signal to the process
-    if process:
-        sig = signal.CTRL_C_EVENT if sys.platform == 'win32' else signal.SIGINT
-        process.send_signal(sig)
+LOGGER = logging.getLogger(__name__)
 
+def terminate_posix():
+    """Find oldest Timeflux process and terminate it."""
+    try:
+        pid = int(subprocess.check_output(['pgrep', '-of', 'timeflux']))
+        LOGGER.info('Sending INT signal to PID %d.' % pid)
+        os.kill(pid, signal.SIGINT)
+    except:
+        LOGGER.warning('No running Timeflux instance found.')
 
-if __name__ == '__main__': terminate()
+if __name__ == '__main__': terminate_posix()

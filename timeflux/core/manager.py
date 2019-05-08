@@ -2,9 +2,9 @@
 
 import logging
 import sys
+import os
 import time
 import signal
-import psutil
 import pathlib
 import json
 import yaml
@@ -49,6 +49,9 @@ class Manager:
         if not self._validate():
             raise ValueError('Invalid application file')
 
+        # Hold the children processes
+        self._processes = []
+
 
     def run(self):
         """Launch as many workers as there are graphs."""
@@ -67,38 +70,51 @@ class Manager:
 
     def _launch(self):
         """Launch workers."""
-        self._processes = []
         for graph in self.config['graphs']:
             worker = Worker(graph)
-            pid = worker.run()
-            self._processes.append(psutil.Process(pid))
-            self.logger.debug("Worker spawned with PID %d", pid)
+            process = worker.run()
+            self._processes.append(process)
+            self.logger.debug("Worker spawned with PID %d", process.pid)
 
 
     def _monitor(self):
         """Wait for at least one worker to terminate."""
         while True:
-            for process in self._processes:
-                if not process.is_running() or process.status() == psutil.STATUS_ZOMBIE:
-                    return
+            if any(not process.is_alive() for process in self._processes):
+                return
             time.sleep(.1)
 
 
     def _terminate(self):
         """Terminate all workers."""
         # https://bugs.python.org/issue26350
-        sig = signal.CTRL_C_EVENT if sys.platform == 'win32' else signal.SIGINT
+        interrupt = signal.CTRL_C_EVENT if sys.platform == 'win32' else signal.SIGINT
         # Try to terminate gracefully
         for process in self._processes:
-            if process.is_running() and process.status() != psutil.STATUS_ZOMBIE:
-                process.send_signal(sig)
-        # Kill the remaining ones
-        try:
-            gone, alive = psutil.wait_procs(self._processes, timeout=10)
-            for process in alive:
-                process.kill()
-        except:
-            pass
+            if process.is_alive():
+                os.kill(process.pid, interrupt)
+        # Wait 10 seconds and kill the remaining ones
+        self._wait(10)
+        for process in self._processes:
+            if process.is_alive():
+                process.terminate()
+
+
+    def _wait(self, timeout=None):
+        """Wait for all workers to die."""
+        if not self._processes: return
+        start = time.time()
+        while True:
+            try:
+                if all(not process.is_alive() for process in self._processes):
+                    # All the workers are dead
+                    return
+                if timeout and time.time() - start >= timeout:
+                    # Timeout
+                    return
+                time.sleep(.1)
+            except:
+                pass
 
 
     def _load_yaml(self, filename):
