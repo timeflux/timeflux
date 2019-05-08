@@ -3,14 +3,14 @@
 """Launch and terminate Timeflux instances on both POSIX and Windows systems.
 
 Sometimes, it's okay to kill. But only if you do it gracefully, and give your victim a chance to say goodbye
-to his children and let them commit suicide (again, with grace) upon hearing such news.
+to his or her children and let them commit suicide (again, with grace) upon hearing such news.
 
 On POSIX systems, it's easy: just launch your process normally and terminate it by sending a SIGINT signal.
 
 On Windows, well, that's another story. SIGINT can't be captured, and the only way is to send a CTRL+C event.
 Any other signal (except CTRL+BREAK) will terminate without notice. Simple enough, you might say. Not quite.
 It just happens that CTRL events can only be captured by processes attached to the current console. Which is
-pretty useless in most cases. But do not abandon all hope! There is a (hacky) solution: have a launcher script
+pretty useless in most cases. But do not abandon all hope! Here is a (hacky) solution: have a launcher script
 that will start a simple TCP server and run your program. When a client connect to the server, it will send a
 CTRL+C event to its subprocess.
 
