@@ -80,7 +80,7 @@ class Receive(Node):
                     channel = channel.next_sibling()
                     self._labels.append(channel.child_value('label'))
         if self._inlet:
-            values, stamps = self._inlet.pull_chunk(max_samples = self._max_samples)
+            values, stamps = self._inlet.pull_chunk(max_samples=self._max_samples)
             if stamps:
                 stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
                 if self._offset_correction:
