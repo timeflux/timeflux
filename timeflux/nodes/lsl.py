@@ -50,20 +50,22 @@ class Receive(Node):
 
     """Receive from a LSL stream."""
 
-    def __init__(self, name, unit='ns', offset_correction=False, channels=None):
+    def __init__(self, name, unit='ns', offset_correction=False, channels=None, resolve_timeout=.5, max_samples=1024):
         self._name = name
         self._inlet = None
         self._labels = None
         self._unit = unit
         self._offset_correction = offset_correction
         self._channels = channels
+        self._resolve_timeout = resolve_timeout
+        self._max_samples = max_samples
         if self._offset_correction:
             self._offset = pd.Timestamp(time(), unit='s') - pd.Timestamp(pylsl.local_clock(), unit='s')
 
     def update(self):
         if not self._inlet:
             self.logger.debug('Resolving stream: ' + self._name)
-            streams = resolve_byprop('name', self._name, timeout=1)
+            streams = resolve_byprop('name', self._name, timeout=self._resolve_timeout)
             if not streams: return
             self.logger.debug('Stream acquired')
             self._inlet = StreamInlet(streams[0])
@@ -78,7 +80,7 @@ class Receive(Node):
                     channel = channel.next_sibling()
                     self._labels.append(channel.child_value('label'))
         if self._inlet:
-            values, stamps = self._inlet.pull_chunk()
+            values, stamps = self._inlet.pull_chunk(max_samples = self._max_samples)
             if stamps:
                 stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
                 if self._offset_correction:
