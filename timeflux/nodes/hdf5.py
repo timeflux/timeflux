@@ -141,10 +141,18 @@ class Save(Node):
     def update(self):
         if self.ports is not None:
             for name, port in self.ports.items():
+                if not name.startswith('i'):
+                    continue
+                key = '/' + name[2:].replace('_', '/')
                 if port.data is not None:
-                    if name.startswith('i'):
-                        key = '/' + name[2:].replace('_', '/')
-                        self._store.append(key, port.data, min_itemsize=self.min_itemsize)
+                    self._store.append(key, port.data, min_itemsize=self.min_itemsize)
+                if port.meta is not None and port.meta:
+                    # Note: not none and not an empty dict, because this operation
+                    #       overwrites previous metadata and an empty dict would
+                    #       just remove any previous change
+                    self.logger.info('Saving meta for %s', key)
+                    self._store.get_node(key)._v_attrs['timeflux_meta'] = port.meta
+
 
     def terminate(self):
         self._store.close()
