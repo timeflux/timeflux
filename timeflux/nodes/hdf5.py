@@ -150,7 +150,7 @@ class Save(Node):
                     # Note: not none and not an empty dict, because this operation
                     #       overwrites previous metadata and an empty dict would
                     #       just remove any previous change
-                    self._store.get_node(key)._v_attrs['timeflux_meta'] = port.meta
+                    self._store.get_node(key)._v_attrs['meta'] = port.meta
 
 
     def terminate(self):
