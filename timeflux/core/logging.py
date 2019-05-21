@@ -5,6 +5,7 @@ import logging
 import logging.config
 import logging.handlers
 from multiprocessing import Queue
+from datetime import datetime
 
 
 _QUEUE = None
@@ -83,8 +84,9 @@ def init_listener(level='DEBUG', file=None):
     }
 
     if file:
+        now = datetime.now()
         config['root']['handlers'].append('file')
-        config['handlers']['file']['filename'] = file
+        config['handlers']['file']['filename'] = now.strftime(file)
 
     logging.config.dictConfig(config)
 
