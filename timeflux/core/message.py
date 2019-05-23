@@ -6,20 +6,24 @@ import pandas as pd
 
 def pickle_serialize(message):
     topic = message[0]
-    df = message[1]
-    return [topic, pickle.dumps(df, pickle.HIGHEST_PROTOCOL)]
+    data = message[1]
+    meta = message[2]
+    return [topic, pickle.dumps(data, pickle.HIGHEST_PROTOCOL), pickle.dumps(meta, pickle.HIGHEST_PROTOCOL)]
 
 def pickle_deserialize(message):
     topic = message[0].decode('utf-8')
     data = message[1]
-    return [topic, pickle.loads(data)]
+    meta = message[2]
+    return [topic, pickle.loads(data), pickle.loads(meta)]
 
 def msgpack_serialize(message):
+    # TODO: handle meta and cases where data is None
     topic = message[0]
     df = message[1]
-    return [topic, df.to_msgpack()]
+    return [topic, data.to_msgpack()]
 
 def msgpack_deserialize(message):
+    # TODO: handle meta and cases where data is None
     topic = message[0].decode('utf-8')
     data = message[1]
     return [topic, pd.read_msgpack(data)]

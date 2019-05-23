@@ -152,9 +152,9 @@ class Pub(Node):
         time.sleep(wait)
 
     def update(self):
-        if self.i.data is not None:
+        if self.i.data is not None or self.i.meta:
             try:
-                self._socket.send_serialized([self._topic, self.i.data], self._serializer)
+                self._socket.send_serialized([self._topic, self.i.data, self.i.meta], self._serializer)
             except zmq.ZMQError as e:
                 self.logger.error(e)
 
@@ -177,27 +177,37 @@ class Sub(Node):
             self.logger.error(e)
 
     def update(self):
-        self._frames = {}
+        self._chunks = {}
         try:
             while True:
-                [topic, message] = self._socket.recv_serialized(self._deserializer, zmq.NOBLOCK)
-                self._append_frame(topic, message)
+                [topic, data, meta] = self._socket.recv_serialized(self._deserializer, zmq.NOBLOCK)
+                if not topic in self._chunks:
+                    self._chunks[topic] = {'data': [], 'meta': {}}
+                self._append_data(topic, data)
+                self._append_meta(topic, meta)
         except zmq.ZMQError:
             pass # No more data
         self._update_ports()
 
-    def _append_frame(self, topic, message):
-        if not topic in self._frames:
-            self._frames[topic] = []
-        self._frames[topic].append(message)
+    def _append_data(self, topic, data):
+        if data is not None:
+            self._chunks[topic]['data'].append(data)
+
+    def _append_meta(self, topic, meta):
+        if meta:
+            self._chunks[topic]['meta'].update(meta)
 
     def _update_ports(self):
-        for topic, frames in self._frames.items():
-            if len(frames) == 1:
-                data = frames[0]
+        for topic in self._chunks.keys():
+            if len(self._chunks[topic]['data']) == 0:
+                data = None
+            elif len(self._chunks[topic]['data']) == 1:
+                data = self._chunks[topic]['data'][0]
             else:
-                data = pandas.concat(frames)
-            self._update_port(topic, data)
+                data = pandas.concat(self._chunks[topic]['data'])
+            meta = self._chunks[topic]['meta']
+            self._update_port(topic, data, meta)
 
-    def _update_port(self, topic, data):
+    def _update_port(self, topic, data, meta):
         getattr(self, 'o_' + topic).data = data
+        getattr(self, 'o_' + topic).meta = meta
