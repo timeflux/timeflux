@@ -19,7 +19,7 @@ def pickle_deserialize(message):
 def msgpack_serialize(message):
     # TODO: handle meta and cases where data is None
     topic = message[0]
-    df = message[1]
+    data = message[1]
     return [topic, data.to_msgpack()]
 
 def msgpack_deserialize(message):
