@@ -41,7 +41,7 @@ class Events(Node):
         self.o.set(rows, names=['label', 'data'])
 
 
-class ClockStimulator(Node):
+class Periodic(Node):
     """Node that sends events at a regular interval.
 
     This node sends regular events after the first time the update method is
@@ -74,7 +74,7 @@ class ClockStimulator(Node):
               - nodes:
                 - id: clock
                   module: timeflux.nodes.events
-                  class: ClockStimulator
+                  class: Periodic
                   params:
                     label: my-event-label
                     interval:
@@ -101,9 +101,9 @@ class ClockStimulator(Node):
         delta_interval = datetime.timedelta(**interval)
         delta_phase = datetime.timedelta(**phase)
         if delta_interval.total_seconds() <= 0:
-            raise ValueError('ClockStimulator must have positive interval')
+            raise ValueError('Periodic must have positive interval')
         if delta_phase.total_seconds() <= 0:
-            raise ValueError('ClockStimulator must have positive phase')
+            raise ValueError('Periodic must have positive phase')
 
         self._period = np.timedelta64(delta_interval)
         self._phase = np.timedelta64(delta_phase)
@@ -115,7 +115,7 @@ class ClockStimulator(Node):
         now = np.datetime64(datetime.datetime.now())
         if self._next_timestamp is None:
             self._next_timestamp = now + self._phase
-            self.logger.debug('ClockStimulator will start sending events at %s',
+            self.logger.debug('Periodic will start sending events at %s',
                               self._next_timestamp)
 
         data = []
