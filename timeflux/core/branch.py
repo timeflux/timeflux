@@ -3,10 +3,12 @@
 from timeflux.core.node import Node
 from timeflux.core.worker import Worker
 from timeflux.core.scheduler import Scheduler
+from timeflux.core.validate import validate
 
 class Branch(Node):
 
     def __init__(self, graph=None):
+        self._scheduler = None
         if graph:
             self.load(graph)
 
@@ -20,14 +22,16 @@ class Branch(Node):
             graph (dict): The graph.
 
         """
-        graph['rate'] = 0
+        if not validate(graph, 'graph'):
+            raise ValueError('Invalid branch')
         worker = Worker(graph)
         path, nodes = worker.load()
         self._scheduler = Scheduler(path, nodes, 0)
 
     def run(self):
         """Execute the graph once."""
-        self._scheduler.next()
+        if self._scheduler:
+            self._scheduler.next()
 
     def get_port(self, node_id, port_id='o'):
         """Get a port from the graph.

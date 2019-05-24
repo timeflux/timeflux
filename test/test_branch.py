@@ -7,6 +7,10 @@ from timeflux.core.branch import Branch
 
 Registry.cycle_start = time.time()
 
+def test_invalid():
+    with pytest.raises(ValueError):
+        Branch().load({})
+
 def test_branch():
     graph = {
         'nodes': [
