@@ -19,7 +19,6 @@ dependencies:
 - sphinx_rtd_theme
 - jsonschema
 - python-dotenv
-- psutil
 - pip
 - pip:
   - pylsl==1.13.1
