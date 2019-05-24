@@ -72,7 +72,8 @@ extensions = [
 # Autodoc settings
 # Sphinx 1.8
 autodoc_default_options = {
-    'special-members': '__init__'
+    'special-members': '__init__',
+    'member-order': 'bysource'
 }
 
 # Napoleon settings
