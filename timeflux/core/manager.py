@@ -5,11 +5,9 @@ import sys
 import os
 import time
 import signal
-import pathlib
 import json
 import yaml
-from jsonschema.exceptions import ValidationError
-from timeflux.core.validate import ValidateWithDefaults
+from timeflux.core.validate import validate
 from timeflux.core.worker import Worker
 
 
@@ -128,6 +126,4 @@ class Manager:
 
 
     def _validate(self):
-        path = str(pathlib.Path(__file__).parents[1].joinpath('schema', 'app.json'))
-        schema = self._load_json(path)
-        return ValidateWithDefaults(schema, self.config)
+        return validate(self.config)

@@ -1,127 +1,133 @@
 {
-  "definitions": {},
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://schema.timeflux.io/app.json",
-  "type": "object",
-  "required": [
-    "graphs"
-  ],
-  "properties": {
-    "graphs": {
-      "$id": "#/properties/graphs",
-      "type": "array",
-      "items": {
-        "$id": "#/properties/graphs/items",
+  "$ref": "#/definitions/app",
+
+  "definitions": {
+
+    "app": {
         "type": "object",
         "required": [
-          "nodes"
+          "graphs"
         ],
         "properties": {
-          "id": {
-            "$id": "#/properties/graphs/items/properties/id",
-            "type": [
-              "string",
-              "null"
-            ],
-            "default": null,
-            "pattern": "^[A-z0-9_-]+$",
-            "examples": [
-              "graph_id"
-            ]
-          },
-          "rate": {
-            "$id": "#/properties/graphs/items/properties/rate",
-            "type": "number",
-            "default": 1,
-            "examples": [
-              0,
-              1,
-              25
-            ]
-          },
-          "nodes": {
-            "$id": "#/properties/graphs/items/properties/nodes",
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "$id": "#/properties/graphs/items/properties/nodes/items",
-              "type": "object",
-              "required": [
-                "id",
-                "module",
-                "class"
-              ],
-              "properties": {
-                "id": {
-                  "$id": "#/properties/graphs/items/properties/nodes/items/properties/id",
-                  "type": "string",
-                  "pattern": "^[A-z0-9_-]+$",
-                  "examples": [
-                    "node_id"
-                  ]
-                },
-                "module": {
-                  "$id": "#/properties/graphs/items/properties/nodes/items/properties/module",
-                  "type": "string",
-                  "examples": [
-                    "timeflux.nodes.random"
-                  ],
-                  "pattern": "^[A-z0-9_-]+(\\.[A-z0-9_-]+)*$"
-                },
-                "class": {
-                  "$id": "#/properties/graphs/items/properties/nodes/items/properties/class",
-                  "type": "string",
-                  "examples": [
-                    "MyClass"
-                  ],
-                  "pattern": "^[A-Z_][a-zA-Z0-9]+$"
-                },
-                "params": {
-                  "$id": "#/properties/graphs/items/properties/nodes/items/properties/params",
-                  "type": "object",
-                  "default": {}
-                }
-              }
-            }
-          },
-          "edges": {
-            "$id": "#/properties/graphs/items/properties/edges",
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "$id": "#/properties/graphs/items/properties/edges/items",
-              "type": "object",
-              "required": [
-                "source",
-                "target"
-              ],
-              "properties": {
-                "source": {
-                  "$id": "#/properties/graphs/items/properties/edges/items/properties/source",
-                  "type": "string",
-                  "default": "",
-                  "examples": [
-                    "node_id",
-                    "node_id:foo",
-                    "node_id:*"
-                  ],
-                  "pattern": "^[A-z0-9_-]+([:]{1}[a-z0-9_-|*]+)*$"
-                },
-                "target": {
-                  "$id": "#/properties/graphs/items/properties/edges/items/properties/target",
-                  "type": "string",
-                  "default": "",
-                  "examples": [
-                    "node_id",
-                    "node_id:bar"
-                  ],
-                  "pattern": "^[A-z0-9_-]+([:]{1}[a-z0-9_-]+)*$"
-                }
-              }
-            }
-          }
+          "graphs": { "$ref": "#/definitions/graphs" }
+        }
+    },
+
+    "graphs": {
+      "type": "array",
+      "items": { "$ref": "#definitions/graph" }
+    },
+
+    "graph": {
+      "type": "object",
+      "required": [
+        "nodes"
+      ],
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "pattern": "^[A-z0-9_-]+$",
+          "examples": [
+            "graph_id"
+          ]
+        },
+        "rate": {
+          "type": "number",
+          "default": 1,
+          "examples": [
+            0,
+            1,
+            25
+          ]
+        },
+        "nodes": { "$ref": "#definitions/nodes" },
+        "edges": { "$ref": "#definitions/edges" }
+      }
+    },
+
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#definitions/node" }
+    },
+
+    "edges": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#definitions/edge" }
+    },
+
+    "node": {
+      "$id": "node",
+      "type": "object",
+      "required": [
+        "id",
+        "module",
+        "class"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-z0-9_-]+$",
+          "examples": [
+            "node_id"
+          ]
+        },
+        "module": {
+          "type": "string",
+          "examples": [
+            "timeflux.nodes.random"
+          ],
+          "pattern": "^[A-z0-9_-]+(\\.[A-z0-9_-]+)*$"
+        },
+        "class": {
+          "type": "string",
+          "examples": [
+            "MyClass"
+          ],
+          "pattern": "^[A-Z_][a-zA-Z0-9]+$"
+        },
+        "params": {
+          "type": "object",
+          "default": {}
+        }
+      }
+    },
+
+    "edge": {
+      "type": "object",
+      "required": [
+        "source",
+        "target"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "default": "",
+          "examples": [
+            "node_id",
+            "node_id:foo",
+            "node_id:*"
+          ],
+          "pattern": "^[A-z0-9_-]+([:]{1}[a-z0-9_-|*]+)*$"
+        },
+        "target": {
+          "type": "string",
+          "default": "",
+          "examples": [
+            "node_id",
+            "node_id:bar"
+          ],
+          "pattern": "^[A-z0-9_-]+([:]{1}[a-z0-9_-]+)*$"
         }
       }
     }
+
   }
 }
