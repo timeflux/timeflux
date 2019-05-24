@@ -17,23 +17,23 @@ def test_load_invalid_file():
 
 def test_load_yaml_file():
     m = Manager(pytest.path + '/graphs/test.yaml')
-    assert m.config == test_config
+    assert m._graphs == test_config['graphs']
 
 def test_load_json_file():
     m = Manager(pytest.path + '/graphs/test.json')
-    assert m.config == test_config
-
-def test_load_json_string():
-    m = Manager(json.dumps(test_config))
-    assert m.config == test_config
-
-def test_load_invalid_string():
-    with pytest.raises(json.decoder.JSONDecodeError):
-        Manager('{ "foo"')
+    assert m._graphs == test_config['graphs']
 
 def test_load_dict():
     m = Manager(test_config)
-    assert m.config == test_config
+    assert m._graphs == test_config['graphs']
+
+def test_import():
+    m = Manager(pytest.path + '/graphs/import.yaml')
+    assert len(m._imports) == 4
+
+def test_import_recursive():
+    m = Manager(pytest.path + '/graphs/import3.yaml')
+    assert len(m._imports) == 5
 
 def test_validation_failure():
     with pytest.raises(ValueError):

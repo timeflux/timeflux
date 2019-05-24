@@ -7,16 +7,34 @@
 
     "app": {
         "type": "object",
-        "required": [
-          "graphs"
+        "anyOf": [
+          { "required": [ "import" ] },
+          { "required": [ "graphs" ] }
         ],
         "properties": {
+          "version": { "$ref": "#/definitions/version" },
+          "import": { "$ref": "#/definitions/import" },
           "graphs": { "$ref": "#/definitions/graphs" }
         }
     },
 
+    "version": {
+      "type": "number",
+      "default": 1.0
+    },
+
+    "import": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string" ,
+        "pattern": "\\.(json|yml|yaml)$"
+      }
+    },
+
     "graphs": {
       "type": "array",
+      "minItems": 1,
       "items": { "$ref": "#definitions/graph" }
     },
 

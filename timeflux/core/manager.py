@@ -16,39 +16,45 @@ class Manager:
     """Load configuration and spawn workers."""
 
     def __init__(self, config):
-        """
-        Load configuration
+        """Load configuration
 
-        Parameters
-        ----------
-        config : str|dict
-            The configuration can either be a path to a YAML or JSON file, a JSON string or a dict.
+        Args:
+            config (string|dict): The configuration can either be a path to a YAML or JSON file or a dict.
 
         """
 
         # Initialize logger
         self.logger = logging.getLogger(__name__)
 
-        # Load config
+        # Hold the names of the imported applications
+        self._imports = []
+
+        # Hold the graphs
+        self._graphs = []
+
+        # Hold the children processes
+        self._processes = []
+
+        # Load application
         if isinstance(config, dict):
-            self.config = config
+            app = config
+            path = os.getcwd()
         elif isinstance(config, str):
-            extension = config.split('.')[-1]
-            if extension in ('yml', 'yaml'):
-                self.config = self._load_yaml(config)
-            elif extension == 'json':
-                self.config = self._load_json(config)
-            else:
-                self.config = json.loads(config)
+            app = self._load_file(config)
+            self._imports.append(os.path.abspath(config))
+            path = os.path.dirname(self._imports[0])
         else:
             raise ValueError('Could not load application file')
 
         # Validate
-        if not self._validate():
-            raise ValueError('Invalid application file')
+        validate(app)
 
-        # Hold the children processes
-        self._processes = []
+        # Populate the graph list
+        if 'graphs' in app:
+            self._graphs = app['graphs']
+
+        # Import sub applications
+        self._import(app, path)
 
 
     def run(self):
@@ -68,7 +74,7 @@ class Manager:
 
     def _launch(self):
         """Launch workers."""
-        for graph in self.config['graphs']:
+        for graph in self._graphs:
             worker = Worker(graph)
             process = worker.run()
             self._processes.append(process)
@@ -77,6 +83,7 @@ class Manager:
 
     def _monitor(self):
         """Wait for at least one worker to terminate."""
+        if not self._processes: return
         while True:
             if any(not process.is_alive() for process in self._processes):
                 return
@@ -115,6 +122,36 @@ class Manager:
                 pass
 
 
+    def _import(self, app, path):
+        if not 'import' in app: return
+        old_path = os.getcwd()
+        os.chdir(path)
+        for filename in app['import']:
+            filename = os.path.abspath(filename)
+            if filename in self._imports:
+                self.logger.debug('Application %s will not be loaded twice', filename)
+                continue
+            self.logger.debug('Importing %s', filename)
+            self._imports.append(filename)
+            sub = self._load_file(filename)
+            try:
+                validate(sub)
+            except ValueError as error:
+                raise ValueError(f'Validation failed ({filename})')
+            if 'graphs' in sub:
+                self._graphs += sub['graphs']
+            self._import(sub, os.path.dirname(filename))
+        os.chdir(old_path)
+
+
+    def _load_file(self, filename):
+        extension = filename.split('.')[-1]
+        if extension in ('yml', 'yaml'):
+            return self._load_yaml(filename)
+        elif extension == 'json':
+           return self._load_json(filename)
+
+
     def _load_yaml(self, filename):
         with open(filename) as stream:
             return yaml.safe_load(stream)
@@ -123,7 +160,3 @@ class Manager:
     def _load_json(self, filename):
         with open(filename) as stream:
             return json.load(stream)
-
-
-    def _validate(self):
-        return validate(self.config)
