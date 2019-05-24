@@ -22,7 +22,9 @@ class Branch(Node):
             graph (dict): The graph.
 
         """
-        if not validate(graph, 'graph'):
+        try:
+            validate(graph, 'graph')
+        except:
             raise ValueError('Invalid branch')
         worker = Worker(graph)
         path, nodes = worker.load()

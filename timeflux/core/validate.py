@@ -10,6 +10,8 @@ RESOLVER = None
 
 def extend_with_defaults(validator_class):
 
+    """Extends the validator class to set defaults automatically."""
+
     validate_properties = validator_class.VALIDATORS['properties']
 
     def set_defaults(validator, properties, instance, schema):
@@ -28,6 +30,7 @@ def extend_with_defaults(validator_class):
 Validator = extend_with_defaults(Draft7Validator)
 
 def resolver():
+    """Load the schema and returns a resolver."""
     if RESOLVER: return RESOLVER
     path = str(pathlib.Path(__file__).parents[1].joinpath('schema', 'app.json'))
     with open(path) as stream:
@@ -36,6 +39,13 @@ def resolver():
     return RESOLVER
 
 def validate(instance, definition='app'):
+    """Validate a Timeflux application or a graph.
+
+    Args:
+        instance (dict): The application to validate.
+        definition (string): The subschema to validate against.
+
+    """
     schema = {'$ref': '#/definitions/' + definition}
     validator = Validator(schema, resolver=resolver())
     errors = sorted(validator.iter_errors(instance), key=lambda e: e.path)
@@ -43,5 +53,4 @@ def validate(instance, definition='app'):
         for error in errors:
             path = '/'.join(str(e) for e in error.path)
             LOGGER.error('%s (%s)' % (error.message, path))
-        return False
-    return True
+        raise ValueError('Validation failed')
