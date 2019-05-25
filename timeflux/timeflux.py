@@ -4,7 +4,7 @@ import sys
 import os
 import logging
 from argparse import ArgumentParser
-from importlib import import_module
+from runpy import run_module
 from dotenv import load_dotenv
 from timeflux import __version__
 from timeflux.core.logging import init_listener, terminate_listener
@@ -49,10 +49,9 @@ def _run_hook(name):
     module = os.getenv('TIMEFLUX_HOOK_' + name.upper())
     if module:
         LOGGER.info('Running %s hook' % name)
-        _import(module)
-
-def _import(module):
-    try:
-        import_module(module)
-    except Exception as error:
-        LOGGER.exception(error)
+        try:
+            run_module(module)
+        except ImportError as error:
+            LOGGER.error(error)
+        except Exception as error:
+            LOGGER.exception(error)
