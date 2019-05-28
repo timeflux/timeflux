@@ -154,4 +154,8 @@ class Save(Node):
 
 
     def terminate(self):
-        self._store.close()
+        try:
+            self._store.close()
+        except Exception:
+            # Just in case
+            pass
