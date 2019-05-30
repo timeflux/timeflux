@@ -14,13 +14,13 @@ _QUEUE = None
 class Handler():
 
     def __init__(self):
-        self.logger = logging.getLogger()
+        self.logger = logging.getLogger('timeflux')
 
     def handle(self, record):
         self.logger.handle(record)
 
 
-def init_listener(level='DEBUG', file=None):
+def init_listener(level_console='INFO', level_file='DEBUG', file=None):
 
     q = get_queue()
 
@@ -43,14 +43,14 @@ def init_listener(level='DEBUG', file=None):
     # Define config
     config = {
         'version': 1,
-        'disable_existing_loggers': False,
         'root': {
-            'level': 'INFO',
-            'handlers': ['console'],
+            'handlers': ['default'],
         },
         'loggers': {
             'timeflux': {
-                'level': level,
+                'propagate': False,
+                'level': 'DEBUG',
+                'handlers': ['console']
             },
         },
         'formatters': {
@@ -67,13 +67,19 @@ def init_listener(level='DEBUG', file=None):
             }
         },
         'handlers': {
+            'default': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'console',
+                'stream': 'ext://sys.stdout',
+            },
             'console': {
-                'level': 'DEBUG',
+                'level': level_console,
                 'class': 'logging.StreamHandler',
                 'formatter': 'console',
                 'stream': 'ext://sys.stdout',
             },
             'file': {
+                'level': level_file,
                 'class': 'logging.FileHandler',
                 'filename': 'timeflux.log',
                 'mode': 'a',
@@ -85,7 +91,7 @@ def init_listener(level='DEBUG', file=None):
 
     if file:
         now = datetime.now()
-        config['root']['handlers'].append('file')
+        config['loggers']['timeflux']['handlers'].append('file')
         config['handlers']['file']['filename'] = now.strftime(file)
 
     logging.config.dictConfig(config)
@@ -100,24 +106,24 @@ def terminate_listener():
         _QUEUE.put_nowait(None)
 
 
-def init_worker(queue, level='DEBUG'):
+def init_worker(queue):
 
     config = {
         'version': 1,
-        'disable_existing_loggers': True,
         'handlers': {
             'queue': {
                 'class': 'logging.handlers.QueueHandler',
-                'queue': queue,
+                'queue': queue
             },
         },
         'loggers': {
             'timeflux': {
-                'level' : level
+                'propagate': False,
+                'level' : 'DEBUG',
+                'handlers': ['queue']
             }
         },
         'root': {
-            'level': 'INFO',
             'handlers': ['queue']
         }
     }

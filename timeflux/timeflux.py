@@ -41,9 +41,10 @@ def _terminate():
     sys.exit(0)
 
 def _init_logging(debug):
-    level = 'DEBUG' if debug else os.getenv('TIMEFLUX_LOG_LEVEL', 'INFO')
+    level_console = 'DEBUG' if debug else os.getenv('TIMEFLUX_LOG_LEVEL_CONSOLE', 'INFO')
+    level_file = os.getenv('TIMEFLUX_LOG_LEVEL_FILE', 'DEBUG')
     file = os.getenv('TIMEFLUX_LOG_FILE', None)
-    init_listener(level, file)
+    init_listener(level_console, level_file, file)
 
 def _run_hook(name):
     module = os.getenv('TIMEFLUX_HOOK_' + name.upper())

@@ -19,9 +19,7 @@ class Worker:
 
     def run(self):
         """Run the process"""
-        log_queue = get_queue()
-        log_level = logging.getLogger('timeflux').getEffectiveLevel()
-        p = Process(target=self._run, args=(log_queue, log_level,), name=self._graph['id'])
+        p = Process(target=self._run, args=(get_queue(),), name=self._graph['id'])
         p.start()
         return p
 
@@ -44,11 +42,11 @@ class Worker:
         return path, nodes
 
 
-    def _run(self, log_queue=None, log_level='DEBUG'):
+    def _run(self, log_queue=None):
 
         # Initialize logging
         if log_queue:
-            init_worker(log_queue, log_level)
+            init_worker(log_queue)
         logger = logging.getLogger(__name__)
 
         scheduler = None
