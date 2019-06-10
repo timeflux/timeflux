@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-"""Export Timeflux apps to Graphviz."""
+"""Export Timeflux apps as images."""
 
 import sys
 import os
@@ -101,7 +101,6 @@ def yaml_to_png(filename, format='png', sort=False):
                     if len(edge) == 2:
                         cluster.edge(edge[0], edge[1], style='invis', weight='100')
                         edge = [edge[1]]
-
 
     # Add special edges
     if broker:
