@@ -14,11 +14,12 @@ dependencies:
 - pyzmq>=17.1.2
 - coloredlogs>=10.0
 - pytables>=3.4.4
+- jsonschema
+- python-dotenv
 - pytest>=4.0.2
 - sphinx>=1.8
 - sphinx_rtd_theme
-- jsonschema
-- python-dotenv
+- python-graphviz
 - pip
 - pip:
   - pylsl==1.13.1

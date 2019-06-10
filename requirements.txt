@@ -9,11 +9,12 @@ pyzmq>=17.1.2
 coloredlogs>=10.0
 tables>=3.4.4
 Cython>=0.29.6
-pytest>=4.0.2
-sphinx>=1.8
-sphinx_rtd_theme
 pylsl==1.13.1
 python-osc==1.7.0
 python-dotenv==0.10.1
 jsonschema>=3.0.1
+pytest>=4.0.2
+sphinx>=1.8
+sphinx_rtd_theme
+graphviz
 #git+https://github.com/timeflux/timeflux_example
