@@ -8,3 +8,4 @@ doc/api
 doc/build
 *.egg-info
 .idea
+make.env
