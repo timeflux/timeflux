@@ -13,6 +13,7 @@ class Node(ABC):
 
         instance = super().__new__(cls)
         instance.logger = logging.getLogger('timeflux.' + cls.__module__ + '.' + cls.__name__)
+        instance.ports = {}
         return instance
 
 
@@ -35,10 +36,10 @@ class Node(ABC):
         """
 
         if name == 'i' or name.startswith('i_') or name == 'o' or name.startswith('o_'):
-            if not self.ports: self.ports = {}
             self.ports[name] = Port()
             setattr(self, name, self.ports[name])
             return self.ports[name]
+        raise AttributeError(f"type object '{type(self).__name__}' has no attribute '{name}'")
 
 
     def iterate(self, name='*'):
@@ -60,7 +61,6 @@ class Node(ABC):
 
         """
 
-        if not self.ports: self.ports = {}
         if name.endswith('*'):
             name = name[:-1]
             skip = 0 if len(name) == 0 else len(name) - 1
@@ -80,16 +80,15 @@ class Node(ABC):
 
         """
 
-        if not self._re_dynamic_port:
+        if not hasattr(self, '_re_dynamic_port'):
             self._re_dynamic_port = re.compile('.*_[0-9]+$')
 
         remove = []
 
-        if self.ports:
-            for name, port in self.ports.items():
-                port.clear()
-                if self._re_dynamic_port.match(name):
-                    remove.append(name)
+        for name, port in self.ports.items():
+            port.clear()
+            if self._re_dynamic_port.match(name):
+                remove.append(name)
 
         for name in remove:
             del self.ports[name]

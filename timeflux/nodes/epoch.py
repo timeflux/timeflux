@@ -42,6 +42,7 @@ class Epoch(Node):
         self._event_data = event_data
         self._before = pd.Timedelta(seconds=before)
         self._after = pd.Timedelta(seconds=after)
+        self._buffer = None
         self._epochs = []
 
 
