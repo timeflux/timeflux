@@ -48,7 +48,7 @@ class Branch(Node):
         """
         return getattr(self._scheduler._nodes[node_id], port_id)
 
-    def set_port(self, node_id, port_id='i', data=None, meta=None, persistant=True):
+    def set_port(self, node_id, port_id='i', data=None, meta=None, persistent=True):
         """Set a port's data and meta.
 
         Args:
@@ -56,12 +56,12 @@ class Branch(Node):
             port_id (string): The port name. Default: `i`.
             data (DataFrame, DataArray): The data. Default: `None`.
             meta (dict): The meta. Default: `None`.
-            persistant (boolean): Set the persistance of data and meta.
+            persistent (boolean): Set the persistence of data and meta.
                                   If `True`, the port will not be cleared during graph execution. Default: `True`.
 
         """
         port = self.get_port(node_id, port_id)
-        port.persistant = persistant
+        port.persistent = persistent
         if not meta: meta = {}
         port.data = data
         port.meta = meta
