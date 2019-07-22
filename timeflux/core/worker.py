@@ -79,8 +79,13 @@ class Worker:
         # Import module
         try:
             m = importlib.import_module(node['module'])
-        except ModuleNotFoundError:
-            raise WorkerLoadError(f"Node '{nid}': no module named '{node['module']}'")
+        except ModuleNotFoundError as error:
+            if node['module'] in error.msg:
+                # Missing or invalid node
+                raise WorkerLoadError(f"Node '{nid}': no module named '{node['module']}'")
+            else:
+                # Missing or invalid dependency
+                raise error
 
         # Get class
         try:
