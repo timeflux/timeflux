@@ -24,7 +24,7 @@ DEPENDENCIES = [
 ]
 
 setup(
-    name='Timeflux',
+    name='timeflux',
     packages=find_packages(),
     package_data={
         'timeflux': ['schema/app.json']
@@ -34,7 +34,7 @@ setup(
     },
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
-    description='Acquisition and real-time processing of biosignals.',
+    description='Timeflux: acquisition and real-time processing of biosignals.',
     long_description=DESCRIPTION,
     author='Pierre Clisson',
     author_email='contact@timeflux.io',
