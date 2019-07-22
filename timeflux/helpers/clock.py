@@ -7,7 +7,8 @@ from datetime import datetime
 
 def now():
     #return pd.Timestamp(time(), unit='s')
-    return float_to_time(time())
+    #return float_to_time(time())
+    return np.datetime64(int(time() * 1e6), 'us')
 
 def float_to_time(timestamp):
     """Convert a np.float64 to a np.datetime64['us']."""
@@ -35,5 +36,9 @@ def effective_rate(df):
     return rate
 
 def absolute_offset():
-    """"Return the offset between the UTC timestamp and a precision timer such as the LSL precision clock"""
+    """Return the offset between the UTC timestamp and a precision timer such as the LSL precision clock"""
     return pd.Timestamp(time(), unit='s') - pd.Timestamp(perf_counter(), unit='s')
+
+def time_range(start, stop, num):
+    """Return num evenly spaced timestamps beween start and stop (np.datetime64)"""
+    return np.linspace(start.astype(np.uint64), stop.astype(np.uint64), num, False, dtype='datetime64[us]')
