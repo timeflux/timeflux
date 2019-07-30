@@ -1,14 +1,24 @@
 import os
 import sys
 import threading
+import time
 import logging
 import logging.config
 import logging.handlers
+import coloredlogs
 from multiprocessing import Queue
 from datetime import datetime
 
 
 _QUEUE = None
+
+
+class UTCFormatterConsole(coloredlogs.ColoredFormatter):
+    converter = time.gmtime
+
+
+class UTCFormatterFile(logging.Formatter):
+    converter = time.gmtime
 
 
 class Handler():
@@ -55,14 +65,14 @@ def init_listener(level_console='INFO', level_file='DEBUG', file=None):
         },
         'formatters': {
             'console': {
-                '()': 'coloredlogs.ColoredFormatter',
+                '()': 'timeflux.core.logging.UTCFormatterConsole',
                 'format': record_format,
                 'datefmt': '%Y-%m-%d %H:%M:%S,%f',
                 'field_styles': field_styles,
                 'level_styles': level_styles,
             },
             'file': {
-                'class': 'logging.Formatter',
+                'class': 'timeflux.core.logging.UTCFormatterFile',
                 'format': record_format
             }
         },
