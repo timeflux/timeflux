@@ -99,3 +99,29 @@ class CustomData():
         """
 
         self._cursor = 0
+
+
+def online_mock(node, data, chunk_size):
+    """ Mimics the scheduler behavior to allow testing the output of a node offline.
+    This function loops across chunks of a data object (eg. CustomData or DummyData),
+     updates the node and returns the concatenated resulting data and meta.
+    :param node (Node): timeflux node to test
+    :param data (Object): data generator object with a method `next` and `reset`
+    :param chunk_size (int): number of samples per chunk
+    :return:
+    output_data (DataFrame): concatenated output data
+    output_meta: list of meta
+    """
+    data.reset()
+    # mimic the scheduler
+    output_data = []
+    output_meta = []
+    chunk = data.next(chunk_size).copy()
+    while not chunk.empty:
+        node.i.data = chunk
+        node.update()
+        output_data.append(node.o.data)
+        chunk = data.next(chunk_size).copy()
+        output_meta.append(node.o.meta)
+    output_data = pd.concat(output_data)
+    return output_data, output_meta
