@@ -101,27 +101,42 @@ class CustomData():
         self._cursor = 0
 
 
-def online_mock(node, data, chunk_size):
+class Looper():
     """ Mimics the scheduler behavior to allow testing the output of a node offline.
-    This function loops across chunks of a data object (eg. CustomData or DummyData),
-     updates the node and returns the concatenated resulting data and meta.
-    :param node (Node): timeflux node to test
-    :param data (Object): data generator object with a method `next` and `reset`
-    :param chunk_size (int): number of samples per chunk
-    :return:
-    output_data (DataFrame): concatenated output data
-    output_meta: list of meta
     """
-    data.reset()
-    # mimic the scheduler
-    output_data = []
-    output_meta = []
-    chunk = data.next(chunk_size).copy()
-    while not chunk.empty:
-        node.i.data = chunk
-        node.update()
-        output_data.append(node.o.data)
-        chunk = data.next(chunk_size).copy()
-        output_meta.append(node.o.meta)
-    output_data = pd.concat(output_data)
-    return output_data, output_meta
+
+    def __init__(self, generator, node, input_port='i', output_port='o'):
+        """ Initialize the helper
+        :param generator (Node): timeflux node to test
+        :param data (Object): data generator object with a method `next` and `reset`
+        """
+        self._generator = generator
+        self._node = node
+        self._input_port = input_port
+        self._output_port = output_port
+
+    def run(self, chunk_size=None):
+        """ Loop across chunks of a generator, update the node and return data and meta.
+        :param chunk_size (int): number of samples per chunk
+        :return:
+        output_data (DataFrame): concatenated output data
+        output_meta: list of meta
+        """
+
+        chunk_size = chunk_size or len(self._generator._data)
+
+        # mimic the scheduler
+        end_of_data = False
+        output_data = []
+        output_meta = []
+        while not end_of_data:
+            chunk = self._generator.next(chunk_size)
+            i = getattr(self._node, self._input_port)
+            i.data = chunk.copy()
+            self._node.update()
+            o = getattr(self._node, self._output_port)
+            output_data.append(o.data)
+            output_meta.append(o.meta)
+            end_of_data = chunk.empty
+        output_data = pd.concat(output_data)
+        return output_data, output_meta
