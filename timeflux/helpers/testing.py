@@ -66,7 +66,7 @@ class DummyData():
         self._cursor = 0
 
 
-class CustomData():
+class ReadData():
     """Generate custom data."""
 
     def __init__(self, data):
