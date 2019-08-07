@@ -1,9 +1,11 @@
+import numpy as np
 import pandas as pd
+import xarray as xr
 from timeflux.core.node import Node
+from timeflux.core.exceptions import NodeValueError
 
 
 class Epoch(Node):
-
     """Event-triggered epoching.
 
     This node continuously buffers a small amount of data (of a duration of ``before`` seconds) from the default input stream.
@@ -44,7 +46,6 @@ class Epoch(Node):
         self._after = pd.Timedelta(seconds=after)
         self._buffer = None
         self._epochs = []
-
 
     def update(self):
 
@@ -101,5 +102,88 @@ class Epoch(Node):
                             o.meta = {'epoch': epoch['meta']}
                             complete += 1
                     if complete > 0:
-                        del self._epochs[:complete] # Unqueue
-                        self.o = self.o_0 # Bind default output to the first epoch
+                        del self._epochs[:complete]  # Unqueue
+                        self.o = self.o_0  # Bind default output to the first epoch
+
+
+class EpochToDataArray(Node):
+    """ Convert multiple epochs to DataArray
+
+       This node iterates over input ports with valid epochs, concatenates them
+       on the first axis, and creates a XArray with dimensions ('epoch', 'time', 'space')
+       where epoch corresponds to th input ports, time to the ports data index and
+       space to the ports data columns.
+       A port is considered to be valid if it has meta with key 'epoch' and data with
+       expected number of samples.
+       If some epoch have an invalid length (which happens when the data has jitter),
+       the node either raises a warning, an error or pass.
+
+       Attributes:
+           i_* (Port): Dynamic inputs, expects DataFrame and meta.
+           o (Port): Default output, provides DataArray and meta.
+
+       Args:
+           before (float): Length before onset, in seconds.
+           after (float): Length after onset, in seconds.
+           rate (float): Nominal rate of the data, in Hz.
+           pedantic ('warn'|'error'| None): How this function handles epochs with
+                    invalid length:
+                - 'warn' will issue a warning with :py:func:`warnings.warn`
+                - 'error' will raise a TimefluxException,
+                - ``None`` will ignore it.
+
+       """
+
+    def __init__(self, rate, before=.2, after=.6, pedantic='warn'):
+        self._before = before
+        self._after = after
+        self._rate = rate
+        self._pedantic = pedantic
+        self._set_times()
+        self._columns = None
+
+    def _set_times(self):
+        self._times = pd.TimedeltaIndex(data=np.arange(-self._before, self._after + 1 / self._rate, 1 / self._rate),
+                                        unit='s')
+        self._num_times = len(self._times)
+
+    def update(self):
+
+        list_ports = [port for _, _, port in self.iterate(name='i*') if self._valid_port(port)]
+
+        if not list_ports:
+            return
+
+        list_context = [port.meta['epoch']['context'] for port in list_ports]
+        list_epochs = [port.data for port in list_ports]
+
+        if self._columns is None:
+            self._columns = list_epochs[0].columns
+
+        data = np.stack([epoch.values for epoch in list_epochs], axis=0)
+
+        self.o.data = xr.DataArray(data, dims=('epoch', 'time', 'space'),
+                                   coords=(np.arange(data.shape[0]), self._times,
+                                           self._columns))
+        self.o.meta = {'epochs': list_context, 'rate': self._rate}
+
+    def _valid_port(self, port):
+        """ Checks that the port has valid meta and data.
+        """
+        if port.data is None or port.data.empty:
+            return False
+        if 'epoch' not in port.meta or 'context' not in port.meta['epoch']:
+            return False
+        if port.data.shape[0] != self._num_times:
+            if self._pedantic == 'error':
+                raise NodeValueError(f'Received an epoch with {port.data.shape[0]} '
+                                     f'samples instead of {self._num_times}.')
+            elif self._pedantic == 'warn':
+                self.logger.warning(f'Received an epoch with {port.data.shape[0]} '
+                                    f'samples instead of {self._num_times}. '
+                                    f'Skipping.')
+                return False
+            else:  # pedantic is None
+                # be cool
+                return False
+        return True
