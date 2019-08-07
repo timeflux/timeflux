@@ -33,8 +33,6 @@ class Gate(Node):
 
     def __init__(self, event_opens, event_closes, event_label='label'):
 
-        super().__init__()
-
         self._event_label = event_label
         self._event_opens = event_opens
         self._event_closes = event_closes
