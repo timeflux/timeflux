@@ -1,0 +1,98 @@
+import mne
+import pandas as pd
+import numpy as np
+import xarray as xr
+import logging
+
+logger = logging.getLogger()
+from timeflux.core.exceptions import TimefluxException
+
+
+def _context_to_id(context, context_key, event_id):
+    if context_key is None:
+        return context
+    else:
+        return event_id.get(context.get(context_key))
+
+
+def dataarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
+    """ Convert DataArray and meta into mne Epochs object
+
+    Args:
+        data (DataArray): Array of dimensions ('epoch', 'time', 'space')
+        meta (dict): Dictionary with keys 'epochs_context', 'rate', 'epochs_onset'
+        context_key (str|None): key to select the context label.
+        If the context is a string, `context_key` should be set to ``None``.
+        event_id (dict): Associates context label to an event_id that should be an int.
+                        (eg. dict(auditory=1, visual=3))
+        pedantic ('warn'|'error'| None): How this function handles epochs with
+                    invalid context:
+                - 'error' will raise a TimefluxException,
+                - 'warn' will print a warning with :py:func:`warnings.warn` and skip the corrupted epochs
+                - ``None`` will skip the corrupted epochs.
+
+    Returns:
+        epochs (mne.Epochs): mne object with the converted data.
+    """
+    np_data = data.transpose('epoch', 'space', 'time').values
+    # create events objects are essentially numpy arrays with three columns:
+    # event_sample | previous_event_id | event_id
+
+    events = np.array([[onset.value, 0, _context_to_id(context, context_key, event_id)]
+                       for (context, onset)
+                       in zip(meta['epochs_context'], meta['epochs_onset'])])  # List of three arbitrary events
+    events_mask = np.isnan(events.astype(float))[:, 2]
+    if events_mask.any():
+        if pedantic == 'error':
+            raise TimefluxException(f'')
+        else:  # pedantic is either None or warn
+            # be cool, skip those events
+            events = events[~events_mask, :]
+            np_data = np_data[~events_mask, :, :]
+            if pedantic in 'warn':
+                logger.warning(f'Found {events_mask.sum()} epochs with corrupted context. '
+                               f'Skipping them. ')
+    # Fill the second column with previous event ids.
+    events[0, 1] = events[0, 2]
+    events[1:, 1] = events[0:-1, 2]
+    # set the info
+    rate = meta['rate']
+    info = mne.create_info(ch_names=list(data.space.values), sfreq=rate)
+    # construct the mne object
+    epochs = mne.EpochsArray(np_data, info=info, events=events.astype(int),
+                             event_id=event_id,
+                             tmin=data.time.values[0] / np.timedelta64(1, 's'),
+                             verbose=False)
+    return epochs
+
+
+def mne_to_dataarray(epochs, context_key, event_id):
+    """ Convert mne Epochs object into DataArray along with meta.
+
+    Args:
+        epochs (mne.Epochs): mne object with the converted data.
+        context_key (str|None): key to select the context label.
+        If the context is a string, `context_key` should be set to ``None``.
+        event_id (dict): Associates context label to an event_id that should be an int.
+                        (eg. dict(auditory=1, visual=3))
+
+    Returns:
+        data (DataArray): Array of dimensions ('epoch', 'time', 'space')
+        meta (dict): Dictionary with keys 'epochs_context', 'rate', 'epochs_onset'
+
+    """
+    reversed_event_id = {value: key for (key, value) in event_id.items()}
+    np_data = epochs._data
+    ch_names = epochs.ch_names
+    epochs_onset = [pd.Timestamp(event_sample) for event_sample in epochs.events[:, 0]]
+    epochs_context = [{context_key: reversed_event_id[_id]} for _id in epochs.events[:, 2]]
+    meta = dict(epochs_onset=epochs_onset,
+                epochs_context=epochs_context,
+                rate=epochs.info['sfreq'])
+    n_epochs = len(epochs)
+    times = pd.TimedeltaIndex(data=epochs.times, unit='s')
+    data = xr.DataArray(np_data,
+                        dims=('epoch', 'space', 'time'),
+                        coords=(np.arange(n_epochs), ch_names, times)).transpose('epoch', 'time', 'space')
+
+    return data, meta
