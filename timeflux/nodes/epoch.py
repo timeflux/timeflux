@@ -153,8 +153,8 @@ class EpochToDataArray(Node):
 
         if not list_ports:
             return
-
-        list_context = [port.meta['epoch']['context'] for port in list_ports]
+        list_onset = [port.meta['epoch'].get('onset') for port in list_ports]
+        list_context = [port.meta['epoch'].get('context') for port in list_ports]
         list_epochs = [port.data for port in list_ports]
 
         if self._columns is None:
@@ -165,14 +165,14 @@ class EpochToDataArray(Node):
         self.o.data = xr.DataArray(data, dims=('epoch', 'time', 'space'),
                                    coords=(np.arange(data.shape[0]), self._times,
                                            self._columns))
-        self.o.meta = {'epochs': list_context, 'rate': self._rate}
+        self.o.meta = {'epochs_context': list_context, 'epochs_onset': list_onset, 'rate': self._rate}
 
     def _valid_port(self, port):
         """ Checks that the port has valid meta and data.
         """
         if port.data is None or port.data.empty:
             return False
-        if 'epoch' not in port.meta or 'context' not in port.meta['epoch']:
+        if 'epoch' not in port.meta:
             return False
         if port.data.shape[0] != self._num_times:
             if self._pedantic == 'error':
