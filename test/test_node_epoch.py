@@ -246,7 +246,9 @@ def test_to_xarray():
     converted_epoch.set_port('epoch', port_id='i_events', data=event)
     converted_epoch.update()
 
-    expected_meta = {'epochs': ['foo', 'bar'], 'rate': 10}
+    expected_meta = {'epochs_context': ['foo', 'bar'], 'rate': 10,
+                     'epochs_onset': [pd.Timestamp('2018-01-01 00:00:00.300000'),
+                                      pd.Timestamp('2018-01-01 00:00:00.400000')]}
     assert converted_epoch.get_port('to_xarray').meta == expected_meta
 
     expected_data = xr.DataArray(data=np.array([[[0.658783, 0.692277, 0.849196, 0.249668, 0.489425],
