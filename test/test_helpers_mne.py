@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-from timeflux.helpers.mne import mne_to_dataarray, dataarray_to_mne
+from timeflux.helpers.mne import mne_to_xarray, xarray_to_mne
 
 rate = 10.0  # Sampling rate
 # Generate epochs data, ie. random data in shape (n_epochs, n_channels, n_times)
@@ -27,8 +27,8 @@ event_id = {'foo': 0, 'bar': 1}
 
 
 def test_mne_dataarray_conversions():
-    epochs = dataarray_to_mne(original_data, original_meta, context_key, event_id)
-    after_conversion_data, after_conversion_meta = mne_to_dataarray(epochs, context_key, event_id)
+    epochs = xarray_to_mne(original_data, original_meta, context_key, event_id)
+    after_conversion_data, after_conversion_meta = mne_to_xarray(epochs, context_key, event_id)
     # assert that the passage in mne keeps the data unchanged
     xr.testing.assert_equal(after_conversion_data, original_data)
     assert original_meta == after_conversion_meta
