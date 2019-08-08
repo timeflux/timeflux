@@ -15,7 +15,7 @@ def _context_to_id(context, context_key, event_id):
         return event_id.get(context.get(context_key))
 
 
-def dataarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
+def xarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
     """ Convert DataArray and meta into mne Epochs object
 
     Args:
@@ -34,6 +34,13 @@ def dataarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
     Returns:
         epochs (mne.Epochs): mne object with the converted data.
     """
+    if isinstance(data, xr.DataArray):
+        pass
+    elif isinstance(data, xr.Dataset):
+        # extract data
+        data = data.data
+    else:
+        raise ValueError(f'data should be of type DataArray or Dataset, received {data.type} instead. ')
     np_data = data.transpose('epoch', 'space', 'time').values
     # create events objects are essentially numpy arrays with three columns:
     # event_sample | previous_event_id | event_id
@@ -46,7 +53,7 @@ def dataarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
         if pedantic == 'error':
             raise TimefluxException(f'')
         else:  # pedantic is either None or warn
-            # be cool, skip those events
+            # be cool, skip those evens
             events = events[~events_mask, :]
             np_data = np_data[~events_mask, :, :]
             if pedantic in 'warn':
@@ -66,7 +73,7 @@ def dataarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
     return epochs
 
 
-def mne_to_dataarray(epochs, context_key, event_id):
+def mne_to_xarray(epochs, context_key, event_id, output='dataarray'):
     """ Convert mne Epochs object into DataArray along with meta.
 
     Args:
@@ -75,9 +82,10 @@ def mne_to_dataarray(epochs, context_key, event_id):
         If the context is a string, `context_key` should be set to ``None``.
         event_id (dict): Associates context label to an event_id that should be an int.
                         (eg. dict(auditory=1, visual=3))
+        output (str): type of the expected output (DataArray or Dataset)
 
     Returns:
-        data (DataArray): Array of dimensions ('epoch', 'time', 'space')
+        data (DataArray|Dataset): Array of dimensions ('epoch', 'time', 'space')
         meta (dict): Dictionary with keys 'epochs_context', 'rate', 'epochs_onset'
 
     """
@@ -94,5 +102,9 @@ def mne_to_dataarray(epochs, context_key, event_id):
     data = xr.DataArray(np_data,
                         dims=('epoch', 'space', 'time'),
                         coords=(np.arange(n_epochs), ch_names, times)).transpose('epoch', 'time', 'space')
-
-    return data, meta
+    if output == 'dataarray':
+        return data, meta
+    else:  # output == 'dataset'
+        data = xr.Dataset({'data': data, 'target': [reversed_event_id[_id]
+                                                    for _id in epochs.events[:, 2]]})
+        return data, meta
