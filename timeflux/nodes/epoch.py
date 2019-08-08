@@ -106,7 +106,7 @@ class Epoch(Node):
                         self.o = self.o_0  # Bind default output to the first epoch
 
 
-class EpochToDataArray(Node):
+class EpochToXArray(Node):
     """ Convert multiple epochs to DataArray
 
        This node iterates over input ports with valid epochs, concatenates them
@@ -131,14 +131,19 @@ class EpochToDataArray(Node):
                 - 'warn' will issue a warning with :py:func:`warnings.warn`
                 - 'error' will raise a TimefluxException,
                 - ``None`` will ignore it.
-
+            output ('DataArray'|'Dataset'): Type of output to return
+            context_key (str|None): If output type is Dataset, key to define the
+            target of the event. If None, the whole context is considered.
        """
 
-    def __init__(self, rate, before=.2, after=.6, pedantic='warn'):
+    def __init__(self, rate, before=.2, after=.6, pedantic='warn',
+                 output='DataArray', context_key=None):
         self._before = before
         self._after = after
         self._rate = rate
         self._pedantic = pedantic
+        self._output = output
+        self._context_key = context_key
         self._set_times()
         self._columns = None
 
@@ -162,10 +167,25 @@ class EpochToDataArray(Node):
 
         data = np.stack([epoch.values for epoch in list_epochs], axis=0)
 
-        self.o.data = xr.DataArray(data, dims=('epoch', 'time', 'space'),
-                                   coords=(np.arange(data.shape[0]), self._times,
+        data_array = xr.DataArray(data, dims=('epoch', 'time', 'space'),
+                                  coords=(np.arange(data.shape[0]), self._times,
                                            self._columns))
-        self.o.meta = {'epochs_context': list_context, 'epochs_onset': list_onset, 'rate': self._rate}
+        meta = {'epochs_context': list_context, 'epochs_onset': list_onset,
+                'rate': self._rate}
+
+        if self._output == 'DataArray':
+            self.o.data = data_array
+            self.o.meta = meta
+        else:  # Dataset
+            self.o.data = xr.Dataset(
+                {'data': data_array, 'target': [self._extract_target(context) for context in list_context]})
+            self.o.data.attrs = meta
+
+    def _extract_target(self, context):
+        if self._context_key is None:
+            return context
+        else:
+            return context.get(self._context_key)
 
     def _valid_port(self, port):
         """ Checks that the port has valid meta and data.
