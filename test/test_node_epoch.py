@@ -213,7 +213,7 @@ def test_to_xarray():
             {
                 'id': 'to_xarray',
                 'module': 'timeflux.nodes.epoch',
-                'class': 'EpochToDataArray',
+                'class': 'EpochToXArray',
                 'params': {
                     'before': before,
                     'after': after,
