@@ -2,22 +2,19 @@
 
 import numpy as np
 import pandas as pd
-
 from timeflux.core.node import Node
 from timeflux.core.exceptions import NodeValueError
 
 
-# from timeflux.helpers.clock import *
-
 class Round(Node):
-    """  Snap time stamps to nearest occurring frequency.
+    """Snap time stamps to nearest occurring frequency.
 
     Attributes:
        i (Port): Default input, expects DataFrame and meta.
        o (Port): Default output, provides DataArray and meta.
     Args:
-        rate (float|None): (optional) nominal sampling frequency of the data, to round
-            the timestamps to (in Hz). If None, the rate will be get from the meta
+        rate (float|None): (optional) nominal sampling frequency of the data, to snap
+            the timestamps to (in Hz). If None, the rate will be taken from the meta
             of the input port.
     """
 
@@ -42,21 +39,20 @@ class Round(Node):
 
 
 class Interpolate(Node):
-    """ Dejitter data with values interpolation
+    """Dejitter data with values interpolation
 
-     This nodes continuously buffers a small amount of data to allow for
-     interpolating either missing samples.
-     The output data is resampled at a fixed rate.
-     The interpolation is performed by pandas methods.
+    This nodes continuously buffers a small amount of data to allow for interpolating
+    missing samples.
+    The output data is resampled at a fixed rate.
+    The interpolation is performed by Pandas methods.
 
     Attributes:
        i (Port): Default input, expects DataFrame and meta.
        o (Port): Default output, provides DataArray and meta.
 
     Args:
-        rate (float|None): (optional) nominal sampling frequency of the data, to round
-            the timestamps to (in Hz). If None, the rate will be get from the meta
-            of the input port.
+        rate (float|None): (optional) nominal sampling frequency of the data. If None,
+        the rate will be get from the meta of the input port.
         method: interpolation method. See the pandas.DataFrame.interpolate documentation.
         n_min: minimum number of samples to perform the interpolation.
         n_max: number of samples to keep in the buffer.
