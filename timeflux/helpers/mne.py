@@ -5,7 +5,7 @@ import xarray as xr
 import logging
 
 logger = logging.getLogger()
-from timeflux.core.exceptions import TimefluxException
+from timeflux.core.exceptions import WorkerInterrupt
 
 
 def _context_to_id(context, context_key, event_id):
@@ -15,7 +15,7 @@ def _context_to_id(context, context_key, event_id):
         return event_id.get(context.get(context_key))
 
 
-def xarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
+def xarray_to_mne(data, meta, context_key, event_id, reporting='warn'):
     """ Convert DataArray and meta into mne Epochs object
 
     Args:
@@ -25,7 +25,7 @@ def xarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
         If the context is a string, `context_key` should be set to ``None``.
         event_id (dict): Associates context label to an event_id that should be an int.
                         (eg. dict(auditory=1, visual=3))
-        pedantic ('warn'|'error'| None): How this function handles epochs with
+        reporting ('warn'|'error'| None): How this function handles epochs with
                     invalid context:
                 - 'error' will raise a TimefluxException,
                 - 'warn' will print a warning with :py:func:`warnings.warn` and skip the corrupted epochs
@@ -50,13 +50,13 @@ def xarray_to_mne(data, meta, context_key, event_id, pedantic='warn'):
                        in zip(meta['epochs_context'], meta['epochs_onset'])])  # List of three arbitrary events
     events_mask = np.isnan(events.astype(float))[:, 2]
     if events_mask.any():
-        if pedantic == 'error':
-            raise TimefluxException(f'')
-        else:  # pedantic is either None or warn
+        if reporting == 'error':
+            raise WorkerInterrupt(f'Found {events_mask.sum()} epochs with corrupted context. ')
+        else:  # reporting is either None or warn
             # be cool, skip those evens
             events = events[~events_mask, :]
             np_data = np_data[~events_mask, :, :]
-            if pedantic in 'warn':
+            if reporting == 'warn':
                 logger.warning(f'Found {events_mask.sum()} epochs with corrupted context. '
                                f'Skipping them. ')
     # Fill the second column with previous event ids.
