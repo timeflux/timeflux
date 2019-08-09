@@ -4,12 +4,10 @@ import numpy as np
 import pandas as pd
 
 from timeflux.core.node import Node
-from timeflux.core.exceptions import NodeValueError
+from timeflux.core.exceptions import WorkerInterrupt
 
 
-# from timeflux.helpers.clock import *
-
-class Round(Node):
+class Snap(Node):
     """  Snap time stamps to nearest occurring frequency.
 
     Attributes:
@@ -38,7 +36,7 @@ class Round(Node):
             return
 
         # At this point, we are sure that we have some data to process
-        self.o.data.index = self.o.data.index.round(str(1 / self._rate) + "S")
+        self.o.data.index = self.o.data.index.round(str(1 / self._rate) + 'S')
 
 
 class Interpolate(Node):
@@ -67,7 +65,7 @@ class Interpolate(Node):
         computation duration.
     """
 
-    def __init__(self, rate=None, method="cubic", n_min=3, n_max=10):
+    def __init__(self, rate=None, method='cubic', n_min=3, n_max=10):
 
         self._rate = rate
         if self._rate is not None:
@@ -101,12 +99,12 @@ class Interpolate(Node):
             self._times = np.arange(self._last_datetime,
                                     self.i.data.index[-1],
                                     self._timedelta,
-                                    dtype="datetime64[us]")
+                                    dtype='datetime64[us]')
         else:
             self._times = np.arange(self._last_datetime + self._timedelta,
                                     self.i.data.index[-1],
                                     self._timedelta,
-                                    dtype="datetime64[us]")
+                                    dtype='datetime64[us]')
 
         # interpolate
         self._interpolate()
@@ -119,7 +117,7 @@ class Interpolate(Node):
         self._buffer = self._buffer.append(self.i.data, sort=True)  # append last sample be able to interpolate
 
         if not self._buffer.index.is_monotonic:
-            raise NodeValueError('Data index should be strictly monotonic')
+            raise WorkerInterrupt('Data index should be strictly monotonic')
 
         data_to_interpolate = self._buffer.append(pd.DataFrame(index=self._times),
                                                   sort=True)
@@ -128,7 +126,7 @@ class Interpolate(Node):
         if (self._buffer.notnull().sum(axis=0) > self._n_min).all():
             self.o.data = (data_to_interpolate.interpolate(axis=0, method=self._method)
                            .reindex(self._times).loc[self._last_datetime:]
-                           .dropna(axis=0, how="any"))
+                           .dropna(axis=0, how='any'))
 
             if not self.o.data.empty:
                 self._last_datetime = self.o.data.index[-1]
