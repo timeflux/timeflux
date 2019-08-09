@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import pytest
-from timeflux.core.exceptions import NodeValueError
+from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.helpers.testing import DummyData, Looper
-from timeflux.nodes.dejitter import Round, Interpolate
+from timeflux.nodes.dejitter import Snap, Interpolate
 
 rate = 10
 
@@ -22,7 +22,7 @@ assert ~ dummy_data_not_monotonic._data.index.is_monotonic
 def test_round_on_data_with_jitter():
     data = dummy_data_with_jitter
     data.reset()
-    node = Round(rate=rate)
+    node = Snap(rate=rate)
     node.i.data = data.next(6)
     node.update()
 
@@ -50,7 +50,7 @@ def test_round_on_data_with_jitter():
 def test_round_on_data_no_jitter():
     data = dummy_data_no_jitter
     data.reset()
-    node = Round(rate=rate)
+    node = Snap(rate=rate)
     looper = Looper(data, node)
     dejittered_data, _ = looper.run(chunk_size=8)
     pd.testing.assert_frame_equal(dejittered_data, data._data)
@@ -106,5 +106,5 @@ def test_data_not_monotonic():
     data = dummy_data_not_monotonic
     node = Interpolate(rate=rate)
     looper = Looper(data, node)
-    with pytest.raises(NodeValueError):
+    with pytest.raises(WorkerInterrupt):
         _, _ = looper.run(chunk_size=8)
