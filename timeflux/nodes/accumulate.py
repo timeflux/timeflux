@@ -5,7 +5,7 @@ import xarray as xr
 from timeflux.core.node import Node
 
 
-class Append_DataFrame(Node):
+class AppendDataFrame(Node):
     """ Accumulates and appends data of type DataFrame after a gate
 
     This node should be plugged after a Gate. As long as it receives data,
@@ -56,7 +56,7 @@ class Append_DataFrame(Node):
             self._reset()
 
 
-class Append_DataArray(Node):
+class AppendDataArray(Node):
     """ Accumulates and appends data of type XArray after a gate
 
     This node should be plugged after a Gate. As long as it receives dataarrays,
