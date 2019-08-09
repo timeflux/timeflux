@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 from timeflux.core.branch import Branch
-from timeflux.core.exceptions import NodeValueError
+from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.helpers import testing as helpers
 from timeflux.nodes.epoch import Epoch
 
@@ -300,5 +300,5 @@ def test_to_xarray():
         ], columns=['label', 'data'])
     converted_epoch.set_port('epoch', port_id='i_events', data=event)
 
-    with pytest.raises(NodeValueError):
+    with pytest.raises(WorkerInterrupt):
         converted_epoch.update()

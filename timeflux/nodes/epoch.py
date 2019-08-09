@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from timeflux.core.node import Node
-from timeflux.core.exceptions import NodeValueError
+from timeflux.core.exceptions import WorkerInterrupt
 
 
 class Epoch(Node):
@@ -162,7 +162,7 @@ class EpochToXArray(Node):
                 self._set_times()
                 self._rate = self._rate or port.meta.get('rate')
                 if self._rate is None:
-                    raise NodeValueError('Rate should be specified either in '
+                    raise WorkerInterrupt('Rate should be specified either in '
                                          'the parameters or in the port meta. ')
                 self._ready = True
 
@@ -208,7 +208,7 @@ class EpochToXArray(Node):
             return False
         if port.data.shape[0] != self._num_times:
             if self._reporting == 'error':
-                raise NodeValueError(f'Received an epoch with {port.data.shape[0]} '
+                raise WorkerInterrupt(f'Received an epoch with {port.data.shape[0]} '
                                      f'samples instead of {self._num_times}.')
             elif self._reporting == 'warn':
                 self.logger.warning(f'Received an epoch with {port.data.shape[0]} '
