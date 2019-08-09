@@ -56,7 +56,7 @@ class SelectRange(Node):
         if not self.i.ready():
             return
 
-        self.o = self.i
+        self.o.meta = self.i.meta
 
         if self._axis == 1:
             self.i.data = self.i.data.T
@@ -129,7 +129,10 @@ class XsQuery(Node):
         self._kwargs = kwargs
 
     def update(self):
-        self.o = self.i
+        if not self.i.ready():
+            return
+
+        self.o.meta = self.i.meta
         self.o.data = self.i.data.xs(key=self._key, **self._kwargs)
 
 
@@ -179,23 +182,19 @@ class LocQuery(Node):
         """
 
         self._axis = axis
-        if type(key) not in [list, tuple]:
+        if not isinstance(key, (list, tuple)):
             self._key = [key]
         else:
             self._key = key
-        self._check_args = False
 
     def update(self):
 
-        self.o = self.i
-        if self.i.data is not None:
-            if not self.i.data.empty:
+        if not self.i.ready():
+            return
 
-                if self._axis == 0:
-                    self.o.data = self.i.data.loc[self._key, :]
-                elif self._axis == 1:
-                    self.o.data = self.i.data.loc[:, self._key]
-                    # if not self._check_key:
-                    #     self.o.data = self.i.data.loc[:, self._key]
-                    # else:
-                    #     self.o.data = self.i.data.loc[:, self._key]
+        self.o.meta = self.i.meta
+
+        if self._axis == 0:
+            self.o.data = self.i.data.loc[self._key, :]
+        elif self._axis == 1:
+            self.o.data = self.i.data.loc[:, self._key]
