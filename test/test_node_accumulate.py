@@ -2,17 +2,17 @@
 import pandas as pd
 import xarray as xr
 from timeflux.helpers.testing import DummyData, DummyXArray
-from timeflux.nodes.accumulate import Append_DataFrame, Append_DataArray
+from timeflux.nodes.accumulate import AppendDataFrame, AppendDataArray
 
 xarray_data = DummyXArray()
 pandas_data = DummyData()
 
 
 def test_append_dataframe():
-    node = Append_DataFrame()
+    """"Test node AppendDataFrame"""
 
+    node = AppendDataFrame()
     pandas_data.reset()
-    # Send an opening event
     node.clear()
     # gate is not closed, data should be accumulated but not released
     # first chunk
@@ -39,11 +39,10 @@ def test_append_dataframe():
 
 
 def test_append_dataarray():
-    # def test_append_dataframe():
-    node = Append_DataArray(dim='time')
+    """"Test node AppendDataArray"""
 
+    node = AppendDataArray(dim='time')
     xarray_data.reset()
-    # Send an opening event
     node.clear()
     # gate is not closed, data should be accumulated but not released
     # first chunk
