@@ -7,14 +7,15 @@ import xarray as xr
 
 
 class Gate(Node):
-    """Data-gate based on event triggers.
+    """Data gate based on event triggers.
 
-    This node blocks data flow or let it through according to event triggers.
+    This node blocks data flow or let data through according to event triggers.
 
-    It has 3 operating mode/status:
+    It has three operating mode:
+
     - closed: the node waits for an opening trigger in the events and returns nothing
-    - open: the node waits for a closing trigger in the events and free pass the data
-    - closing: the node has just received a closing trigger, so free pass the data and resets its state.
+    - open: the node waits for a closing trigger in the events and let the data through
+    - closing: the node has just received a closing trigger, let the data through and resets its status.
 
     It continuously iterates over events data to update its operating mode.
 
@@ -52,9 +53,9 @@ class Gate(Node):
             self._update()
 
     def _update(self):
-        # if gate is either open or just closed, truncate and forward the data,
-        # if gate has just closed, reset status and trigger iterator,
-        # else (gate is close), return
+        # if the gate is either open or closing, truncate and forward the data,
+        # if the gate is closing, reset status and trigger iterator,
+        # else (gate is closed), return
         if self._status == 'open':
             self.o = self.i
             self.o.meta['gate_status'] = self._status
