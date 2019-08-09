@@ -13,6 +13,7 @@ You can then install Timeflux and its dependencies:
 
 ```
 $ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/environment.yml
+$ conda install pip
 $ conda env create -f environment.yml
 $ conda activate timeflux
 ```
