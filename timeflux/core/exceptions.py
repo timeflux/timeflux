@@ -37,11 +37,3 @@ class WorkerInterrupt(TimefluxException):
     def __init__(self, message='Interrupting', *args):
         self.message = message
         super().__init__(message, *args)
-
-
-class NodeValueError(TimefluxException):
-    """Raised when a node received invalid data"""
-
-    def __init__(self, message, *args):
-        self.message = message
-        super().__init__(message, *args)

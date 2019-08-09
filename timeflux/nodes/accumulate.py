@@ -40,7 +40,7 @@ class AppendDataFrame(Node):
         gate_status = self.i.meta.get('gate_status')
 
         # When we have not received data, there is nothing to do
-        if self.i.ready():
+        if not self.i.ready():
             return
         # At this point, we are sure that we have some data to process
 
@@ -93,7 +93,7 @@ class AppendDataArray(Node):
         gate_status = self.i.meta.get('gate_status')
 
         # When we have not received data, there is nothing to do
-        if self.i.ready():
+        if not self.i.ready():
             return
         # At this point, we are sure that we have some data to process
 
