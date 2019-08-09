@@ -1,12 +1,21 @@
 """Tests for epoch.py"""
 
+import numpy as np
 import pandas as pd
-import helpers
-from pandas.testing import assert_frame_equal
+import pytest
+import xarray as xr
+from timeflux.core.branch import Branch
+from timeflux.core.exceptions import NodeValueError
+from timeflux.helpers import testing as helpers
 from timeflux.nodes.epoch import Epoch
 
 data = helpers.DummyData()
-node = Epoch(event_trigger='test')
+
+rate = 10
+before = .2
+after = .6
+node = Epoch(event_trigger='test', before=before, after=after)
+
 
 def test_no_epoch():
     # Send enough data for an epoch, but no event
@@ -14,15 +23,17 @@ def test_no_epoch():
     node.update()
     assert node.o.data == None
 
+
 def test_send_event_short_data():
     # Send an event trigger, but not enough data to capture the epoch in one round
     node.clear()
     node.i.data = data.next(5)
-    time = node.i.data.index[1] # Sync event to second sample
-    event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data']) # Generate a trigger event
+    time = node.i.data.index[1]  # Sync event to second sample
+    event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])  # Generate a trigger event
     node.i_events.data = event
     node.update()
     assert node.o.data == None
+
 
 def test_receive_epoch():
     # Send enough data to complete an epoch
@@ -32,7 +43,9 @@ def test_receive_epoch():
     expected_meta = {
         'epoch': {
             'onset': pd.Timestamp('2018-01-01 00:00:02.096394939'),
-            'context': 'foobar'
+            'context': 'foobar',
+            'before': before,
+            'after': after
         }
     }
     expected_data = pd.DataFrame(
@@ -60,6 +73,7 @@ def test_receive_epoch():
     assert node.o.meta == expected_meta
     pd.testing.assert_frame_equal(node.o.data, expected_data)
 
+
 def test_invalid_event():
     # Make sure no epoch is fetched on an invalid trigger
     node.clear()
@@ -69,6 +83,7 @@ def test_invalid_event():
     node.i_events.data = event
     node.update()
     assert node.o.data == None
+
 
 def test_multiple_events():
     # Make sure the correct onset is caught
@@ -88,6 +103,7 @@ def test_multiple_events():
     node.update()
     assert node.o.meta['epoch']['onset'] == pd.Timestamp('2018-01-01 00:00:04.598117111')
 
+
 def test_multiple_triggers():
     # Mutliple epochs should be returned
     node.clear()
@@ -104,6 +120,7 @@ def test_multiple_triggers():
     node.update()
     assert node.o_0.meta['epoch']['context'] == 'foo'
     assert node.o_1.meta['epoch']['context'] == 'bar'
+
 
 def test_unsynced_event():
     # The epoch must be fetched even if the trigger time does not match exactly
@@ -130,8 +147,9 @@ def test_unsynced_event():
 def test_receives_event_before_data():
     # receives event before data
     # NB: this use case can also happen if before<0
+    before = 0
     data.reset()
-    node = Epoch(event_trigger='test', before=0, after=.6)
+    node = Epoch(event_trigger='test', before=before, after=.6)
     node.clear()
     node.i.data = data.next(5)
     time = data._data.index[6]  # Sync event right after last sample
@@ -159,21 +177,128 @@ def test_receives_event_before_data():
             pd.Timestamp('2018-01-01 00:00:01.104699099'),
         ]
     )
-    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:00.595580836'), 'context': 'foobar'}}
+    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:00.595580836'),
+                               'context': 'foobar',
+                               'before': before,
+                               'after': after}}
     assert node.o.meta == expected_meta
     pd.testing.assert_frame_equal(node.o.data, expected_data)
 
 
 def test_empty_epoch():
     # no data received in the epoch
+    before = 1
+    after = -1
     data = helpers.DummyData(rate=.1)
-    node = Epoch(event_trigger='test', before=-1, after=1)
+    node = Epoch(event_trigger='test', before=before, after=after)
     node.clear()
     node.i.data = data.next(5)
     time = pd.Timestamp("2018-01-01 00:00:10.450714306")  # Sync event to second sample
     event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])  # Generate a trigger event
     node.i_events.data = event
     node.update()
-    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:10.450714306'), 'context': 'foobar'}}
+    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:10.450714306'),
+                               'context': 'foobar',
+                               'before': before,
+                               'after': after}
+                     }
+    print(node.o.meta)
     assert node.o.meta == expected_meta
     assert node.o.data.empty
+
+
+def test_to_xarray():
+    """ Test the epoch followed by a conversion to xarray.
+    """
+
+    graph = {
+        'nodes': [
+            {
+                'id': 'epoch',
+                'module': 'timeflux.nodes.epoch',
+                'class': 'Epoch',
+                'params': {
+                    'before': before,
+                    'after': after,
+                    'event_trigger': 'test'
+
+                }
+            },
+            {
+                'id': 'to_xarray',
+                'module': 'timeflux.nodes.epoch',
+                'class': 'EpochToXArray',
+                'params': {
+                    'rate': rate,
+                    'reporting': 'error'
+                }
+            }
+        ],
+        'edges': [
+            {
+                'source': 'epoch:*',
+                'target': 'to_xarray'
+            }
+
+        ]
+    }
+    # test with data that has no jitter
+    data = helpers.DummyData(jitter=0, rate=rate)
+    converted_epoch = Branch(graph)
+    converted_epoch.set_port('epoch', port_id='i', data=data.next(20))
+    event = pd.DataFrame(
+        [
+            ['test', 'foo'],
+            ['test', 'bar'],
+        ], [
+            pd.Timestamp('2018-01-01 00:00:00.300000'),
+            pd.Timestamp('2018-01-01 00:00:00.400000')
+        ], columns=['label', 'data'])
+    converted_epoch.set_port('epoch', port_id='i_events', data=event)
+    converted_epoch.update()
+
+    expected_meta = {'epochs_context': ['foo', 'bar'], 'rate': 10,
+                     'epochs_onset': [pd.Timestamp('2018-01-01 00:00:00.300000'),
+                                      pd.Timestamp('2018-01-01 00:00:00.400000')]}
+    assert converted_epoch.get_port('to_xarray').meta == expected_meta
+
+    expected_data = xr.DataArray(data=np.array([[[0.658783, 0.692277, 0.849196, 0.249668, 0.489425],
+                                                 [0.221209, 0.987668, 0.944059, 0.039427, 0.705575],
+                                                 [0.925248, 0.180575, 0.567945, 0.915488, 0.033946],
+                                                 [0.69742, 0.297349, 0.924396, 0.971058, 0.944266],
+                                                 [0.474214, 0.862043, 0.844549, 0.3191, 0.828915],
+                                                 [0.037008, 0.59627, 0.230009, 0.120567, 0.076953],
+                                                 [0.696289, 0.339875, 0.724767, 0.065356, 0.31529],
+                                                 [0.539491, 0.790723, 0.318753, 0.625891, 0.885978],
+                                                 [0.615863, 0.232959, 0.024401, 0.870099, 0.021269]],
+                                                [[0.221209, 0.987668, 0.944059, 0.039427, 0.705575],
+                                                 [0.925248, 0.180575, 0.567945, 0.915488, 0.033946],
+                                                 [0.69742, 0.297349, 0.924396, 0.971058, 0.944266],
+                                                 [0.474214, 0.862043, 0.844549, 0.3191, 0.828915],
+                                                 [0.037008, 0.59627, 0.230009, 0.120567, 0.076953],
+                                                 [0.696289, 0.339875, 0.724767, 0.065356, 0.31529],
+                                                 [0.539491, 0.790723, 0.318753, 0.625891, 0.885978],
+                                                 [0.615863, 0.232959, 0.024401, 0.870099, 0.021269],
+                                                 [0.874702, 0.528937, 0.939068, 0.798783, 0.997934]]]),
+                                 dims=('epoch', 'time', 'space'),
+                                 coords=([0, 1],
+                                         pd.TimedeltaIndex(np.arange(-before, after + 1 / rate, 1 / rate), unit='s'),
+                                         [0, 1, 2, 3, 4]))
+    xr.testing.assert_equal(converted_epoch.get_port('to_xarray').data, expected_data)
+
+    # now test with jittered data, so that the some epoch have invalid number of samples
+    data = helpers.DummyData(jitter=.2, rate=rate)
+    converted_epoch = Branch(graph)
+    converted_epoch.set_port('epoch', port_id='i', data=data.next(20))
+    event = pd.DataFrame(
+        [
+            ['test', 'foo'],
+            ['test', 'bar'],
+        ], [
+            pd.Timestamp('2018-01-01 00:00:00.300000'),
+            pd.Timestamp('2018-01-01 00:00:00.400000')
+        ], columns=['label', 'data'])
+    converted_epoch.set_port('epoch', port_id='i_events', data=event)
+
+    with pytest.raises(NodeValueError):
+        converted_epoch.update()
