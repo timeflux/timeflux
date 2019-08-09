@@ -43,7 +43,9 @@ def test_receive_epoch():
     expected_meta = {
         'epoch': {
             'onset': pd.Timestamp('2018-01-01 00:00:02.096394939'),
-            'context': 'foobar'
+            'context': 'foobar',
+            'before': before,
+            'after': after
         }
     }
     expected_data = pd.DataFrame(
@@ -145,8 +147,9 @@ def test_unsynced_event():
 def test_receives_event_before_data():
     # receives event before data
     # NB: this use case can also happen if before<0
+    before = 0
     data.reset()
-    node = Epoch(event_trigger='test', before=0, after=.6)
+    node = Epoch(event_trigger='test', before=before, after=.6)
     node.clear()
     node.i.data = data.next(5)
     time = data._data.index[6]  # Sync event right after last sample
@@ -174,22 +177,32 @@ def test_receives_event_before_data():
             pd.Timestamp('2018-01-01 00:00:01.104699099'),
         ]
     )
-    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:00.595580836'), 'context': 'foobar'}}
+    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:00.595580836'),
+                               'context': 'foobar',
+                               'before': before,
+                               'after': after}}
     assert node.o.meta == expected_meta
     pd.testing.assert_frame_equal(node.o.data, expected_data)
 
 
 def test_empty_epoch():
     # no data received in the epoch
+    before = 1
+    after = -1
     data = helpers.DummyData(rate=.1)
-    node = Epoch(event_trigger='test', before=-1, after=1)
+    node = Epoch(event_trigger='test', before=before, after=after)
     node.clear()
     node.i.data = data.next(5)
     time = pd.Timestamp("2018-01-01 00:00:10.450714306")  # Sync event to second sample
     event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])  # Generate a trigger event
     node.i_events.data = event
     node.update()
-    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:10.450714306'), 'context': 'foobar'}}
+    expected_meta = {'epoch': {'onset': pd.Timestamp('2018-01-01 00:00:10.450714306'),
+                               'context': 'foobar',
+                               'before': before,
+                               'after': after}
+                     }
+    print(node.o.meta)
     assert node.o.meta == expected_meta
     assert node.o.data.empty
 
@@ -197,6 +210,7 @@ def test_empty_epoch():
 def test_to_xarray():
     """ Test the epoch followed by a conversion to xarray.
     """
+
     graph = {
         'nodes': [
             {
@@ -215,11 +229,8 @@ def test_to_xarray():
                 'module': 'timeflux.nodes.epoch',
                 'class': 'EpochToXArray',
                 'params': {
-                    'before': before,
-                    'after': after,
                     'rate': rate,
-                    'pedantic': 'error'
-
+                    'reporting': 'error'
                 }
             }
         ],
