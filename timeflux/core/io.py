@@ -17,7 +17,7 @@ class Port:
             self.meta = {}
 
     def ready(self):
-        return self.data is not None and not self.data.empty
+        return self.data is not None and len(self.data) > 0
 
     def set(self, rows, timestamps=None, names=None):
         if timestamps is None:
