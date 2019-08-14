@@ -23,6 +23,14 @@ class Expression(Node):
         i_* (Port, optional): data inputs when ``eval_on`` is `ports`.
         o (Port): default output, provides DataFrame.
 
+    Args:
+       expr (str) : Expression of the function to apply to each column or row.
+       eval_on (`columns` | `ports`): Variable on which the expression is evaluated. Default: `ports`
+              If `columns`, the variables passed to the expression are the columns of the data in default input port.
+              If `ports`, the variables passed to the expression are the data of the input ports.
+       kwargs : Additional keyword arguments to pass as keywords arguments to `pandas.eval`:
+                    `{'parser': 'pandas', 'engine': None, 'resolvers': None,'level': None, 'target': None }`
+
     Example:
 
         In this example, we eval arithmetic expression on the input ports : `o = i_1 + i_2`.
@@ -89,42 +97,16 @@ class Expression(Node):
     """
 
     def __init__(self, expr, eval_on, **kwargs):
-        """
-            Args:
-               expr (str) : Expression of the function to apply to each column or row.
-               eval_on (`columns` | `ports`): Variable on which the expression is evaluated. Default: `ports`
-                      If `columns`, the variables passed to the expression are the columns of the data in default input port.
-                      If `ports`, the variables passed to the expression are the data of the input ports.
-               kwargs : Additional keyword arguments to pass as keywords arguments to `pandas.eval`:
-                            `{'parser': 'pandas', 'engine': None, 'resolvers': None,'level': None, 'target': None }`
 
-        """
         if 'global_dict' in kwargs:
             raise (NodeValueError(
                 'global_dict cannot be passed as additional arguments for pandas.eval '
             ))
 
-        # self._local_dict = local_dict
-
         self._eval_on = eval_on
         self._kwargs = kwargs
         self._expr = expr
         self._expr_ports = None
-
-        # if self._eval_on == 'ports':
-        # ## check the configuration
-        # foo_ports = {'i_' + str(k): Port() for k in range(5)}
-        # foo_ports['i'] = Port()
-        # for name, port in foo_ports.items():
-        #     port.data = pd.DataFrame([[1, 2], [3, 4]])
-        #
-        # if self._ports_ready(foo_ports):
-        #  self._kwargs.update(self._update_locals(foo_ports))
-        # try:
-        #     _ = pd.eval(expr=expr, **kwargs)
-        #     self._expr = expr
-        # except ValueError:
-        #     raise (NodeValueError('expr is not valid'))
 
     def update(self):
 

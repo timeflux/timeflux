@@ -7,22 +7,6 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 from timeflux.nodes.expression import Expression
 
-a = 1
-# """test with a expression to eval on the input ports (eval_on = 'ports')"""
-node = Expression(expr='i_1 + i_2', eval_on='ports')
-node.i_1.data = pd.DataFrame(data=[[5, 8], [9, 5], [10, 4], [5, 5]],
-                             index=[np.datetime64(datetime.utcfromtimestamp(timestamp), 'us')
-                                    for timestamp in np.arange(4)])
-node.i_2.data = pd.DataFrame(data=[[1, 3], [1, 5], [10, 1], [2, 1]],
-                             index=[np.datetime64(datetime.utcfromtimestamp(timestamp), 'us')
-                                    for timestamp in np.arange(4)])
-
-node.update()
-expected = pd.DataFrame(data=[[5 + 1, 8 + 3], [9 + 1, 5 + 5], [10 + 10, 4 + 1], [5 + 2, 5 + 1]],
-                        index=[np.datetime64(datetime.utcfromtimestamp(timestamp), 'us')
-                               for timestamp in np.arange(4)])
-assert_frame_equal(node.o.data, expected)
-
 
 def test_expression_sum_ports():
     """test with a expression to eval on the input ports (eval_on = 'ports')"""
