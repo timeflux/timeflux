@@ -2,8 +2,9 @@
 
 import pandas as pd
 import pytest
+from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.helpers.testing import DummyData
-from timeflux.nodes.query import *
+from timeflux.nodes.query import LocQuery, SelectRange, XsQuery
 
 fs = 10
 data = DummyData(rate=fs, jitter=.05, num_cols=6)
@@ -33,8 +34,8 @@ def test_locquery():
     pd.testing.assert_frame_equal(node.o.data, expected_data)
 
     # test query with wrong key: "R" not in the input columns
-    with pytest.raises(KeyError):
-        node = LocQuery(key='R', axis=1)
+    with pytest.raises(WorkerInterrupt):
+        node = LocQuery(key=['R'], axis=1)
         node.i.data = data.next()
         node.update()
 

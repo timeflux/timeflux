@@ -1,5 +1,8 @@
-from timeflux.core.node import Node
+
 import numpy as np
+from timeflux.core.exceptions import WorkerInterrupt
+from timeflux.core.node import Node
+
 
 
 class SelectRange(Node):
@@ -9,6 +12,10 @@ class SelectRange(Node):
         i (Port): default data input, expects DataFrame with eventually MultiIndex.
         o (Port): default output, provides DataFrame with eventually MultiIndex.
 
+    Args:
+         ranges (dict): Dict with keys are level names and values are selection ranges.
+         axis (int): If 0, the level concerns row index, if 1, columns index (`0` or `1`). Default: `0`.
+         inclusive (bool) : Whether the boundaries are strict or included. Default: `False`.
 
     Example:
 
@@ -39,13 +46,6 @@ class SelectRange(Node):
     """
 
     def __init__(self, ranges, axis=0, inclusive=False):
-
-        """
-            Args:
-             ranges (dict): Dict with keys are level names and values are selection ranges.
-             axis (int): If 0, the level concerns row index, if 1, columns index (`0` or `1`). Default: `0`.
-             inclusive (bool) : Whether the boundaries are strict or included. Default: `False`.
-          """
 
         self._ranges = ranges  # list of ranges per level
         self._inclusive = inclusive  # include boundaries.
@@ -86,6 +86,13 @@ class XsQuery(Node):
         i (Port): default input, expects DataFrame with eventually MultiIndex.
         o (Port): default output, provides DataFrame with eventually MultiIndex.
 
+    Args:
+           key (str|tuple): Some label contained in the index, or partially in a MultiIndex index.
+           axis (int): Axis to retrieve cross-section on (`0` or `1`). Default: `0`.
+           level (str|int|tuple) : In case of a key partially contained in a MultiIndex, indicates which levels are used. Levels can be referred by label or position.
+           drop_level (bool) : If False, returns DataFrame with same level. Default: `False`.
+
+
     Example:
 
         In this example, we have an input DataFrame with multi level columns and we want to select cross section between `B` from level of name `first` and `1` from level of name `second`.
@@ -118,6 +125,7 @@ class XsQuery(Node):
 
     """
 
+
     def __init__(self, key, **kwargs):
         """
         Args:
@@ -127,12 +135,23 @@ class XsQuery(Node):
 
         self._key = key
         self._kwargs = kwargs
+        self._ready = False
 
     def update(self):
+
         if not self.i.ready():
             return
-
         self.o.meta = self.i.meta
+        if not self._ready:
+            try:
+                self._query()
+                self._ready = True
+            except KeyError as e:
+                raise WorkerInterrupt(e)
+        else:
+            self._query()
+
+    def _query(self):
         self.o.data = self.i.data.xs(key=self._key, **self._kwargs)
 
 
@@ -142,6 +161,10 @@ class LocQuery(Node):
     Attributes:
         i (Port): default data input, expects DataFrame.
         o (Port): default output, provides DataFrame.
+
+    Args:
+       key (str|list|tuple): Label selection specification.
+       axis (int): Axis to query the label from (`0` or `1`). Default: `1`.
 
     Example:
 
@@ -174,27 +197,34 @@ class LocQuery(Node):
 
     def __init__(self, key, axis=1):
 
-        """
-        Args:
-           key (str|tuple): Label selection specification.
-           axis (int): Axis to query the label from (`0` or `1`). Default: `1`.
-
-        """
-
         self._axis = axis
         if not isinstance(key, (list, tuple)):
             self._key = [key]
         else:
             self._key = key
+        self._ready = False
 
     def update(self):
 
         if not self.i.ready():
             return
+        self.o = self.i
+        if not self.i.ready():
+            return
 
         self.o.meta = self.i.meta
 
+        if not self._ready:
+            try:
+                self._query()
+                self._ready = True
+            except KeyError as e:
+                raise WorkerInterrupt(e)
+        else:
+            self.o.data = self.i.data.loc[:, self._key]
+
+    def _query(self):
         if self._axis == 0:
             self.o.data = self.i.data.loc[self._key, :]
-        elif self._axis == 1:
+        else:  # self._axis == 1:
             self.o.data = self.i.data.loc[:, self._key]
