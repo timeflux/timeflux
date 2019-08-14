@@ -15,6 +15,17 @@ class ApplyMethod(Node):
         i (Port): default data input, expects DataFrame.
         o (Port): default output, provides DataFrame.
 
+    Args:
+       func (func): custom function specified directely that takes as input a n_array (eg. lambda x: x+1). Default: None.
+       method (str): name of the module to import, in which the method is defined. eg. `numpy.mean`.
+       apply_mode (str`): {`universal`, `reduce`, `expand` }. Default: `universal`.
+             -  `universal` if function is a transformation from n_array to n_array
+             -  `reduce` if function is a transformation from n_array to scalar
+             -  `expand` if function is a transformation from n_array to nk_array [not yet implemented]
+       axis (int) : if 0, the transformation is applied to columns, if 1 to rows. Default: `0`.
+       closed (str) : {`left`, `right`, `center`}: timestamp to transfer in the output, only when method_type is "reduce" and axis = 0, in which case, the output port's lenght is 1. Default: `right`.
+       kwargs:  additional keyword arguments to pass as keywords arguments to `func`.
+
     Notes:
 
         Note that the passed function will receive ndarray objects for performance purposes.
@@ -84,19 +95,6 @@ class ApplyMethod(Node):
 
     def __init__(self, method, apply_mode='universal',
                  axis=0, closed='right', func=None, **kwargs):
-        """
-           Args:
-               func (func): custom function specified directely that takes as input a n_array (eg. lambda x: x+1). Default: None.
-               method (str): name of the module to import, in which the method is defined. eg. `numpy.mean`.
-               apply_mode (str`): {`universal`, `reduce`, `expand` }. Default: `universal`.
-                     -  `universal` if function is a transformation from n_array to n_array
-                     -  `reduce` if function is a transformation from n_array to scalar
-                     -  `expand` if function is a transformation from n_array to nk_array [not yet implemented]
-               axis (int) : if 0, the transformation is applied to columns, if 1 to rows. Default: `0`.
-               closed (str) : {`left`, `right`, `center`}: timestamp to transfer in the output, only when method_type is "reduce" and axis = 0, in which case, the output port's lenght is 1. Default: `right`.
-               kwargs:  additional keyword arguments to pass as keywords arguments to `func`.
-
-        """
 
         self._axis = axis
         self._closed = closed
