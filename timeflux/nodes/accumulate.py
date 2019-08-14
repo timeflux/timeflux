@@ -24,6 +24,7 @@ class AppendDataFrame(Node):
 
     def __init__(self, meta_keys=None, **kwargs):
 
+        super().__init__()
         self._meta_keys = meta_keys
         self._kwargs = kwargs
         self._reset()
@@ -83,6 +84,7 @@ class AppendDataArray(Node):
 
     def __init__(self, dim, meta_keys=None, **kwargs):
 
+        super().__init__()
         self._dim = dim
         self._meta_keys = meta_keys
         self._kwargs = kwargs
