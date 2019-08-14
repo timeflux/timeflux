@@ -227,9 +227,8 @@ def test_to_xarray():
             {
                 'id': 'to_xarray',
                 'module': 'timeflux.nodes.epoch',
-                'class': 'EpochToXArray',
+                'class': 'ToXArray',
                 'params': {
-                    'rate': rate,
                     'reporting': 'error'
                 }
             }
