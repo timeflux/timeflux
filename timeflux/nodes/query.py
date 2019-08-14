@@ -1,6 +1,6 @@
-
 from timeflux.core.node import Node
 import numpy as np
+
 
 class SelectRange(Node):
     """Select a subset of the given data along vertical (index) or horizontal (columns) axis.
@@ -37,39 +37,46 @@ class SelectRange(Node):
 
 
     """
-    def __init__(self, ranges,  axis = 0, inclusive = False) :
+
+    def __init__(self, ranges, axis=0, inclusive=False):
 
         """
             Args:
              ranges (dict): Dict with keys are level names and values are selection ranges.
              axis (int): If 0, the level concerns row index, if 1, columns index (`0` or `1`). Default: `0`.
              inclusive (bool) : Whether the boundaries are strict or included. Default: `False`.
-
           """
 
         self._ranges = ranges  # list of ranges per level
-        self._inclusive = inclusive #include boundaries.
+        self._inclusive = inclusive  # include boundaries.
         self._axis = axis
 
     def update(self):
 
-        self.o = self.i
-        if self.i.data is not None:
-            if not self.i.data.empty:
-                if self._axis == 0:
-                    if self._inclusive:
-                        cond_list = [(self.i.data.index.get_level_values(l) >= r[0]) & (self.i.data.index.get_level_values(l) <= r[1]) for l, r in (self._ranges).items() if r is not None]
-                    else:
-                        cond_list = [(self.i.data.index.get_level_values(l) > r[0]) & (self.i.data.index.get_level_values(l) < r[1]) for l, r in (self._ranges).items() if r is not None]
+        if not self.i.ready():
+            return
 
-                    self.o.data = self.i.data[np.logical_and.reduce(cond_list)]
+        self.o.meta = self.i.meta
 
-                else : # axis == 1
-                    if self._inclusive:
-                        cond_list = [(self.i.data.columns.get_level_values(l) >= r[0]) & (self.i.data.columns.get_level_values(l) <= r[1]) for l, r in (self._ranges).items() if r is not None]
-                    else:
-                        cond_list = [(self.i.data.columns.get_level_values(l) > r[0]) & (self.i.data.columns.get_level_values(l) < r[1]) for l, r in (self._ranges).items() if r is not None]
-                    self.o.data = self.i.data.T[np.logical_and.reduce(cond_list)].T
+        if self._axis == 1:
+            self.i.data = self.i.data.T
+
+        mask = self._mask()
+
+        self.o.data = self.i.data[np.logical_and.reduce(mask)]
+        if self._axis == 1:
+            self.o.data = self.o.data.T
+
+    def _mask(self):
+        if self._inclusive:
+            mask = [(self.i.data.index.get_level_values(l) >= r[0]) &
+                    (self.i.data.index.get_level_values(l) <= r[1])
+                    for l, r in (self._ranges).items() if r is not None]
+        else:
+            mask = [(self.i.data.index.get_level_values(l) > r[0]) &
+                    (self.i.data.index.get_level_values(l) < r[1])
+                    for l, r in (self._ranges).items() if r is not None]
+        return mask
 
 
 class XsQuery(Node):
@@ -111,26 +118,23 @@ class XsQuery(Node):
 
     """
 
-
-    def __init__(self, key, axis=0, level=None, drop_level=False ) :
-
+    def __init__(self, key, **kwargs):
         """
         Args:
            key (str|tuple): Some label contained in the index, or partially in a MultiIndex index.
-           axis (int): Axis to retrieve cross-section on (`0` or `1`). Default: `0`.
-           level (str|int|tuple) : In case of a key partially contained in a MultiIndex, indicates which levels are used. Levels can be referred by label or position.
-           drop_level (bool) : If False, returns DataFrame with same level. Default: `False`.
-
+           kwargs: Keyword arguments to call pandas xs method: axis, level, drop_level
         """
 
         self._key = key
-        self._axis = axis
-        self._level = level
-        self._drop_level = drop_level
+        self._kwargs = kwargs
 
     def update(self):
-        self.o = self.i
-        self.o.data = self.i.data.xs(key=self._key, axis=self._axis, level=self._level, drop_level=self._drop_level)
+        if not self.i.ready():
+            return
+
+        self.o.meta = self.i.meta
+        self.o.data = self.i.data.xs(key=self._key, **self._kwargs)
+
 
 class LocQuery(Node):
     """Slices DataFrame on group of rows and columns by label(s)
@@ -168,8 +172,7 @@ class LocQuery(Node):
 
     """
 
-    def __init__(self, key, axis=1) :
-
+    def __init__(self, key, axis=1):
 
         """
         Args:
@@ -179,27 +182,19 @@ class LocQuery(Node):
         """
 
         self._axis = axis
-        if type(key) not in [list, tuple]:
+        if not isinstance(key, (list, tuple)):
             self._key = [key]
         else:
             self._key = key
-        self._check_args = False
 
     def update(self):
 
-        self.o = self.i
-        if self.i.data is not None:
-            if not self.i.data.empty:
+        if not self.i.ready():
+            return
 
-                if self._axis == 0:
-                    self.o.data = self.i.data.loc[self._key, :]
-                elif self._axis == 1:
-                    if not self._check_key:
-                        try:
-                            self.o.data = self.i.data.loc[:, self._key]
-                            self._check_args = True
-                        except KeyError as e:
-                            self.logger.error(e)
-                            raise ValueError (e)
-                    else:
-                        self.o.data = self.i.data.loc[:, self._key]
+        self.o.meta = self.i.meta
+
+        if self._axis == 0:
+            self.o.data = self.i.data.loc[self._key, :]
+        elif self._axis == 1:
+            self.o.data = self.i.data.loc[:, self._key]
