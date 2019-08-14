@@ -16,18 +16,17 @@ class Transpose(Node):
         i (Port): default data input, expects DataArray.
         o (Port): default output, provides DataArray.
 
+    Args:
+        dims (list, None): By default, reverse the dimensions. Otherwise, reorder the dimensions to this order.
+
     """
 
     def __init__(self, dims):
-        """
-        Args:
-            dims (list, None): By default, reverse the dimensions. Otherwise, reorder the dimensions to this order.
-
-        """
 
         self._dims = dims
 
     def update(self):
+
         if not self.i.ready():
             return
 
@@ -46,13 +45,12 @@ class ToDataFrame(Node):
         i (Port): default data input, expects DataArray.
         o (Port): default output, provides DataFrame.
 
+
+    Args:
+        index_dim (str, `time`): Name of the dimension to set the index of the DataFrame.
     """
 
     def __init__(self, index_dim='time'):
-        """
-        Args:
-            index_dim (str, `time`): Name of the dimension to set the index of the DataFrame.
-        """
 
         self._index_dim = index_dim
         self._indexes = None
