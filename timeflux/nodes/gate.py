@@ -7,25 +7,25 @@ import xarray as xr
 
 
 class Gate(Node):
-    """Data gate based on event triggers.
+    """Data-gate based on event triggers.
 
-    This node blocks data flow or let data through according to event triggers.
+    This node cuts off or puts through data depending on event triggers
+    It has 3 operating mode/status:
+    - silent: the node waits for an opening trigger in the events and returns nothing
+    - opened: the node waits for a closing trigger in the events and free pass the data
+    - closed: the node has just received a closing trigger, so free pass the data and resets its state.
 
-    It has three operating mode:
-
-    - closed: the node waits for an opening trigger in the events and returns nothing
-    - open: the node waits for a closing trigger in the events and let the data through
-    - closing: the node has just received a closing trigger, let the data through and resets its status.
 
     It continuously iterates over events data to update its operating mode.
 
     Attributes:
-        i (Port): Default data input, expects DataFrame or XArray.
+        i (Port): Default data input, expects DataFrame or or XArray.
+
         i_events (Port): Event input, expects DataFrame.
         o (Port): Default output, provides DataFrame or XArray and meta.
 
     Args:
-        event_opens (string): The marker name on which the gate opens.
+        event_opens (string): The marker name on which the gate open.s
         event_closes (string): The marker name on which the the gate closes.
         event_label (string): The column to match for event_trigger.
 
@@ -33,8 +33,8 @@ class Gate(Node):
 
     """
 
-    def __init__(self, event_opens, event_closes, event_label='label', truncate=False):
 
+    def __init__(self, event_opens, event_closes, event_label='label', truncate=False):
         self._event_label = event_label
         self._event_opens = event_opens
         self._event_closes = event_closes
