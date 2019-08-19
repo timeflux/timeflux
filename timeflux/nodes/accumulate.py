@@ -22,18 +22,26 @@ class AppendDataFrame(Node):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, meta_keys=None, **kwargs):
 
+        super().__init__()
+        self._meta_keys = meta_keys
         self._kwargs = kwargs
         self._reset()
 
     def _reset(self):
         self._data = pd.DataFrame()
-        self._meta = {}
+        self._meta = []
 
     def _release(self):
         self.o.data = self._data
-        self.o.meta = self._meta
+        if self._meta_keys is None:
+            self.o.meta = {'accumulate': self._meta}
+        else:
+            self.o.meta = {key: [] for key in self._meta_keys}
+            for meta_key in self._meta_keys:
+                for meta in self._meta:
+                    self.o.meta[meta_key] += meta.get(meta_key, [])
 
     def update(self):
 
@@ -45,7 +53,7 @@ class AppendDataFrame(Node):
         # At this point, we are sure that we have some data to process
 
         # update the meta
-        self._meta.update(self.i.meta)
+        self._meta.append(self.i.meta)
 
         # append the data
         self._data = self._data.append(self.i.data, **self._kwargs)
@@ -74,35 +82,44 @@ class AppendDataArray(Node):
 
     """
 
-    def __init__(self, dim, **kwargs):
+    def __init__(self, dim, meta_keys=None, **kwargs):
 
+        super().__init__()
         self._dim = dim
+        self._meta_keys = meta_keys
         self._kwargs = kwargs
         self._reset()
 
     def _reset(self):
         self._data_list = []
-        self._meta = {}
+        self._meta = []
 
     def _release(self):
+        self.logger.debug(f'AppendDataArray is releasing {len(self._data_list)} '
+                          f'accumulated data chunks.')
         self.o.data = xr.concat(self._data_list, self._dim, **self._kwargs)
-        self.o.meta = self._meta
+
+        if self._meta_keys is None:
+            self.o.meta = {'accumulate': self._meta}
+        else:
+            self.o.meta = {key: [] for key in self._meta_keys}
+            for meta_key in self._meta_keys:
+                for meta in self._meta:
+                    self.o.meta[meta_key] += meta.get(meta_key, [])
 
     def update(self):
 
         gate_status = self.i.meta.get('gate_status')
-
         # When we have not received data, there is nothing to do
         if not self.i.ready():
             return
         # At this point, we are sure that we have some data to process
 
         # update the meta
-        self._meta.update(self.i.meta)
+        self._meta.append(self.i.meta)
 
         # append the data
         self._data_list.append(self.i.data)
-
         # if gate is close, release the data and reset the buffer
         if gate_status == 'closed':
             self._release()

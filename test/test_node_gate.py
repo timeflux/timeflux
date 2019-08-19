@@ -8,7 +8,7 @@ from timeflux.nodes.gate import Gate
 xarray_data = DummyXArray()
 pandas_data = DummyData()
 
-node = Gate(event_opens='foo_begins', event_closes='foo_ends')
+node = Gate(event_opens='foo_begins', event_closes='foo_ends', truncate=True)
 
 
 def test_gate_silent():
