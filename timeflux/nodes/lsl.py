@@ -50,8 +50,14 @@ class Receive(Node):
 
     """Receive from a LSL stream."""
 
-    def __init__(self, name, unit='ns', offset_correction=False, channels=None, resolve_timeout=.5, max_samples=1024):
-        self._name = name
+    def __init__(self, name=None, value=None, prop='name', unit='ns', offset_correction=False, channels=None, resolve_timeout=.5, max_samples=1024):
+        if name:
+            value = name
+            prop = 'name'
+        if not value:
+            raise  ValueError('Please specify a stream name or a property and value.')
+        self._prop = prop
+        self._value = value
         self._inlet = None
         self._labels = None
         self._unit = unit
@@ -64,8 +70,8 @@ class Receive(Node):
 
     def update(self):
         if not self._inlet:
-            self.logger.debug('Resolving stream: ' + self._name)
-            streams = resolve_byprop('name', self._name, timeout=self._resolve_timeout)
+            self.logger.debug(f'Resolving stream with {self._prop} {self._value}')
+            streams = resolve_byprop(self._prop, self._value, timeout=self._resolve_timeout)
             if not streams: return
             self.logger.debug('Stream acquired')
             self._inlet = StreamInlet(streams[0])

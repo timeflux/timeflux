@@ -9,7 +9,8 @@ graphs:
       module: timeflux.nodes.lsl
       class: Send
       params:
-        name: 'test_1'
+        name: test_1
+        stream_type: random
     - id: random_2
       module: timeflux.nodes.random
       class: Random
@@ -17,7 +18,7 @@ graphs:
       module: timeflux.nodes.lsl
       class: Send
       params:
-        name: 'test_2'
+        name: test_2
     edges:
       - source: random_1
         target: outlet_1
@@ -25,13 +26,14 @@ graphs:
         target: outlet_2
     rate: 1
 
-  - id: Receiver 1
+  - id: Receiver1
     nodes:
     - id: inlet
       module: timeflux.nodes.lsl
       class: Receive
       params:
-        name: 'test_1'
+        prop: type
+        value: random
     - id: display
       module: timeflux.nodes.debug
       class: Display
@@ -40,13 +42,13 @@ graphs:
         target: display
     rate: 1
 
-  - id: Receiver 2
+  - id: Receiver2
     nodes:
     - id: inlet
       module: timeflux.nodes.lsl
       class: Receive
       params:
-        name: 'test_2'
+        name: test_2
     - id: display
       module: timeflux.nodes.debug
       class: Display

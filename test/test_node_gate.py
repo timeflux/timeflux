@@ -8,7 +8,9 @@ from timeflux.nodes.gate import Gate
 xarray_data = DummyXArray()
 pandas_data = DummyData()
 
-node = Gate(event_opens='foo_begins', event_closes='foo_ends')
+
+node = Gate(event_opens='foo_begins', event_closes='foo_ends', truncate=True)
+
 
 
 def test_gate_silent():
@@ -16,7 +18,8 @@ def test_gate_silent():
     # Send data but no event
     node.i.data = pandas_data.next(20)
     node.update()
-    assert node._status == 'silent'
+
+    assert node._status == 'closed'
     assert node.o.data == None
 
 
@@ -44,9 +47,10 @@ def test_send_opening_closing_event_in_separate_chunks():
 
         ]
     )
-    expected_meta = {'gate_status': 'opened'}
 
-    assert node._status == 'opened'
+    expected_meta = {'gate_status': 'open'}
+
+    assert node._status == 'open'
     assert node._trigger == 'foo_ends'
     assert node.o.meta == expected_meta
     pd.testing.assert_frame_equal(node.o.data, expected_data)
@@ -72,7 +76,8 @@ def test_send_opening_closing_event_in_separate_chunks():
     expected_meta = {'gate_status': 'closed',
                      'gate_times': [time_open, time_close]}
 
-    assert node._status == 'silent'
+
+    assert node._status == 'closed'
     assert node._trigger == 'foo_begins'
     assert node.o.meta == expected_meta
     pd.testing.assert_frame_equal(node.o.data, expected_data)
@@ -105,7 +110,8 @@ def test_send_opening_closing_event_in_same_chunk():
     assert node.o.meta == expected_meta
     pd.testing.assert_frame_equal(node.o.data, expected_data)
 
-    assert node._status == 'silent'
+
+    assert node._status == 'closed'
     assert node._trigger == 'foo_begins'
 
 
@@ -138,5 +144,6 @@ def test_xarray_data():
 
     assert node.o.meta == expected_meta
     xr.testing.assert_equal(node.o.data, expected_data)
-    assert node._status == 'silent'
+
+    assert node._status == 'closed'
     assert node._trigger == 'foo_begins'

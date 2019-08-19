@@ -9,7 +9,7 @@ pyzmq>=17.1.2
 coloredlogs>=10.0
 tables>=3.4.4
 Cython>=0.29.6
-pylsl==1.13.1
+pylsl
 python-osc==1.7.0
 python-dotenv==0.10.1
 jsonschema>=3.0.1

@@ -9,6 +9,7 @@ class DummyData():
     def __init__(self,
                  num_rows=1000,
                  num_cols=5,
+                 cols=None,
                  rate=10,
                  jitter=.05,
                  start_date='2018-01-01',
@@ -20,6 +21,7 @@ class DummyData():
         Args:
             num_rows (int): Number of rows
             num_cols (int): Number of columns
+            cols (list): List of column names
             rate (float): Frequency, in Hertz
             jitter (float): Amount of jitter, relative to rate
             start_date (string): Start date
@@ -41,9 +43,14 @@ class DummyData():
             np.random.uniform(-jitter, jitter, num_rows), unit='s')
         indices = indices + deltas
 
+        if cols is not None:
+            num_cols = len(cols)
+
         rows = np.random.rand(num_rows, num_cols).round(round)
 
         self._data = pd.DataFrame(rows, indices)
+        if cols is not None:
+            self._data.columns = cols
         self._cursor = 0
 
     def next(self, num_rows=10):
@@ -194,6 +201,7 @@ class Looper():
         output_data = []
         output_meta = []
         while not end_of_data:
+            self._node.clear()
             chunk = self._generator.next(chunk_size)
             i = getattr(self._node, self._input_port)
             i.data = chunk.copy()

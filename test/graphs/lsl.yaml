@@ -14,7 +14,7 @@ graphs:
       module: timeflux.nodes.lsl
       class: Send
       params:
-        name: 'test'
+        name: test
     edges:
       - source: replay:nexus_signal_nexus_signal_raw
         target: outlet
@@ -26,7 +26,8 @@ graphs:
       module: timeflux.nodes.lsl
       class: Receive
       params:
-        name: 'test'
+        prop: name
+        value: test
     - id: display
       module: timeflux.nodes.debug
       class: Display
