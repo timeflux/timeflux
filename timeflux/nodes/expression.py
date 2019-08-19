@@ -1,18 +1,21 @@
-from timeflux.core.node import Node
-from importlib import import_module
+import numpy as np
 import pandas as pd
-from timeflux.core.exceptions import TimefluxException
+from timeflux.core.exceptions import NodeValueError
 from timeflux.core.io import Port
+from timeflux.core.node import Node
 
 
 class Expression(Node):
     """ Evaluate a Python expression as a string.
 
-    This nodes uses `eval` method from pandas to evaluate a Python expression as a string on the data.
-    The expression can be evaluated either on the input ports (``eval_on`` = `ports`) or on the input columns (``eval_on`` = `columns`).
+    This nodes uses `eval` method from pandas to evaluate a Python expression
+    as a string on the data.
+    The expression can be evaluated either on the input ports
+    (``eval_on`` = `ports`) or on the input columns (``eval_on`` = `columns`).
 
     The following arithmetic operations are supported: +, -, *, /, **, %, //
-    (python engine only) along with the following boolean operations: | (or), & (and), and ~ (not).
+    (python engine only) along with the following boolean operations:
+    | (or), & (and), and ~ (not).
 
 
     Attributes:
@@ -20,6 +23,13 @@ class Expression(Node):
         i_* (Port, optional): data inputs when ``eval_on`` is `ports`.
         o (Port): default output, provides DataFrame.
 
+    Args:
+       expr (str) : Expression of the function to apply to each column or row.
+       eval_on (`columns` | `ports`): Variable on which the expression is evaluated. Default: `ports`
+              If `columns`, the variables passed to the expression are the columns of the data in default input port.
+              If `ports`, the variables passed to the expression are the data of the input ports.
+       kwargs : Additional keyword arguments to pass as keywords arguments to `pandas.eval`:
+                    `{'parser': 'pandas', 'engine': None, 'resolvers': None,'level': None, 'target': None }`
 
     Example:
 
@@ -60,7 +70,8 @@ class Expression(Node):
     Example:
 
         In this example, we eval an arithmetic expression on columns  : `col3 = col2 + col1`
-        Hence, the variables on which the expression is applied are the columns of the data from default input port.
+        Hence, the variables on which the expression is applied are the columns
+        of the data from default input port.
         We set:
 
         * ``expr`` = `col2 = col1 + col0`
@@ -85,90 +96,42 @@ class Expression(Node):
 
     """
 
-    def __init__(self, expr="port_i", eval_on="ports", kwargs={}):
-        """
-            Args:
-               expr (str) : Expression of the function to apply to each column or row.
-               eval_on (`columns` | `ports`): Variable on which the expression is evaluated. Default: `ports`
-                      If `columns`, the variables passed to the expression are the columns of the data in default input port.
-                      If `ports`, the variables passed to the expression are the data of the input ports.
-               kwargs : Additional keyword arguments to pass as keywords arguments to `pandas.eval`:
-                            `{"parser": "pandas", "engine": None, "resolvers": None,"level": None, "target": None }`
+    def __init__(self, expr, eval_on, **kwargs):
 
-        """
-        if ("global_dict" in kwargs.keys()):
-            raise (ValueError(
-                "global_dict cannot be passed as additionnal arguments for pandas.eval "
+        if 'global_dict' in kwargs:
+            raise (NodeValueError(
+                'global_dict cannot be passed as additional arguments for pandas.eval '
             ))
-        if ('local_dict' not in kwargs.keys()) & (eval_on == "ports"):
-            self._static_local_dict = {}
-            self._static_kwargs = kwargs
-        else:
-            if "local_dict" in kwargs.keys(): self._static_local_dict = kwargs["local_dict"]
 
-            self._static_kwargs = {
-                k: kwargs[k]
-                for k in set(list(kwargs.keys())) - set(["local_dict"])
-                }
-
-        if eval_on == "ports":
-            self._eval_on = eval_on
-            ## check the configuration
-            foo_ports = {"i_" + str(k): Port() for k in range(5)}
-            foo_ports["i"] = Port()
-            for name, port in foo_ports.items():
-                port.data = pd.DataFrame([[1, 2], [3, 4]])
-
-            if self._ports_ready(foo_ports):
-                kwargs = self._update_locals(foo_ports)
-            try:
-                _ = pd.eval(expr=expr, **kwargs)
-                self._expr = expr
-            except ValueError:
-                raise (ValueError("expr is not valid"))
-        elif eval_on == "columns":
-            self._eval_on = eval_on
-            self._kwargs = kwargs
-            self._expr = expr
-        else:
-            raise (
-                ValueError,
-                "eval_on should be 'ports' or 'columns', got {eval_on}".format(
-                    eval_on=eval_on))
-
-    def _ports_ready(self, ports):
-        return any([
-            port.data is not None for name, port in ports.items()
-            if name == 'i' or name.startswith('i_') ])
-
-    def _update_locals(self, ports):
-        _static_local_dict = {**self._static_local_dict, **{name: port.data for name, port in ports.items() if
-                                                            name == 'i' or name.startswith('i_')}}
-        return {"local_dict": _static_local_dict, **self._static_kwargs}
+        self._eval_on = eval_on
+        self._kwargs = kwargs
+        self._expr = expr
+        self._expr_ports = None
 
     def update(self):
-        if self._eval_on == "ports":
-            if self.ports is not None:
-                if self._ports_ready(self.ports):
-                    kwargs = self._update_locals(self.ports)
-                    self.o.data = pd.eval(expr=self._expr, **kwargs)
-                    meta = {
-                        k: v
-                        for meta in [
-                        port.meta for name, port in self.ports.items()
-                        if name == 'i' or name.startswith('i_')
-                        if port.meta is not None
-                    ] for k, v in meta.items()
-                    }
-                    if meta:
-                        self.o.meta = {
-                            k: v
-                            for meta in [
-                            port.meta for name, port in self.ports.items()
-                            if name == 'i' or name.startswith('i_')
-                        ] for k, v in meta.items() if meta is not None
-                        }
-        elif self._eval_on == "columns":
+
+        self.o.meta = self.i.meta
+
+        if self._eval_on == 'ports':
+            if self._expr_ports is None:
+                self._expr_ports = [port_name for port_name, _, _
+                                    in self.iterate()
+                                    if port_name in self._expr]
+                self._expr_ports = set(self._expr_ports) - set('i')
+            _local_dict = {port_name: self.ports.get(port_name).data
+                           for port_name in self._expr_ports}
+            if np.any([data is None or data.empty
+                       for data in _local_dict.values()]):
+                return
+
+            self.o.data = pd.eval(expr=self._expr,
+                                  local_dict=_local_dict,
+                                  **self._kwargs)
+            for port_name in self._expr_ports:
+                self.o.meta.update(self.ports.get(port_name).meta)
+
+        elif self._eval_on == 'columns':
             self.o = self.i
-            if self.i.data is not None:
-                self.o.data = self.i.data.eval(expr=self._expr, **self._kwargs)
+            if self.i.data is not None and not self.i.data.empty:
+                self.o.data = self.i.data.eval(expr=self._expr,
+                                               **self._kwargs)
