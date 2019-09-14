@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from timeflux.core.exceptions import NodeValueError
 from timeflux.core.io import Port
 from timeflux.core.node import Node
 
@@ -99,7 +98,7 @@ class Expression(Node):
     def __init__(self, expr, eval_on, **kwargs):
 
         if 'global_dict' in kwargs:
-            raise (NodeValueError(
+            raise (ValueError(
                 'global_dict cannot be passed as additional arguments for pandas.eval '
             ))
 

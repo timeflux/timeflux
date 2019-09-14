@@ -1,4 +1,4 @@
-"""timeflux.nodes.events: generate random events"""
+"""Generate random events"""
 
 import copy
 import datetime

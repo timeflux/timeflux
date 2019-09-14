@@ -1,3 +1,5 @@
+"""Epoching nodes"""
+
 import numpy as np
 import pandas as pd
 import json
@@ -7,7 +9,7 @@ from timeflux.core.exceptions import WorkerInterrupt
 
 
 class Epoch(Node):
-    """Event-triggered epoching.
+    """ Event-triggered epoching.
 
     This node continuously buffers a small amount of data (of a duration of ``before`` seconds) from the default input stream.
     When it detects a marker matching the ``event_trigger`` in the ``event_label`` column of the event input stream, it starts accumulating data for ``after`` seconds.
@@ -20,7 +22,7 @@ class Epoch(Node):
         o (Port): Default output, provides DataFrame and meta.
         o_* (Port): Dynamic outputs, provide DataFrame and meta.
 
-    Args:<<<
+    Args:
         event_trigger (string): The marker name.
         before (float): Length before onset, in seconds.
         after (float): Length after onset, in seconds.
@@ -109,29 +111,28 @@ class Epoch(Node):
 class ToXArray(Node):
     """ Convert multiple epochs to DataArray
 
-       This node iterates over input ports with valid epochs, concatenates them
-       on the first axis, and creates a XArray with dimensions ('epoch', 'time', 'space')
-       where epoch corresponds to th input ports, time to the ports data index and
-       space to the ports data columns.
-       A port is considered to be valid if it has meta with key 'epoch' and data with
-       expected number of samples.
-       If some epoch have an invalid length (which happens when the data has jitter),
-       the node either raises a warning, an error or pass.
+    This node iterates over input ports with valid epochs, concatenates them on the
+    first axis, and creates a XArray with dimensions ('epoch', 'time', 'space') where
+    epoch corresponds to th input ports, time to the ports data index and space to the
+    ports data columns.
+    A port is considered to be valid if it has meta with key 'epoch' and data with
+    expected number of samples.
+    If some epoch have an invalid length (which happens when the data has jitter), the
+    node either raises a warning, an error or pass.
 
-       Attributes:
-           i_* (Port): Dynamic inputs, expects DataFrame and meta.
-           o (Port): Default output, provides DataArray and meta.
+    Attributes:
+        i_* (Port): Dynamic inputs, expects DataFrame and meta.
+        o (Port): Default output, provides DataArray and meta.
 
-       Args:
-           reporting ('warn'|'error'| None): How this function handles epochs with
-                    invalid length:
-                - 'warn' will issue a warning with :py:func:`warnings.warn`
-                - 'error' will raise a NodeValueError,
-                - ``None`` will ignore it.
-            output ('DataArray'|'Dataset'): Type of output to return
-            context_key (str|None): If output type is Dataset, key to define the
-            target of the event. If None, the whole context is considered.
-       """
+    Args:
+        reporting (string| None): How this function handles epochs with
+            invalid length: `warn` will issue a warning with :py:func:`warnings.warn`,
+            `error` will raise an exception, `None` will ignore it.
+        output (`DataArray`|`Dataset`): Type of output to return
+        context_key (string|None): If output type is `Dataset`, key to define the
+            target of the event. If `None`, the whole context is considered.
+
+    """
 
     def __init__(self, reporting='warn',
                  output='DataArray', context_key=None):
@@ -208,8 +209,7 @@ class ToXArray(Node):
             return context.get(self._context_key)
 
     def _valid_port(self, port):
-        """ Checks that the port has valid meta and data.
-        """
+        """ Checks that the port has valid meta and data. """
         if port.data is None or port.data.empty:
             return False
         if 'epoch' not in port.meta:

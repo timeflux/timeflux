@@ -1,10 +1,12 @@
+"""Arbitrary operations on DataFrames"""
+
 from timeflux.core.node import Node
 from importlib import import_module
 import pandas as pd
 
 
 class ApplyMethod(Node):
-    """ Apply a function along an axis of the DataFrame.
+    """Apply a function along an axis of the DataFrame.
 
     This node applies a function along an axis of the DataFrame.
     Objects passed to the function are Series objects whose index is

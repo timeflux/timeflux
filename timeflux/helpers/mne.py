@@ -1,4 +1,5 @@
-import mne
+"""MNE helpers"""
+
 import pandas as pd
 import numpy as np
 import xarray as xr
@@ -6,6 +7,11 @@ import logging
 
 logger = logging.getLogger()
 from timeflux.core.exceptions import WorkerInterrupt
+
+try:
+    import mne
+except ModuleNotFoundError:
+    logger.error('MNE is not installed')
 
 
 def _context_to_id(context, context_key, event_id):
@@ -23,13 +29,11 @@ def xarray_to_mne(data, meta, context_key, event_id, reporting='warn'):
         meta (dict): Dictionary with keys 'epochs_context', 'rate', 'epochs_onset'
         context_key (str|None): key to select the context label.
         If the context is a string, `context_key` should be set to ``None``.
-        event_id (dict): Associates context label to an event_id that should be an int.
-                        (eg. dict(auditory=1, visual=3))
-        reporting ('warn'|'error'| None): How this function handles epochs with
-                    invalid context:
-                - 'error' will raise a TimefluxException,
-                - 'warn' will print a warning with :py:func:`warnings.warn` and skip the corrupted epochs
-                - ``None`` will skip the corrupted epochs.
+        event_id (dict): Associates context label to an event_id that should be an int. (eg. dict(auditory=1, visual=3))
+        reporting ('warn'|'error'| None): How this function handles epochs with invalid context:
+            - 'error' will raise a TimefluxException
+            - 'warn' will print a warning with :py:func:`warnings.warn` and skip the corrupted epochs
+            - ``None`` will skip the corrupted epochs
 
     Returns:
         epochs (mne.Epochs): mne object with the converted data.

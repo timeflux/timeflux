@@ -1,4 +1,4 @@
-"""timeflux.nodes.debug: dubugging"""
+"""Simple debugging nodes"""
 
 import csv
 import pandas as pd

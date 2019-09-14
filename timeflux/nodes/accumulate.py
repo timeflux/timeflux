@@ -6,18 +6,18 @@ from timeflux.core.node import Node
 
 
 class AppendDataFrame(Node):
-    """ Accumulates and appends data of type DataFrame after a gate
+    """Accumulates and appends data of type DataFrame after a gate.
 
     This node should be plugged after a Gate. As long as it receives data,
     it appends them to an internal buffer. When it receives a meta with key
-    'gate_status' set to 'closed', it releases the accumulated data and empty the
+    `gate_status` set to `closed`, it releases the accumulated data and empty the
     buffer.
 
-        Attributes:
+    Attributes:
         i (Port): Default data input, expects DataFrame and meta
         o (Port): Default output, provides DataFrame
 
-   Args:
+    Args:
         **kwargs: key word arguments to pass to pandas.DataFrame.append method.
 
     """
@@ -65,18 +65,18 @@ class AppendDataFrame(Node):
 
 
 class AppendDataArray(Node):
-    """ Accumulates and appends data of type XArray after a gate
+    """Accumulates and appends data of type XArray after a gate.
 
-    This node should be plugged after a Gate. As long as it receives dataarrays,
+    This node should be plugged after a Gate. As long as it receives DataArrays,
     it appends them to a buffer list. When it receives a meta with key
-    'gate_status' set to 'closed', it concatenates the list of accumulated DataArray,
+    `gate_status` set to `closed`, it concatenates the list of accumulated DataArray,
     releases it and empty the buffer list.
 
     Attributes:
         i (Port): Default data input, expects DataArray and meta
         o (Port): Default output, provides DataArray
 
-   Args:
+    Args:
         dim: Name of the dimension to concatenate along.
         **kwargs: key word arguments to pass to xarray.concat method.
 

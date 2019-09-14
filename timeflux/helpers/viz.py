@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 
-"""Export Timeflux apps as images."""
+"""Export Timeflux apps as images.
+
+This module can be imported or used as a standalone tool. It is quite useful to visually
+inspect complex apps. It offers a graphical representation of multiple direcred acyclic
+graphs. It uses Graphviz under the hood, and outputs the `dot` representation on the
+standard output, so it can optionnally be redirected to a file for further processing.
+
+Example:
+    ``python -m timeflux.helpers.viz foobar.yaml``
+
+"""
 
 import sys
 import os
@@ -17,6 +27,7 @@ def yaml_to_png(filename, format='png', sort=False):
         format (string): The image format. Default: `png`.
         sort (boolean): If `True`, the graphs will be sorted in the same topological order
                         that is used to run the application. Default: `False`.
+
     """
 
     # Load graphs

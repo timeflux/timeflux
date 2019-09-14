@@ -1,3 +1,5 @@
+"""A set of tools to facilitate code testing"""
+
 import numpy as np
 import pandas as pd
 import xarray as xr

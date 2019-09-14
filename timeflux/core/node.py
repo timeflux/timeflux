@@ -103,6 +103,6 @@ class Node(ABC):
 
 
     def terminate(self):
-        """Perform some cleanup upon termination."""
+        """Perform cleanup upon termination."""
 
         pass
