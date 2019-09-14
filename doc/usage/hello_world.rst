@@ -1,3 +1,5 @@
+.. _hello_world:
+
 Hello, World!
 =============
 
@@ -117,7 +119,7 @@ And in YAML as:
         - source: add
           target: display_after
 
-We just added one ``Display`` node and one edge. For brevity, we also removed the ``params`` property of the ``Random`` node and use the default values.
+We just added one ``Display`` node and one edge. For brevity, we also removed the ``params`` property of the ``Random`` node and used the default values.
 
 All this console printing is boring. We want glitter and unicorns! Or at least, we want to display our signal in a slightly more graphical way. Enters the `timeflux_ui <https://github.com/timeflux/timeflux_example>`_ plugin. This plugin enables the development of web interfaces, and exposes a JavaScript API to interact with Timeflux instances through WebSockets. Bidirectional streaming and events are supported, as well as stimulus scheduling with sub-millisecond precision. A monitoring interface is included in the package.
 

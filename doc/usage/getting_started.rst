@@ -64,7 +64,7 @@ Did you notice the ``-d`` flag in the command line? It's a shorthand for ``--deb
 Command line options
 --------------------
 
-There is only a few options, and you can list them with:
+There are only a few options, and you can list them with:
 
 .. code-block:: bash
 

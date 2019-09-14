@@ -12,7 +12,7 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
 
 .. admonition:: What now?
 
-    If you are new to Timeflux, start by reading the :ref:`Core concepts <concepts>` section and follow the :ref:`getting_started` guide.
+    If you are new to Timeflux, start by reading the :ref:`Core concepts <concepts>` section and then follow the :ref:`getting_started` guide and the :ref:`hello_world` tutorial.
 
 .. attention::
     Right now, the documentation is a bit coarse, and some parts of the code need polishing. We are working on it! Meanwhile, do not hesitate to :ref:`get in touch <help>`, we will be glad to help.
