@@ -13,7 +13,7 @@ Registry.cycle_start = 0
 Registry.rate = 1
 
 def test_random():
-    node = Random(2, 2, 2, 0, 10, 1)
+    node = Random(2, 2, 2, 0, 10, seed=1)
     node.update()
     expected_index = np.empty(2, dtype='datetime64[us]')
     expected_data = [[5,8],[9,5]]
