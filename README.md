@@ -35,10 +35,6 @@ If you also install [timeflux_ui](https://github.com/timeflux/timeflux_ui), the 
 $ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/test/graphs/ui.yaml
 $ timeflux ui.yaml
 ```
-You can then monitor the signals [in your browser](http://0.0.0.0:8000).
+You can then monitor the signals [in your browser](http:/localhost:8000).
 
 More examples of Timeflux graphs are available in [test/graphs](https://github.com/timeflux/timeflux/tree/master/test/graphs).
-
-## Fair warning
-
-This is an early release. Use at your own risk.
