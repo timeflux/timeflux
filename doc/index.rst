@@ -6,15 +6,16 @@ Use it to bootstrap your research, build brain-computer interfaces, closed-loop 
 
 It comes with integrated communication protocols (Lab Streaming Layer, ZeroMQ, OSC), HDF5 file handling (saving and replay) and generic data manipulation tools.
 
-Currently available plugins include signal processing nodes, machine learning tools and a monitoring web interface.
+Currently available plugins include signal processing nodes, machine learning tools and a JavaScript API for stimulus presentation and bi-directional streaming. A signal monitoring interface is included and is accessible directly from your browser.
 
-Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye tracking) have already been developed, with more coming.
+Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye tracking, etc.) have already been developed, with more coming. And if your equipment is compatible with LSL, you are already good to go!
 
-.. note::
-    Right now, the documentation is quite coarse, and some parts of the code need polishing. We're working on it!
+.. admonition:: What now?
 
-.. warning::
-    Timeflux is an early stage project and is actively developed. Use at your own risk.
+    If you are new to Timeflux, start by reading the :ref:`Core concepts <concepts>` section and follow the :ref:`getting_started` guide.
+
+.. attention::
+    Right now, the documentation is a bit coarse, and some parts of the code need polishing. We are working on it! Meanwhile, do not hesitate to :ref:`get in touch <help>`, we will be glad to help.
 
 
 .. toctree::
@@ -50,7 +51,9 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
     :name: usage
 
     usage/getting_started.rst
-    usage/graph.rst
+    usage/hello_world.rst
+    usage/use_case.rst
+    usage/going_further.rst
 
 
 .. raw:: latex
@@ -64,7 +67,7 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
     :caption: Extending
     :name: extending
 
-    extending/plugin.rst
+    extending/plugins.rst
     extending/branches.rst
     extending/best_practices.rst
 

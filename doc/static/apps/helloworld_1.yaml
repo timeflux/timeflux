@@ -1,0 +1,27 @@
+graphs:
+  - id: MyFirstGraph
+    nodes:
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
+      params:
+        columns: 5
+        rows_min: 1
+        rows_max: 10
+        value_min: 0
+        value_max: 5
+        seed: 1
+    - id: add
+      module: timeflux_example.nodes.arithmetic
+      class: Add
+      params:
+        value: 1
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+    - source: random
+      target: add
+    - source: add
+      target: display
+    rate: 1

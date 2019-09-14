@@ -1,0 +1,54 @@
+graphs:
+
+  - id: Broker
+    nodes:
+    - id: proxy
+      module: timeflux.nodes.zmq
+      class: Broker
+
+  - id: Publisher
+    nodes:
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
+      params:
+        columns: 2
+        seed: 1
+    - id: add
+      module: timeflux_example.nodes.arithmetic
+      class: Add
+      params:
+        value: 1
+    - id: pub_before
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: before
+    - id: pub_after
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: after
+    edges:
+    - source: random
+      target: add
+    - source: random
+      target: pub_before
+    - source: add
+      target: pub_after
+
+  - id: Subscriber
+    nodes:
+    - id: sub
+      module: timeflux.nodes.zmq
+      class: Sub
+      params:
+        topics: [ before, after ]
+    - id: monitor
+      module: timeflux_ui.nodes.ui
+      class: UI
+    edges:
+      - source: sub:before
+        target: monitor:before
+      - source: sub:after
+        target: monitor:after

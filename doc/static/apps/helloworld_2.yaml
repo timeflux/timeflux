@@ -1,0 +1,24 @@
+graphs:
+  - id: OneMoreNode
+    nodes:
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
+    - id: add
+      module: timeflux_example.nodes.arithmetic
+      class: Add
+      params:
+        value: 1
+    - id: display_before
+      module: timeflux.nodes.debug
+      class: Display
+    - id: display_after
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+    - source: random
+      target: add
+    - source: random
+      target: display_before
+    - source: add
+      target: display_after

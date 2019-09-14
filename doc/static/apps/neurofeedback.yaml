@@ -1,0 +1,92 @@
+graphs:
+
+  # The publish/subscribe broker graph
+  - id: PubSubBroker
+    nodes:
+    # Allow communication between graphs
+    - id: Broker
+      module: timeflux.nodes.zmq
+      class: Broker
+
+  # The main processing graph
+  - id: Processing
+    nodes:
+    # Receive EEG signal from the network
+    - id: LSL
+      module: timeflux.nodes.lsl
+      class: Receive
+      params:
+        name: signal
+    # Continuously buffer the signal
+    - id: Rolling
+      module: timeflux.nodes.window
+      class: Window
+      params:
+        length: 1.5
+        step: 0.5
+    # Compute the power spectral density
+    - id: Welch
+      module: timeflux_dsp.nodes.spectral
+      class: Welch
+    # Average the power over band frequencies
+    - id: Bands
+      module: timeflux_dsp.nodes.spectral
+      class: Bands
+    # Send to an external application
+    - id: OSC
+      module: timeflux.nodes.osc
+      class: Client
+      params:
+        address: /alpha
+    # Publish the raw EEG signal
+    - id: PublisherRaw
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: raw
+    # Publish the frequency bands
+    - id: PublisherBands
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: bands
+    # Connect nodes
+    edges:
+      - source: LSL
+        target: Rolling
+      - source: Rolling
+        target: Welch
+      - source: Welch
+        target: Bands
+      - source: Bands:alpha
+        target: OSC
+      - source: LSL
+        target: PublisherRaw
+      - source: Bands
+        target: PublisherBands
+    # Run this graph 25 times per second
+    rate: 25
+
+  # The recorder graph
+  - id: SaveToFile
+    nodes:
+    # Receive data streams from the broker
+    - id: Subscriber
+      module: timeflux.nodes.zmq
+      class: Sub
+      params:
+        topics:
+        - raw
+        - bands
+    # Record to file
+    - id: Recorder
+      module: timeflux.nodes.hdf5
+      class: Save
+    # Connect nodes
+    edges:
+      - source: Subscriber:raw
+        target: Recorder:eeg_raw
+      - source: Subscriber:bands
+        target: Recorder:eeg_bands
+    # Update file every second
+    rate: 1

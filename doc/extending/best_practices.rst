@@ -3,13 +3,20 @@ Best practices
 
 .. todo:: Work in progress!
 
+For consistency, we invite you to respect these guidelines while developing new plugins.
+
 Style
 -----
 
-* https://github.com/google/styleguide/blob/gh-pages/pyguide.md
+- `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_
+- `Google Python Style Guide <http://google.github.io/styleguide/pyguide.html>`_
+
+Tests
+-----
+
+- Write tests. We use `pytest <https://docs.pytest.org/en/latest/>`_.
 
 Documentation
 -------------
 
-* https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html
-* The __init__ method must be documented as a docstring on the __init__ method itself.
+- Write good documentation. We use the `Google Style Python Docstrings <https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_.

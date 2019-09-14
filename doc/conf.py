@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 # -- Auto-generate API documentation --------------------------------------
 
-api_packages = ['timeflux', 'timeflux_example', 'timeflux_dsp', 'timeflux_ml', 'timeflux_ui', 'timeflux_gazepoint', 'timeflux_amti']
+api_packages = ['timeflux', 'timeflux_example', 'timeflux_dsp', 'timeflux_ml', 'timeflux_ui', 'timeflux_bci', 'timeflux_gazepoint', 'timeflux_bitalino', 'timeflux_amti', 'timeflux_pl4']
+#api_packages += ['timeflux_nexus', 'timeflux_eego']
 api_path = 'api'
 
 def run_apidoc(_):
@@ -52,7 +53,8 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
-    'sphinx.ext.todo'
+    'sphinx.ext.todo',
+    'sphinx.ext.mathjax'
 ]
 
 # Autodoc settings
