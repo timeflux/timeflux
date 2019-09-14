@@ -6,7 +6,7 @@ Use it to bootstrap your research, build brain-computer interfaces, closed-loop 
 
 It comes with integrated communication protocols (Lab Streaming Layer, ZeroMQ, OSC), HDF5 file handling (saving and replay) and generic data manipulation tools.
 
-Currently available plugins include signal processing nodes, machine learning tools and a JavaScript API for stimulus presentation and bi-directional streaming. A signal monitoring interface is included and is accessible directly from your browser.
+Currently available plugins include signal processing nodes, machine learning tools and a JavaScript API for precise stimulus presentation and bidirectional streaming. A signal monitoring interface is included and is accessible directly from your browser.
 
 Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye tracking, etc.) have already been developed, with more coming. And if your equipment is compatible with LSL, you are already good to go!
 
