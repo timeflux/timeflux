@@ -14,6 +14,8 @@ Let's apply what we learned and build a simple alpha neurofeedback app.
 The application consists of three graphs. In the main one, we assume that the EEG data is acquired through a LSL inlet. Data is accumulated into a rolling window, on which the classical `Welch’s method <https://en.wikipedia.org/wiki/Welch%27s_method>`_ is applied with default parameters. The frequency bands are then extracted from the periodogram. Finally, the relative alpha power is sent to an OSC outlet. An external application receives this data and plays a sound when the feedback signal crosses a defined threshold. The other two graphs are not strictly required, but illustrate some important principles. The graph containing the Broker node acts as a proxy. It receives data from publishers (in our example, the raw EEG stream and the computed frequency bands) and redistributes it to subscribers. In the last graph, these two data streams are aggregated and saved to a HDF5 file.
 
 .. figure:: ../static/img/neurofeedback.png
+    :align: center
+    :figclass: align-center
 
     Schematic representation of a basic neurofeedback application. Each blue box is a DAG. Together, they constitute the Timeflux application. The white boxes are core nodes. The green boxes are plugin nodes. Yellow boxes indicate external components.
 
