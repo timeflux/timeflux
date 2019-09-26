@@ -11,6 +11,8 @@ class Display(Node):
     def update(self):
         if self.i.ready():
             self.logger.debug('\n %s' % self.i.data)
+        if self.i.meta:
+            self.logger.debug('\n %s' % self.i.meta)
 
 
 class Dump(Node):
