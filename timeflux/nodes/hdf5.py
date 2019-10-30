@@ -137,6 +137,8 @@ class Save(Node):
         os.makedirs(path, exist_ok=True)
         if filename is None:
             filename = os.path.join(path, time.strftime('%Y%m%d-%H%M%S.hdf5', time.gmtime()))
+        else:
+            filename = os.path.join(path, filename)
         self.logger.info('Saving to %s', filename)
         self._store = pd.HDFStore(filename, complib=complib, complevel=complevel)
         self.min_itemsize = min_itemsize
