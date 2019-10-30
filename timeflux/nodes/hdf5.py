@@ -111,12 +111,15 @@ class Save(Node):
 
     """Save to HDF5."""
 
-    def __init__(self, path='/tmp', complib='zlib', complevel=9, min_itemsize=None):
+    def __init__(self, filename=None, path='/tmp', complib='zlib', complevel=9, min_itemsize=None):
         """
         Initialize.
 
         Parameters
         ----------
+        filename: string
+            Name of the file (inside the path set by parameter). If not set,
+            an auto-generated filename is used.
         path : string
             The directory where the HDF5 file will be written.
         complib : string
@@ -132,9 +135,10 @@ class Save(Node):
 
         """
         os.makedirs(path, exist_ok=True)
-        fname = os.path.join(path, time.strftime('%Y%m%d-%H%M%S.hdf5', time.gmtime()))
-        self.logger.info('Saving to %s', fname)
-        self._store = pd.HDFStore(fname, complib=complib, complevel=complevel)
+        if filename is None:
+            filename = os.path.join(path, time.strftime('%Y%m%d-%H%M%S.hdf5', time.gmtime()))
+        self.logger.info('Saving to %s', filename)
+        self._store = pd.HDFStore(filename, complib=complib, complevel=complevel)
         self.min_itemsize = min_itemsize
 
 
