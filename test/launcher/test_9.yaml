@@ -1,0 +1,19 @@
+graphs:
+
+  # Two graph, one node each, interrupt with exception
+
+  - id: G1
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
+    rate: 1
+
+  - id: G2
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
+      params:
+        interrupt: 3
+    rate: 1

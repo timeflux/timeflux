@@ -1,0 +1,10 @@
+graphs:
+
+  # One graph, one node, interrupt with Ctrl+C
+  - id: Test
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
+
+    rate: 1

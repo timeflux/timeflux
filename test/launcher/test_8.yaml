@@ -1,0 +1,19 @@
+graphs:
+
+  # Two graph, one node each, interrupt with unhandled exception
+
+  - id: G1
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
+    rate: 1
+
+  - id: G2
+    nodes:
+    - id: test
+      module: dummy_exception
+      class: Test
+      params:
+        interrupt_init: true
+    rate: 1

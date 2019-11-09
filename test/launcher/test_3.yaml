@@ -1,0 +1,18 @@
+graphs:
+
+  # Two graph, one node each, interrupt with Ctrl+C
+
+  - id: G1
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
+    rate: 1
+
+  - id: G2
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
+    rate: 1
+

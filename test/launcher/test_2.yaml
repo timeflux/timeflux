@@ -1,0 +1,11 @@
+graphs:
+
+  # One graph, one node, interrupt with exception
+  - id: Test
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
+      params:
+        interrupt: 3
+    rate: 1

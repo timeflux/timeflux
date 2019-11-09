@@ -1,0 +1,15 @@
+graphs:
+
+  # Two graphs, one node each, interrupt during initialization
+
+  - id: G1
+    nodes:
+    - id: test
+      module: foo
+      class: Bar
+
+  - id: G2
+    nodes:
+    - id: test
+      module: dummy
+      class: Test
