@@ -28,7 +28,7 @@ Example:
     .. code-block:: batch
 
        @echo off
-       set ROOT=C:\\Users\\micro\\Miniconda3
+       set ROOT=C:\\Users\\%USERNAME%\\Miniconda3
        call %ROOT%\\Scripts\\activate.bat %ROOT%
        call conda activate timeflux
        start python -m timeflux.helpers.handler launch timeflux -d foobar.yaml
@@ -61,17 +61,30 @@ def launch_windows(args, port=10000):
     """Launch a subprocess and await connection to a TCP server."""
     try:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setblocking(False)
         server.bind(('localhost', port))
         server.listen(1)
     except:
         _exit_with_error(f'Could not start server on port {port}.')
     try:
-        flags = subprocess.CREATE_NEW_PROCESS_GROUP
-        process = subprocess.Popen(args, creationflags=subprocess.HIGH_PRIORITY_CLASS)
+        #flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+        flags = subprocess.HIGH_PRIORITY_CLASS
+        process = subprocess.Popen(args, creationflags=flags)
     except:
         _exit_with_error(f'Invalid arguments: {args}')
-    server.accept()
-    process.send_signal(signal.CTRL_C_EVENT)
+    while True:
+        try:
+            # Kill the process if a connection is received
+            server.accept()
+            process.send_signal(signal.CTRL_C_EVENT)
+            break
+        except BlockingIOError:
+            try:
+                # Exit the loop is the process is already dead
+                process.wait(.1)
+                break
+            except subprocess.TimeoutExpired:
+                pass
 
 
 def terminate_posix():
