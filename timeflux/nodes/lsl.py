@@ -50,7 +50,7 @@ class Receive(Node):
 
     """Receive from a LSL stream."""
 
-    def __init__(self, name=None, value=None, prop='name', unit='ns', offset_correction=False, channels=None, resolve_timeout=.5, max_samples=1024):
+    def __init__(self, name=None, value=None, prop='name', unit='ns', offset_correction=False, channels=None, resolve_timeout=1, max_samples=1024):
         if name:
             value = name
             prop = 'name'
