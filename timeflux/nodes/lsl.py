@@ -25,7 +25,7 @@ class Send(Node):
         name (string): The name of the stream.
         type (string): The content type of the stream, .
         format (string): The format type for each channel. Currently, only ``double64`` and ``string`` are supported.
-        rate (float): The nominal sampling rate. Set ``0.0`` to indicate a variable sampling rate.
+        rate (float): The nominal sampling rate. Set to ``0.0`` to indicate a variable sampling rate.
         source (string, None): The unique identifier for the stream. If ``None``, it will be auto-generated.
 
     Example:
