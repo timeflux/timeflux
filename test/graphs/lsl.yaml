@@ -6,7 +6,7 @@ graphs:
       module: timeflux.nodes.hdf5
       class: Replay
       params:
-        filename: test/data/data.hdf5
+        filename: data/data.hdf5
         keys:
           - /nexus/signal/nexus_signal_raw
         timespan: 1
@@ -28,6 +28,7 @@ graphs:
       params:
         prop: name
         value: test
+        unit: ns
     - id: display
       module: timeflux.nodes.debug
       class: Display

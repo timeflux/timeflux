@@ -1,4 +1,11 @@
-"""timeflux.nodes.hdf5: HDF5 nodes"""
+"""Lab streaming layer nodes
+
+    The lab streaming layer provides a set of functions to make instrument data
+    accessible in real time within a lab network. From there, streams can be
+    picked up by recording programs, viewing programs or custom experiment
+    applications that access data streams in real time.
+
+"""
 
 import pandas as pd
 import numpy as np
@@ -9,22 +16,35 @@ from timeflux.core.node import Node
 
 class Send(Node):
 
-    """Send to a LSL stream."""
+    """Send to a LSL stream.
+
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+
+    Args:
+        name (string): The name of the stream.
+        type (string): The content type of the stream, .
+        format (string): The format type for each channel. Currently, only ``double64`` and ``string`` are supported.
+        rate (float): The nominal sampling rate. Set ``0.0`` to indicate a variable sampling rate.
+        source (string, None): The unique identifier for the stream. If ``None``, it will be auto-generated.
+
+    Example:
+        .. literalinclude:: /../test/graphs/lsl.yaml
+           :language: yaml
+
+    """
 
     _dtypes = {
         'double64': np.number,
         'string': np.object
     }
 
-    def __init__(self, name, stream_type='Signal', channel_format='double64', rate=0.0, source=None):
-        """
-        Currently, only double64 and string formats are supported
-        """
+    def __init__(self, name, type='Signal', format='double64', rate=0.0, source=None):
         if not source:
             source = str(uuid.uuid4())
         self._name = name
-        self._type = stream_type
-        self._format = channel_format
+        self._type = type
+        self._format = format
         self._rate = rate
         self._source = source
         self._outlet = None
@@ -48,30 +68,51 @@ class Send(Node):
 
 class Receive(Node):
 
-    """Receive from a LSL stream."""
+    """Receive from a LSL stream.
 
-    def __init__(self, name=None, value=None, prop='name', unit='ns', offset_correction=False, channels=None, resolve_timeout=1, max_samples=1024):
+    Attributes:
+        o (Port): Default output, provides DataFrame and meta.
+
+    Args:
+        prop (string): The property to look for during stream resolution (e.g., ``name``, ``type``, ``source_id``).
+        value (string): The value that the property should have (e.g., ``EEG`` for the type property).
+        timeout (float): The resolution timeout, in seconds.
+        unit (string): Unit of the timestamps (e.g., ``s``, ``ms``, ``us``, ``ns``). The LSL library uses seconds by default. Timeflux uses nanoseconds by default.
+        sync (string, None): The method used to synchronize timestamps. Use ``local`` if you receive the stream from another application on the same computer. Use ``network`` if you receive from another computer. Use ``None`` if you receive from a Timeflux instance on the same computer.
+        channels (list, None): Override the channel names. If ``None``, the names defined in the LSL stream will be used.
+        max_samples (int): The maximum number of samples to return per call.
+
+    Example:
+        .. literalinclude:: /../test/graphs/lsl_multiple.yaml
+           :language: yaml
+
+    """
+
+    def __init__(self, name=None, prop='name', value=None, timeout=1.0, unit='s', offset_correction=False, sync='local', channels=None, max_samples=1024):
         if name:
+            self.logger.warning('The "name" parameter is deprecated. Use "prop" and "value" instead.')
             value = name
             prop = 'name'
         if not value:
             raise  ValueError('Please specify a stream name or a property and value.')
+        if offset_correction:
+            self.logger.warning('The "offset_correction" parameter is deprecated. Use "sync" instead.')
+            sync = 'local'
         self._prop = prop
         self._value = value
         self._inlet = None
         self._labels = None
         self._unit = unit
-        self._offset_correction = offset_correction
+        self._sync = sync
         self._channels = channels
-        self._resolve_timeout = resolve_timeout
+        self._timeout = timeout
         self._max_samples = max_samples
-        if self._offset_correction:
-            self._offset = pd.Timestamp(time(), unit='s') - pd.Timestamp(pylsl.local_clock(), unit='s')
+        self._offset = time() - pylsl.local_clock()
 
     def update(self):
         if not self._inlet:
             self.logger.debug(f'Resolving stream with {self._prop} {self._value}')
-            streams = resolve_byprop(self._prop, self._value, timeout=self._resolve_timeout)
+            streams = resolve_byprop(self._prop, self._value, timeout=self._timeout)
             if not streams: return
             self.logger.debug('Stream acquired')
             self._inlet = StreamInlet(streams[0])
@@ -79,6 +120,12 @@ class Receive(Node):
                 self._labels = self._channels
             else:
                 info = self._inlet.info()
+                self._meta = {
+                    'name': info.name(),
+                    'type': info.type(),
+                    'rate': info.nominal_srate(),
+                    'info': str(info.as_xml()).replace('\n', '').replace('\t', '')
+                }
                 description = info.desc()
                 channel = description.child('channels').first_child()
                 self._labels = [channel.child_value('label')]
@@ -88,7 +135,10 @@ class Receive(Node):
         if self._inlet:
             values, stamps = self._inlet.pull_chunk(max_samples=self._max_samples)
             if stamps:
-                stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
-                if self._offset_correction:
+                stamps = np.array(stamps)
+                if self._sync == 'local':
                     stamps += self._offset
-            self.o.set(values, stamps, self._labels)
+                elif self._sync == 'network':
+                    stamps = stamps + self._inlet.time_correction() + self._offset
+                stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
+            self.o.set(values, stamps, self._labels, self._meta)

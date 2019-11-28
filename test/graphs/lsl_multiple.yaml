@@ -10,7 +10,7 @@ graphs:
       class: Send
       params:
         name: test_1
-        stream_type: random
+        type: random
     - id: random_2
       module: timeflux.nodes.random
       class: Random
@@ -34,6 +34,7 @@ graphs:
       params:
         prop: type
         value: random
+        unit: ns
     - id: display
       module: timeflux.nodes.debug
       class: Display
@@ -49,6 +50,7 @@ graphs:
       class: Receive
       params:
         name: test_2
+        unit: ns
     - id: display
       module: timeflux.nodes.debug
       class: Display
