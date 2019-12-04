@@ -24,23 +24,25 @@ class Window(Node):
         self._updated = pd.Timestamp(0)
 
     def update(self):
-        if self.i.data is not None:
-            if not self.i.data.empty:
-                # Append new data
-                if self._buffer is None:
-                    self._buffer = self.i.data
-                else:
-                    self._buffer = self._buffer.append(self.i.data)
-                # Time range
-                high = self._buffer.index[-1]
-                low = high - self._length
-                # Make sure we have enough data
-                if self._buffer.index[0] <= low:
-                    # Step
-                    if high - self._updated >= self._step:
-                        # Clear old data
-                        self._buffer = self._buffer[low:]
-                        # Remember the last time the buffer was updated
-                        self._updated = high
-                        # Output
-                        self.o.data = self._buffer
+        # Return immediately if we don't have any data
+        if not self.i.ready():
+            return
+        # Append new data
+        if self._buffer is None:
+            self._buffer = self.i.data
+        else:
+            self._buffer = self._buffer.append(self.i.data)
+        # Time range
+        high = self._buffer.index[-1]
+        low = high - self._length
+        # Make sure we have enough data
+        if self._buffer.index[0] <= low:
+            # Step
+            if high - self._updated >= self._step:
+                # Clear old data
+                self._buffer = self._buffer[low:]
+                # Remember the last time the buffer was updated
+                self._updated = high
+                # Output
+                self.o.data = self._buffer
+                self.o.meta = self.i.meta
