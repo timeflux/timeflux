@@ -24,6 +24,7 @@ In particular, you may want to have a look at:
 
 - :mod:`timeflux.helpers.viz` to generate images from applications, which is very useful to visually debug your application
 - :mod:`timeflux.helpers.handler` if you need to deploy experiments on Windows systems and need to integrate with other software components
+- :mod:`timeflux.helpers.lsl` to enumerate available LSL streams
 
 If you are developing plugins:
 
