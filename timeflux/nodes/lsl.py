@@ -116,16 +116,16 @@ class Receive(Node):
             if not streams: return
             self.logger.debug('Stream acquired')
             self._inlet = StreamInlet(streams[0])
+            info = self._inlet.info()
+            self._meta = {
+                'name': info.name(),
+                'type': info.type(),
+                'rate': info.nominal_srate(),
+                'info': str(info.as_xml()).replace('\n', '').replace('\t', '')
+            }
             if isinstance(self._channels, list):
                 self._labels = self._channels
             else:
-                info = self._inlet.info()
-                self._meta = {
-                    'name': info.name(),
-                    'type': info.type(),
-                    'rate': info.nominal_srate(),
-                    'info': str(info.as_xml()).replace('\n', '').replace('\t', '')
-                }
                 description = info.desc()
                 channel = description.child('channels').first_child()
                 self._labels = [channel.child_value('label')]
