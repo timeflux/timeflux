@@ -21,7 +21,8 @@ def _context_to_id(context, context_key, event_id):
         return event_id.get(context.get(context_key))
 
 
-def xarray_to_mne(data, meta, context_key, event_id, reporting='warn'):
+def xarray_to_mne(data, meta, context_key, event_id, reporting='warn',
+                  ch_types='eeg', **kwargs):
     """ Convert DataArray and meta into mne Epochs object
 
     Args:
@@ -34,10 +35,12 @@ def xarray_to_mne(data, meta, context_key, event_id, reporting='warn'):
             - 'error' will raise a TimefluxException
             - 'warn' will print a warning with :py:func:`warnings.warn` and skip the corrupted epochs
             - ``None`` will skip the corrupted epochs
-
+        ch_types (list|str): Channel type to
     Returns:
         epochs (mne.Epochs): mne object with the converted data.
     """
+    if isinstance(ch_types, str): ch_types = [ch_types] * len(data.space)
+
     if isinstance(data, xr.DataArray):
         pass
     elif isinstance(data, xr.Dataset):
@@ -45,7 +48,13 @@ def xarray_to_mne(data, meta, context_key, event_id, reporting='warn'):
         data = data.data
     else:
         raise ValueError(f'data should be of type DataArray or Dataset, received {data.type} instead. ')
-    np_data = data.transpose('epoch', 'space', 'time').values
+    _dims = data.coords.dims
+    if 'target' in _dims:
+        np_data = data.transpose('target', 'space', 'time').values
+    elif 'epoch' in _dims:
+        np_data = data.transpose('epoch', 'space', 'time').values
+    else:
+        raise ValueError(f'Data should have either `target` or `epoch` in its coordinates. Found {_dims}')
     # create events objects are essentially numpy arrays with three columns:
     # event_sample | previous_event_id | event_id
 
@@ -68,12 +77,13 @@ def xarray_to_mne(data, meta, context_key, event_id, reporting='warn'):
     events[1:, 1] = events[0:-1, 2]
     # set the info
     rate = meta['rate']
-    info = mne.create_info(ch_names=list(data.space.values), sfreq=rate)
+    info = mne.create_info(ch_names=list(data.space.values), sfreq=rate,
+                           ch_types=ch_types)
     # construct the mne object
     epochs = mne.EpochsArray(np_data, info=info, events=events.astype(int),
                              event_id=event_id,
                              tmin=data.time.values[0] / np.timedelta64(1, 's'),
-                             verbose=False)
+                             verbose=False, **kwargs)
     return epochs
 
 

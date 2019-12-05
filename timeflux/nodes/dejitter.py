@@ -117,7 +117,7 @@ class Interpolate(Node):
         self._buffer = self._buffer.append(self.i.data, sort=True)  # append last sample be able to interpolate
 
         if not self._buffer.index.is_monotonic:
-            raise WorkerInterrupt('Data index should be strictly monotonic')
+            self.logger.warning('Data index should be strictly monotonic')
 
         data_to_interpolate = self._buffer.append(pd.DataFrame(index=self._times),
                                                   sort=True)
