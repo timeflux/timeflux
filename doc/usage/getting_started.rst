@@ -8,6 +8,8 @@ Installation
 
 Before we can do anything, we need a Python 3.7+ distribution. We recommend `Anaconda <https://www.anaconda.com/distribution/>`_. If you don't already have it, go ahead and install it.
 
+You will also need `Git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_.
+
 Depending on your system, open a shell or command prompt, and install the Python package installer in your base environment:
 
 .. code-block:: bash
