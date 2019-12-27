@@ -6,13 +6,14 @@ import json
 import xarray as xr
 from timeflux.core.node import Node
 from timeflux.core.exceptions import WorkerInterrupt
+from timeflux.helpers.port import match_events
 
 
 class Epoch(Node):
     """ Event-triggered epoching.
 
     This node continuously buffers a small amount of data (of a duration of ``before`` seconds) from the default input stream.
-    When it detects a marker matching the ``event_trigger`` in the ``event_label`` column of the event input stream, it starts accumulating data for ``after`` seconds.
+    When it detects a marker matching the ``event_trigger`` in the ``label`` column of the event input stream, it starts accumulating data for ``after`` seconds.
     It then sends the epoched data to an output stream, and sets the metadata to a dictionary containing the triggering marker and optional event data.
     Multiple, overlapping epochs are authorized. Each concurrent epoch is assigned its own `Port`. For convenience, the first epoch is bound to the default output, so you can avoid enumerating all output ports if you expects only one epoch.
 
@@ -26,8 +27,6 @@ class Epoch(Node):
         event_trigger (string): The marker name.
         before (float): Length before onset, in seconds.
         after (float): Length after onset, in seconds.
-        event_label (string): The column where ``event_trigger`` is expected.
-        event_data (string, None): The column where metadata can be found.
 
     Example:
         .. literalinclude:: /../test/graphs/epoch.yaml
@@ -35,16 +34,9 @@ class Epoch(Node):
 
     """
 
-    def __init__(self,
-                 event_trigger,
-                 before=.2,
-                 after=.6,
-                 event_label='label',
-                 event_data='data'):
+    def __init__(self, event_trigger, before=.2, after=.6):
 
         self._event_trigger = event_trigger
-        self._event_label = event_label
-        self._event_data = event_data
         self._before = pd.Timedelta(seconds=before)
         self._after = pd.Timedelta(seconds=after)
         self._buffer = None
@@ -61,22 +53,21 @@ class Epoch(Node):
                     self._buffer = self._buffer.append(self.i.data)
 
         # Detect onset
-        if self.i_events.ready():
-            matches = self.i_events.data[self.i_events.data[self._event_label] == self._event_trigger]
-            if not matches.empty:
-                for index, row in matches.iterrows():
-                    # Start a new epoch
-                    low = index - self._before
-                    high = index + self._after
-                    self._epochs.append({
-                        'data': self._buffer[low:high],
-                        'meta': {
-                            'onset': index,
-                            'context': row[self._event_data] if self._event_data is not None else None,
-                            'before': self._before.total_seconds(),
-                            'after': self._after.total_seconds()
-                        }
-                    })
+        matches = match_events(self.i_events, self._event_trigger)
+        if matches is not None:
+            for index, row in matches.iterrows():
+                # Start a new epoch
+                low = index - self._before
+                high = index + self._after
+                self._epochs.append({
+                    'data': self._buffer[low:high],
+                    'meta': {
+                        'onset': index,
+                        'context': row['data'],
+                        'before': self._before.total_seconds(),
+                        'after': self._after.total_seconds()
+                    }
+                })
 
         # Trim main buffer
         if self._buffer is not None:
