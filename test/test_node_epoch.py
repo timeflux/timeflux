@@ -202,7 +202,6 @@ def test_empty_epoch():
                                'before': before,
                                'after': after}
                      }
-    print(node.o.meta)
     assert node.o.meta == expected_meta
     assert node.o.data.empty
 
