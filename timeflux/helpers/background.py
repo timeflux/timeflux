@@ -5,6 +5,7 @@ Example:
     .. code-block:: python
 
         from timeflux.helpers.background import Task
+        from my.module import MyClass
 
         task = Task(MyClass(), 'my_method', my_arg=42).start()
         while not task.done:
@@ -16,6 +17,7 @@ Example:
 import sys
 import time
 import logging
+import traceback
 import zmq
 from subprocess import Popen
 
@@ -34,7 +36,7 @@ class Runner():
 
     def _send(self, data):
         try:
-            self._socket.send_pyobj(data)
+            self._socket.send_pyobj(data, copy=False)
         except zmq.ZMQError as e:
             self.logger.error(e)
 
@@ -56,7 +58,7 @@ class Task(Runner):
         done (bool): Indicates if the task is complete.
 
     Args:
-        instance (object): A Python picklable class instance.
+        instance (object): A picklable class instance.
         method (string): The method name to call from the instance.
         **kwargs: Arbitrary keyword arguments to be passed to the method.
 
@@ -88,11 +90,14 @@ class Task(Runner):
 
         Returns:
 
-            `None` if the task is not complete or a dict containing the following keys\\:
+            `None` if the task is not complete or a dict containing the following keys.
+
                 - ``success``: A boolean indicating if the task ran successfully.
                 - ``instance``: The (possibly modified) instance.
                 - ``result``: The result of the method call, if `success` is `True`.
-                - ``exception``: The raised exception, if `success` is `False`.
+                - ``exception``: The exception, if `success` is `False`.
+                - ``traceback``: The traceback, if `success` is `False`.
+                - ``time``: The time it took to run the task.
 
         """
         response = self._receive(False)
@@ -118,20 +123,26 @@ class Worker(Runner):
         self._socket.connect(f'tcp://127.0.0.1:{port}')
 
     def execute(self):
-        data = self._receive()
+        """Get the task from the socket and run it."""
+        response = {}
         start = time.perf_counter()
-        response = {'instance': data['instance']}
         try:
-            response['result'] = getattr(data['instance'], data['method'])(**data['args'])
+            data = self._receive()
+            result = getattr(data['instance'], data['method'])(**data['args'])
+            response['instance'] = data['instance']
+            response['result'] = result
             response['success'] = True
         except Exception as e:
             response['exception'] = e
+            response['traceback'] = traceback.format_tb(e.__traceback__)
             response['success'] = False
         response['time'] = time.perf_counter() - start
         self._send(response)
 
 
 if __name__ == '__main__':
+
     if len(sys.argv) == 1: sys.exit()
     port = sys.argv[1]
     Worker(port).execute()
+
