@@ -112,12 +112,15 @@ class Interpolate(Node):
     def _drop_duplicates(self, data):
         return data.loc[~data.index.duplicated(keep='first')]
 
+    def _make_monotonic(self, data):
+        return data[np.diff(pd.Index([self._last_datetime]).append(data.index)) / np.timedelta64(1, 's') > 0]
     def _interpolate(self):
         # interpolate current chunk
         self._buffer = self._buffer.append(self.i.data, sort=True)  # append last sample be able to interpolate
 
         if not self._buffer.index.is_monotonic:
             self.logger.warning('Data index should be strictly monotonic')
+            self._buffer = self._make_monotonic(self._buffer)
 
         data_to_interpolate = self._buffer.append(pd.DataFrame(index=self._times),
                                                   sort=True)

@@ -106,5 +106,6 @@ def test_data_not_monotonic():
     data = dummy_data_not_monotonic
     node = Interpolate(rate=rate)
     looper = Looper(data, node)
-    with pytest.raises(WorkerInterrupt):
-        _, _ = looper.run(chunk_size=8)
+    o_data, _ = looper.run(chunk_size=8)
+    assert o_data.index.is_monotonic
+    assert np.unique(np.diff(o_data.index))[0] == np.timedelta64(100000000, 'ns')
