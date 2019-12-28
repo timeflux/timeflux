@@ -1,5 +1,6 @@
 """Time and rate helpers"""
 
+import sys
 import numpy as np
 import pandas as pd
 from time import time, perf_counter
@@ -25,9 +26,13 @@ def time_to_float(timestamp):
     """Convert a `np.datetime64['us']` to a `np.float64`."""
     return timestamp.astype(np.float64) / 1e6
 
-def max_time(unit='us'):
+def min_time(unit='ns'):
+    """Return the minimum datetime for this platform."""
+    return np.datetime64(-int(sys.maxsize), unit)
+
+def max_time(unit='ns'):
     """Return the maximum datetime for this platform."""
-    return np.datetime64(datetime.max, 'us')
+    return np.datetime64(int(sys.maxsize), unit)
 
 def effective_rate(df):
     """A simple method to compute the effective rate."""
@@ -41,5 +46,5 @@ def absolute_offset():
     return pd.Timestamp(time(), unit='s') - pd.Timestamp(perf_counter(), unit='s')
 
 def time_range(start, stop, num):
-    """Return ``num`` evenly spaced timestamps beween ``start`` and ``stop`` (`np.datetime64`)."""
+    """Return ``num`` evenly spaced timestamps between ``start`` and ``stop`` (`np.datetime64`)."""
     return np.linspace(start.astype(np.uint64), stop.astype(np.uint64), num, False, dtype='datetime64[us]')
