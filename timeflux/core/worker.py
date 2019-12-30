@@ -61,7 +61,7 @@ class Worker:
             # Ignore further interrupts
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             logger.debug('Interrupting')
-        except (GraphDuplicateNode, GraphUndefinedNode, WorkerLoadError) as error:
+        except (GraphDuplicateNode, GraphUndefinedNode, WorkerLoadError, ValidationError) as error:
             logger.error(error)
         except WorkerInterrupt as error:
              logger.debug(error)
