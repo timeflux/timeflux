@@ -1,5 +1,28 @@
 """A set of Port helpers."""
 
+import json
+import pandas as pd
+from timeflux.helpers.clock import now
+
+
+def make_event(label, data={}):
+    """ Create an event DataFrame
+
+    Args:
+        label (str): The event label.
+        data (dict): The optional data dictionary.
+
+    Returns:
+        Dataframe
+
+    """
+    return pd.DataFrame(
+        [[label, json.dumps(data)]],
+        index=[now()],
+        columns=['label', 'data']
+    )
+
+
 def match_events(port, label):
     """ Find the given label in an event DataFrame
 
@@ -24,7 +47,7 @@ def get_meta(port, keys, default=None):
 
     Args:
         port (Port): The event port.
-        keys (tuple): The hiearchical list of keys.
+        keys (tuple|str): The hiearchical list of keys.
         default: The default value if not found.
 
     Returns:
@@ -39,13 +62,17 @@ def traverse(dictionary, keys, default=None):
 
     Args:
         dictionary (dict): The event port.
-        keys (tuple): The hiearchical list of keys.
+        keys (tuple|str): The hiearchical list of keys.
         default: The default value if not found.
 
     Returns:
         The value, or `default` if not found.
 
     """
+    if keys is None:
+        return default
+    if type(keys) == str:
+        keys = (keys,)
     for key in keys:
         try:
             dictionary = dictionary[key]
