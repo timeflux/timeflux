@@ -7,23 +7,20 @@ import pytest
 import numpy as np
 import random as rand
 
-PATH = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(PATH, '../'))
-
 def pytest_configure(config):
-    pytest.path = PATH
-    config.addinivalue_line('filterwarnings', 'ignore:.*ABCs.*:DeprecationWarning')
+    pytest.path = os.path.dirname(os.path.abspath(__file__))
 
-@pytest.fixture(scope='module')
+@pytest.fixture()
 def random():
+    """Initialize the random seeds for reproducibility."""
     rand.seed(0)
     np.random.seed(0)
 
-@pytest.fixture(scope='module')
-def dummy_module(request):
-    file = request.fspath
-    name = 'test'
-    spec = importlib.util.spec_from_file_location(name, file)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
+@pytest.fixture()
+def working_path(request):
+    """Change the working directory to the test file path."""
+    old = os.getcwd()
+    new = os.path.dirname(request.fspath)
+    os.chdir(new)
+    yield
+    os.chdir(old)

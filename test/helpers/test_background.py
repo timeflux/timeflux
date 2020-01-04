@@ -9,26 +9,26 @@ class DummyWorker():
         self.message = message
         return(self.message)
 
-def test_default():
+def test_default(working_path):
     task = Task(DummyWorker(), 'echo').start()
     while not task.done:
         status = task.status()
     assert status['result'] == 'hello'
     assert status['instance'].message == 'hello'
 
-def test_args():
+def test_args(working_path):
     task = Task(DummyWorker(), 'echo', 'foobar').start()
     while not task.done:
         status = task.status()
     assert status['result'] == 'foobar'
 
-def test_kwargs():
+def test_kwargs(working_path):
     task = Task(DummyWorker(), 'echo', message='foobar').start()
     while not task.done:
         status = task.status()
     assert status['result'] == 'foobar'
 
-def test_exception():
+def test_exception(working_path):
     task = Task(DummyWorker(), 'echo', fail=True).start()
     while not task.done:
         status = task.status()
