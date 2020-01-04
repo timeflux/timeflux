@@ -60,11 +60,12 @@ class Task(Runner):
     Args:
         instance (object): A picklable class instance.
         method (string): The method name to call from the instance.
+        *args: Arbitrary variable arguments to be passed to the method.
         **kwargs: Arbitrary keyword arguments to be passed to the method.
 
     """
 
-    def __init__(self, instance, method, **kwargs):
+    def __init__(self, instance, method, *args, **kwargs):
         super().__init__()
         context = zmq.Context()
         self._socket = context.socket(zmq.PAIR)
@@ -72,12 +73,13 @@ class Task(Runner):
         self.done = False
         self.instance = instance
         self.method = method
-        self.args = kwargs
+        self.args = args
+        self.kwargs = kwargs
 
     def start(self):
         """Run the task."""
         self._process = Popen(['python', '-m', __name__, str(self._port)])
-        self._send({'instance': self.instance, 'method': self.method, 'args': self.args})
+        self._send({'instance': self.instance, 'method': self.method, 'args': self.args, 'kwargs': self.kwargs})
         return self
 
     def stop(self):
@@ -128,7 +130,7 @@ class Worker(Runner):
         start = time.perf_counter()
         try:
             data = self._receive()
-            result = getattr(data['instance'], data['method'])(**data['args'])
+            result = getattr(data['instance'], data['method'])(*data['args'], **data['kwargs'])
             response['instance'] = data['instance']
             response['result'] = result
             response['success'] = True

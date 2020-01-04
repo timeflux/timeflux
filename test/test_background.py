@@ -17,6 +17,12 @@ def test_default():
     assert status['instance'].message == 'hello'
 
 def test_args():
+    task = Task(DummyWorker(), 'echo', 'foobar').start()
+    while not task.done:
+        status = task.status()
+    assert status['result'] == 'foobar'
+
+def test_kwargs():
     task = Task(DummyWorker(), 'echo', message='foobar').start()
     while not task.done:
         status = task.status()
