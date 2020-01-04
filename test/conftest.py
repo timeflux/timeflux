@@ -2,6 +2,7 @@
 
 import os
 import sys
+import importlib
 import pytest
 import numpy as np
 import random as rand
@@ -17,3 +18,12 @@ def pytest_configure(config):
 def random():
     rand.seed(0)
     np.random.seed(0)
+
+@pytest.fixture(scope='module')
+def dummy_module(request):
+    file = request.fspath
+    name = 'test'
+    spec = importlib.util.spec_from_file_location(name, file)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
