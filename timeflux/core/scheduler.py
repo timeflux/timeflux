@@ -38,6 +38,7 @@ class Scheduler:
                     # Get a generator so dynamic ports are expanded
                     src_ports = self._nodes[predecessor['node']].iterate(predecessor['src_port'])
                     for name, suffix, src_port in src_ports:
+                        if suffix: suffix = '_' + suffix
                         data = src_port.data
                         meta = src_port.meta
                         if predecessor['copy']:

@@ -62,8 +62,8 @@ class Node(ABC):
         """
 
         if name.endswith('*'):
+            skip = len(name) - 1
             name = name[:-1]
-            skip = 0 if len(name) == 0 else len(name) - 1
             for key, port in self.ports.items():
                 if key.startswith(name):
                     yield key, key[skip:], port
