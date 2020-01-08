@@ -41,11 +41,11 @@ class Pipeline(Node):
     Args:
         steps (dict): Pipeline steps and settings
         fit (bool):
-        mode ('predict'|'predict_proba'|'predict_log_proba'|transform'|'fit_predict'|fit_transform'):
-        meta_label (str|tuple, None):
+        mode ('predict'|'predict_proba'|'predict_log_proba'|transform'|'fit_predict'|'fit_transform'):
+        meta_label (str|tuple|None):
         event_start_accumulation (str):
         event_stop_accumulation (str):
-        event_start_fitting (str):
+        event_start_training (str):
         buffer_size (str):
         passthrough (bool):
         resample (bool):
