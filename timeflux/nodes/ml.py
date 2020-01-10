@@ -127,7 +127,7 @@ class Pipeline(Node):
         # Accumulate between boundaries
         if self._status == ACCUMULATING:
             start = self._accumulation_start
-            stop = self._accumulation_stop if self._accumulation_stop is not None else max_time()
+            stop = self._accumulation_stop if self._accumulation_stop else max_time()
             self._accumulate(start, stop)
 
         # Should we start fitting the model?
@@ -139,7 +139,7 @@ class Pipeline(Node):
         # Is the model ready?
         if self._status == FITTING:
             status = self._task.status()
-            if status is not None:
+            if status:
                 if status['success']:
                     self._pipeline = status['instance']
                     self._status = READY
