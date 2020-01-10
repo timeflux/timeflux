@@ -108,24 +108,27 @@ class Pipeline(Node):
                 self._dimensions = 3
 
         # Set the accumulation boundaries
-        if self._accumulation_start == min_time():
+        if self._accumulation_start is None:
             matches = match_events(self.i_events, self.event_start_accumulation)
             if matches is not None:
                 self._accumulation_start = matches.index.values[0]
                 self._status = ACCUMULATING
-        if self._accumulation_stop == max_time():
+        if self._accumulation_stop is None:
             matches = match_events(self.i_events, self.event_stop_accumulation)
             if matches is not None:
                 self._accumulation_stop = matches.index.values[0]
 
         # Always buffer a few seconds, in case the start event is coming late
         if self._status == IDLE:
-            self._accumulation_start = (now() - self._buffer_size).to_datetime64()
-            self._accumulate()
+            start = (now() - self._buffer_size).to_datetime64()
+            stop = max_time()
+            self._accumulate(start, stop)
 
         # Accumulate between boundaries
         if self._status == ACCUMULATING:
-            self._accumulate()
+            start = self._accumulation_start
+            stop = self._accumulation_stop if self._accumulation_stop is not None else max_time()
+            self._accumulate(start, stop)
 
         # Should we start fitting the model?
         if self._status < FITTING:
@@ -172,8 +175,8 @@ class Pipeline(Node):
         self._X_train = None
         self._y_train = None
         self._X_train_indices = np.array([], dtype=np.datetime64)
-        self._accumulation_start = min_time()
-        self._accumulation_stop = max_time()
+        self._accumulation_start = None
+        self._accumulation_stop = None
         self._dimensions = None
         self._shape = ()
         self._task = None
@@ -232,7 +235,7 @@ class Pipeline(Node):
         self._pipeline = make_pipeline(*pipeline, memory=None, verbose=False)
 
 
-    def _accumulate(self):
+    def _accumulate(self, start, stop):
 
         # Do nothing if no fitting required
         if not self.fit:
@@ -240,8 +243,6 @@ class Pipeline(Node):
 
         # Set defaults
         indices = np.array([], dtype=np.datetime64)
-        start = self._accumulation_start
-        stop = self._accumulation_stop
 
         # Accumulate continuous data
         if self._dimensions == 2:

@@ -222,9 +222,9 @@ def test_trim_2D(random):
     data = DummyData(rate=1).next(20)
     node._X_train = data.values
     node._X_train_indices = np.array(data.index.values, dtype=np.datetime64)
-    node._accumulation_start = np.datetime64('2018-01-01T00:00:05')
-    node._accumulation_stop = np.datetime64('2018-01-01T00:00:15')
-    node._accumulate()
+    start = np.datetime64('2018-01-01T00:00:05')
+    stop = np.datetime64('2018-01-01T00:00:15')
+    node._accumulate(start, stop)
     assert len(node._X_train_indices) == 10
     assert len(node._X_train) == 10
 
@@ -243,9 +243,9 @@ def test_trim_3D(random):
     node._status = 1
     node.update()
     node._dimensions = 0 # Bypass accumulation
-    node._accumulation_start = np.datetime64('2018-01-01T00:00:05')
-    node._accumulation_stop = np.datetime64('2018-01-01T00:00:25')
-    node._accumulate()
+    start = np.datetime64('2018-01-01T00:00:05')
+    stop = np.datetime64('2018-01-01T00:00:25')
+    node._accumulate(start, stop)
     assert len(node._X_train_indices) == 2
     assert len(node._X_train) == 2
     assert len(node._y_train) == 2
