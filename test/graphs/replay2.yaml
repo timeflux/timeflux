@@ -1,0 +1,18 @@
+graphs:
+
+  - nodes:
+    - id: replay
+      module: timeflux.nodes.hdf5
+      class: Replay
+      params:
+        filename: data/replay.hdf5
+        keys:
+          - /data
+        speed: 60
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+    - source: replay:data
+      target: display
+    rate: 1

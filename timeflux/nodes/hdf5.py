@@ -13,7 +13,7 @@ class Replay(Node):
 
     """Replay a HDF5 file."""
 
-    def __init__(self, filename, keys, timespan=.04, resync=True):
+    def __init__(self, filename, keys, speed=1, timespan=None, resync=True):
         """
         Initialize.
 
@@ -23,8 +23,11 @@ class Replay(Node):
             The path to the HDF5 file.
         keys: list
             The list of keys to replay.
+        speed: float
+            The speed at which the data must be replayed. 1 means real-time.
         timespan: float
             The timespan of each chunk, in seconds.
+            If not None, will take precedence over the `speed` parameter
         resync: boolean
             If False, timestamps will not be resync'ed to current time
         """
@@ -39,7 +42,8 @@ class Replay(Node):
         self._sources = {}
         self._start = pd.Timestamp.max
         self._stop = pd.Timestamp.min
-        self._timespan = pd.Timedelta(f'{timespan}s')
+        self._speed = speed
+        self._timespan = None if not timespan else pd.Timedelta(f'{timespan}s')
         self._resync = resync
 
         for key in keys:
@@ -74,11 +78,17 @@ class Replay(Node):
             except KeyError:
                 self.logger.warning('%s: Key not found.', key)
 
+        # Current time
+        now = clock.now()
+
         # Time offset
-        self._offset = pd.Timestamp(clock.now()) - self._start
+        self._offset = pd.Timestamp(now) - self._start
 
         # Current query time
         self._current = self._start
+
+        # Last update
+        self._last = now
 
 
     def update(self):
@@ -87,7 +97,14 @@ class Replay(Node):
             raise WorkerInterrupt('No more data.')
 
         min = self._current
-        max = min + self._timespan
+
+        if self._timespan:
+            max = min + self._timespan
+        else:
+            now = clock.now()
+            ellapsed = now - self._last
+            max = min + ellapsed * self._speed
+            self._last = now
 
         for key, source in self._sources.items():
 
