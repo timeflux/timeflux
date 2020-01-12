@@ -79,6 +79,7 @@ class Pipeline(Node):
         # TODO: validation
         # TODO: model loading from file
         # TODO: cross-validation
+        # TODO: provide more context for errors
         self.fit = fit
         self.mode = mode
         self.meta_label = meta_label
@@ -195,6 +196,7 @@ class Pipeline(Node):
         self._X = None
         self._y = None
         self._X_indices = []
+        self._X_columns = []
         self._out = None
 
 
@@ -306,6 +308,8 @@ class Pipeline(Node):
         # Continuous data
         if self._dimensions == 2:
             if self.i.ready():
+                if not self._X_columns:
+                    self._X_columns = list(self.i.data.columns)
                 if self._shape and (self.i.data.shape[1] != self._shape):
                     self.logger.warning('Invalid shape')
                 else:
@@ -319,6 +323,8 @@ class Pipeline(Node):
                     data = port.data.values
                     indices = port.data.index.values
                     label = get_meta(port, self.meta_label)
+                    if not self._X_columns:
+                        self._X_columns = list(port.data.columns)
                     if self._shape and (data.shape != self._shape):
                         self.logger.warning('Invalid shape')
                         continue
@@ -364,14 +370,14 @@ class Pipeline(Node):
                 # Send data
                 if self._dimensions == 2:
                     try:
-                        self.o.data = self._reindex(self._out, self._X_indices)
+                        self.o.data = self._reindex(self._out, self._X_indices, self._X_columns)
                     except Exception as e:
                         self.logger.warning(getattr(e, 'message', repr(e)))
                 if self._dimensions == 3:
                     if len(self._X_indices) == len(self._out):
                         for i, (data, times) in enumerate(zip(self._out, self._X_indices)):
                             try:
-                                getattr(self, 'o_' + str(i)).data = self._reindex(data, times)
+                                getattr(self, 'o_' + str(i)).data = self._reindex(data, times, self._X_columns)
                             except Exception as e:
                                 self.logger.warning(getattr(e, 'message', repr(e)))
                     else:
@@ -383,7 +389,7 @@ class Pipeline(Node):
         return getattr(data, 'tolist', lambda: data)()
 
 
-    def _reindex(self, data, times):
+    def _reindex(self, data, times, columns):
 
         if len(data) != len(times):
 
@@ -409,6 +415,5 @@ class Pipeline(Node):
                 # Linearly arange between first and last
                 times = pd.date_range(start=times[0], end=times[-1], periods=len(data))
 
-        # TODO: column names
-        return pd.DataFrame(data, times)
+        return pd.DataFrame(data, times, columns)
 

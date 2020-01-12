@@ -405,7 +405,7 @@ def test_reindex_no_resample():
     node.resample = False
     times = pd.date_range(start='2018-01-01', periods=10, freq='1s').values
     data = np.arange(50).reshape(10, 5)
-    df = node._reindex(data, times)
+    df = node._reindex(data, times, None)
     assert np.array_equal(df.index.values, times)
 
 def test_reindex_resample_infer_exception():
@@ -418,7 +418,7 @@ def test_reindex_resample_infer_exception():
         ], dtype=np.datetime64)
     data = np.arange(15).reshape(3, 5)
     with pytest.raises(ValueError):
-        node._reindex(data, times)
+        node._reindex(data, times, None)
 
 def test_reindex_resample_right_infer():
     node = Pipeline(steps=dummy_classifier)
@@ -427,7 +427,7 @@ def test_reindex_resample_right_infer():
     node.resample_rate = None
     times = pd.date_range(start='2018-01-01', periods=10, freq='1s').values
     data = np.arange(25).reshape(5, 5)
-    df = node._reindex(data, times)
+    df = node._reindex(data, times, None)
     expected = np.array([
         '2018-01-01T00:00:00',
         '2018-01-01T00:00:01',
@@ -444,7 +444,7 @@ def test_reindex_resample_left_infer():
     node.resample_rate = None
     times = pd.date_range(start='2018-01-01', periods=10, freq='1s').values
     data = np.arange(25).reshape(5, 5)
-    df = node._reindex(data, times)
+    df = node._reindex(data, times, None)
     expected = np.array([
         '2018-01-01T00:00:05',
         '2018-01-01T00:00:06',
@@ -461,7 +461,7 @@ def test_reindex_resample_both_infer():
     node.resample_rate = None
     times = pd.date_range(start='2018-01-01', periods=10, freq='1s').values
     data = np.arange(25).reshape(5, 5)
-    df = node._reindex(data, times)
+    df = node._reindex(data, times, None)
     expected = np.array([
         '2018-01-01T00:00:02',
         '2018-01-01T00:00:03',
@@ -478,7 +478,7 @@ def test_reindex_resample_right_given():
     node.resample_rate = 0.5
     times = pd.date_range(start='2018-01-01', periods=10, freq='1s').values
     data = np.arange(25).reshape(5, 5)
-    df = node._reindex(data, times)
+    df = node._reindex(data, times, None)
     expected = np.array([
         '2018-01-01T00:00:00',
         '2018-01-01T00:00:02',
@@ -495,7 +495,7 @@ def test_reindex_upsample_both_infer():
     node.resample_rate = None
     times = pd.date_range(start='2018-01-01', periods=3, freq='1s').values
     data = np.arange(25).reshape(5, 5)
-    df = node._reindex(data, times)
+    df = node._reindex(data, times, None)
     expected = np.array([
         '2017-12-31T23:59:59',
         '2018-01-01T00:00:00',
@@ -530,9 +530,12 @@ def test_predict_3D_output():
 
 def test_transform_2D_output(random):
     node = Pipeline(steps=dummy_transformer, mode='fit_transform')
+    columns = ['A', 'B', 'C', 'D', 'E']
     node.i.data = DummyData(start_date=now()).next()
+    node.i.data.columns = columns
     node.update()
     assert np.array_equal(node.i.data.index.values, node.o.data.index.values)
+    assert list(node.o.data.columns) == columns
 
 def test_transform_3D_output(random):
     pipeline = [
@@ -541,12 +544,17 @@ def test_transform_3D_output(random):
         {'module': 'test_ml', 'class': 'Shaper', 'args': { 'shape': (2, -1, 5) }}
     ]
     node = Pipeline(steps=pipeline, mode='fit_transform', meta_label=None)
+    columns = ['A', 'B', 'C', 'D', 'E']
     stream = DummyData(start_date=now())
     node.i_0.data = stream.next()
     node.i_1.data = stream.next()
+    node.i_0.data.columns = columns
+    node.i_1.data.columns = columns
     node.update()
     assert len(list(node.iterate('o_*'))) == 2
     assert np.array_equal(node.i_0.data.index.values, node.o_0.data.index.values)
+    assert list(node.i_0.data.columns) == columns
+    assert list(node.i_1.data.columns) == columns
 
 def test_reset():
     pass
