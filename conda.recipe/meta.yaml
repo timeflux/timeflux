@@ -1,0 +1,64 @@
+# Note that this file is in a separate directory. If I put in on the root
+# directory, the resulting package will include all other files instead of
+# the source files only.
+
+{% set name = "timeflux" %}
+{% set version = "0.4" %}
+{% set tag = "v0.4" %}
+
+package:
+  name: "{{ name | lower }}"
+  version: "{{ version }}"
+
+source:
+  git_url:  https://github.com/timeflux/timeflux.git
+  git_tag: "{{ tag }}"
+
+requirements:
+  build:
+    - python>=3.7,<3.8
+    - setuptools
+
+  run:
+    - python>=3.7,<3.8
+    - numpy
+    - scipy
+    - scikit-learn
+    - pandas
+    - matplotlib
+    - seaborn
+    - h5py
+    - pyyaml
+    - pytables
+    - statsmodels
+    - cvxopt
+    - deprecated
+    - pyxdf
+
+test:
+  # We will re-activate this later
+  #  source_files:
+  #    - tests/*
+  #  requires:
+  #    - pytest
+  #    - pytest-mock
+  #  commands:
+  #    - py.test tests
+  imports:
+    - timeflux
+    - timeflux.core
+    - timeflux.nodes
+    - timeflux.helpers
+
+build:
+  noarch: python
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+extra:
+  maintainers:
+    - contact@timeflux.io
+
+about:
+  home: https://timeflux.io
+  summary: "Timeflux: acquisition and real-time processing of biosignals."
+  license_file: LICENSE
