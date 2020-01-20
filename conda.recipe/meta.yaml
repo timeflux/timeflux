@@ -21,6 +21,8 @@ requirements:
 
   run:
     - python>=3.7,<3.8
+    # NOTE: In my opinion, dependencies should be top-version limited. In case a new
+    #       library version breaks timeflux.
     - networkx>=2.4
     - pyyaml>=5.1
     - numpy>=1.17
@@ -32,17 +34,17 @@ requirements:
     - coloredlogs>=10.0
     - pytables>=3.6
     - jsonschema>=3.0
-    # - python-dotenv>=0.10  # MISSING due to being in conda-forge
-    - pytest>=5.3
-    - sphinx>=2.2
-    - sphinx_rtd_theme>=0.4
     - python-graphviz>=0.13
-    # MISSING DUE TO BEING IN PIP:
+    # NOTE: due to this dependency, which is only available on conda-forge,
+    #       the build procedure is a bit more complicated (it needs to add the
+    #       conda-forge channel)
+    - python-dotenv>=0.10
+    # REMOVED dependencies, because they are not on conda, only installable through pip:
     # - pylsl>=1.13.1
     # - python-osc>=1.7.0
 
 test:
-  # We will re-activate this later
+  # TODO: Re-activate and test this later
   #  source_files:
   #    - tests/*
   requires:
@@ -66,5 +68,7 @@ extra:
 
 about:
   home: https://timeflux.io
-  summary: "Timeflux: acquisition and real-time processing of biosignals."
-  license_file: LICENSE
+  summary: Acquisition and real-time processing of biosignals
+  license: MIT
+  license_family: MIT
+  doc_url: https://doc.timeflux.io/latest/
