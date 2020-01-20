@@ -41,3 +41,30 @@ Folow this procedure to create a conda package for timeflux:
 
      $ anaconda login
      $ anaconda upload --user bob /Users/bob/miniconda3/envs/build-env/conda-bld/noarch/timeflux-X.Y.Z-py_0.tar.bz2
+
+
+Notes
+-----
+
+The ``pylsl`` and ``python-osc`` packages work correctly only through pip packages,
+and the ``python-dotenv`` package is not in the default channels, which still
+complicates the installation approach. Here is a environment file that should
+work:
+
+.. code-block:: yaml
+
+   name: my-env
+   channels:
+     - defaults
+     - conda-forge
+     # - some-channel-name  # << This will be the channel where timeflux is stored.
+                            #    For the moment, it will most likely be timeflux.
+                            #    In the future, it may already be in conda-forge
+   dependencies:
+     - python
+     - timeflux
+     # optional, but recommended:
+     - pip
+     - pip:
+       - pylsl
+       - python-osc
