@@ -7,12 +7,26 @@
 
 """
 
-import pandas as pd
-import numpy as np
-import uuid
-from pylsl import StreamInfo, StreamOutlet, StreamInlet, resolve_stream, resolve_byprop, pylsl
+import logging
 from time import time
+import uuid
+
+import numpy as np
+import pandas as pd
+
 from timeflux.core.node import Node
+
+# Dynamically import lsl
+logger = logging.getLogger(__name__)
+try:
+    from pylsl import (
+        StreamInfo, StreamOutlet, StreamInlet,
+        resolve_stream, resolve_byprop, pylsl
+    )
+except ModuleNotFoundError:
+    logger.exception('pylsl is not installed, you will encounter NameErrors '
+                     'unless you install pylsl')
+
 
 class Send(Node):
 
