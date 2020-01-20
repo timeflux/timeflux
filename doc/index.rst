@@ -37,6 +37,7 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
     general/about.rst
     general/concepts.rst
     general/getting_help.rst
+    general/conda.rst
 
 
 .. raw:: latex
