@@ -267,7 +267,7 @@ class Pipeline(Node):
                             self.logger.warning('Invalid shape')
         # Accumulate epoched data
         if self._dimensions == 3:
-            for _, _, port in self.iterate('i_training_*'):
+            for _, _, port in self.iterate('i_training*'):
                 if port.ready():
                     index = port.data.index.values[0]
                     if index >= start and index < stop:
@@ -319,7 +319,7 @@ class Pipeline(Node):
 
         # Epochs
         if self._dimensions == 3:
-            for name, _, port in self.iterate('i_*'):
+            for name, _, port in self.iterate('i*'):
                 if port.ready() and 'training' not in name and 'events' not in name:
                     data = port.data.values
                     indices = port.data.index.values
