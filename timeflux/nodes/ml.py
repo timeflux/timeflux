@@ -73,6 +73,7 @@ class Pipeline(Node):
                  resample=False,
                  resample_direction='right',
                  resample_rate=None,
+                 dimensions=None,
                  model=None,
                  cv=None):
 
@@ -91,6 +92,7 @@ class Pipeline(Node):
         self.resample_direction = resample_direction
         self.resample_rate = resample_rate
         self._buffer_size = pd.Timedelta(buffer_size)
+        self._dimensions = dimensions
         self._make_pipeline(steps)
         self._reset()
 
@@ -154,7 +156,7 @@ class Pipeline(Node):
         if self._status == READY:
             self._receive()
             if self._X is not None:
-                args = [self._X]
+                args = [np.array(self._X)]  # todo: check I did not break any test when multiple epochs
                 if self.mode.startswith('fit'):
                     args.append(self._y)
                 # TODO: optionally loop through epochs instead of sending them all at once
@@ -178,7 +180,7 @@ class Pipeline(Node):
         self._X_train_indices = np.array([], dtype=np.datetime64)
         self._accumulation_start = None
         self._accumulation_stop = None
-        self._dimensions = None
+        # self._dimensions = None
         self._shape = ()
         self._task = None
         if self.mode.startswith('fit'):
@@ -263,7 +265,6 @@ class Pipeline(Node):
                             indices = data.index.values
                         else:
                             self.logger.warning('Invalid shape')
-
         # Accumulate epoched data
         if self._dimensions == 3:
             for _, _, port in self.iterate('i_training_*'):
@@ -283,6 +284,7 @@ class Pipeline(Node):
                             self._shape = self._X_train.shape[1:]
                         else:
                             self._X_train = np.vstack((self._X_train, [data]))
+
                         indices = np.append(indices, index)
                         if label is not None:
                             if self._y_train is None:
@@ -304,7 +306,6 @@ class Pipeline(Node):
 
 
     def _receive(self):
-
         # Continuous data
         if self._dimensions == 2:
             if self.i.ready():
