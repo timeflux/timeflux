@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from timeflux.core.node import Node
 from timeflux.core.exceptions import ValidationError, WorkerInterrupt
 from timeflux.helpers.background import Task
-from timeflux.helpers.port import match_events, get_meta
+from timeflux.helpers.port import match_events, get_meta, traverse
 from timeflux.helpers.clock import now, min_time, max_time
 
 # Statuses
@@ -17,6 +17,7 @@ IDLE = 0
 ACCUMULATING = 1
 FITTING = 2
 READY = 3
+
 
 class Pipeline(Node):
     """ Fit, transform and predict.
@@ -73,7 +74,6 @@ class Pipeline(Node):
                  resample=False,
                  resample_direction='right',
                  resample_rate=None,
-                 dimensions=None,
                  model=None,
                  cv=None):
 
@@ -92,16 +92,12 @@ class Pipeline(Node):
         self.resample_direction = resample_direction
         self.resample_rate = resample_rate
         self._buffer_size = pd.Timedelta(buffer_size)
-        self._dimensions = dimensions
         self._make_pipeline(steps)
         self._reset()
 
-
     def update(self):
-
         # Let's get ready
         self._clear()
-
         # Are we dealing with continuous data or epochs?
         if self._dimensions is None:
             port_name = 'i_training' if self.fit else 'i'
@@ -137,6 +133,7 @@ class Pipeline(Node):
         if self._status < FITTING:
             if match_events(self.i_events, self.event_start_training) is not None:
                 self._status = FITTING
+
                 self._task = Task(self._pipeline, 'fit', self._X_train, self._y_train).start()
 
         # Is the model ready?
@@ -161,17 +158,14 @@ class Pipeline(Node):
                     args.append(self._y)
                 # TODO: optionally loop through epochs instead of sending them all at once
                 self._out = getattr(self._pipeline, self.mode)(*args)
-
         # Set output streams
         self._send()
-
 
     def terminate(self):
 
         # Kill the fit subprocess
         if self._task is not None:
             self._task.stop()
-
 
     def _reset(self):
 
@@ -180,7 +174,7 @@ class Pipeline(Node):
         self._X_train_indices = np.array([], dtype=np.datetime64)
         self._accumulation_start = None
         self._accumulation_stop = None
-        # self._dimensions = None
+        self._dimensions = None
         self._shape = ()
         self._task = None
         if self.mode.startswith('fit'):
@@ -192,7 +186,6 @@ class Pipeline(Node):
         else:
             self._status = READY
 
-
     def _clear(self):
 
         self._X = None
@@ -200,7 +193,6 @@ class Pipeline(Node):
         self._X_indices = []
         self._X_columns = []
         self._out = None
-
 
     def _make_pipeline(self, steps):
 
@@ -210,8 +202,8 @@ class Pipeline(Node):
             'items': {
                 'type': 'object',
                 'properties': {
-                    'module': {'type' : 'string'},
-                    'class': {'type' : 'string'},
+                    'module': {'type': 'string'},
+                    'class': {'type': 'string'},
                     'args': {'type': 'object'}
                 },
                 'required': ['module', 'class']
@@ -238,9 +230,7 @@ class Pipeline(Node):
         # TODO: memory and verbose args
         self._pipeline = make_pipeline(*pipeline, memory=None, verbose=False)
 
-
     def _accumulate(self, start, stop):
-
         # Do nothing if no fitting required
         if not self.fit:
             return
@@ -304,7 +294,6 @@ class Pipeline(Node):
             if self._y_train is not None:
                 self._y_train = self._y_train[mask]
 
-
     def _receive(self):
         # Continuous data
         if self._dimensions == 2:
@@ -341,7 +330,6 @@ class Pipeline(Node):
                     if label is not None:
                         self._y.append(label)
 
-
     def _send(self):
 
         # Passthrough
@@ -361,8 +349,12 @@ class Pipeline(Node):
                 # Send events
                 if len(self._X_indices) == len(self._out):
                     # TODO: skip JSON serialization?
-                    data = [[self.mode, json.dumps({'result': self._np_to_native(result)})] for result in self._out]
-                    times = self._X_indices if self._dimensions == 2 else np.asarray(self._X_indices)[:, 0] # Keep the first timestamp of each epoch
+                    classes = self._pipeline.steps[-1][1].classes_
+                    data = [[self.mode,
+                             json.dumps({'result': self._np_to_native(result), 'classes': self._np_to_native(classes)})]
+                            for result in self._out]
+                    times = self._X_indices if self._dimensions == 2 else np.asarray(self._X_indices)[:,
+                                                                          0]  # Keep the first timestamp of each epoch
                     names = ['label', 'data']
                     self.o_events.set(data, times, names)
                 else:
@@ -384,11 +376,9 @@ class Pipeline(Node):
                     else:
                         self.logger.warning('Number of transforms inconsistent with number of epochs')
 
-
     def _np_to_native(self, data):
         """Convert numpy scalars and objects to native types."""
         return getattr(data, 'tolist', lambda: data)()
-
 
     def _reindex(self, data, times, columns):
 
@@ -396,12 +386,12 @@ class Pipeline(Node):
 
             if self.resample:
                 # Resample at a specific frequency
-                kwargs = { 'periods': len(data) }
+                kwargs = {'periods': len(data)}
                 if self.resample_rate is None:
                     kwargs['freq'] = pd.infer_freq(times)
                     kwargs['freq'] = pd.tseries.frequencies.to_offset(kwargs['freq'])
                 else:
-                    kwargs['freq'] = pd.DateOffset(seconds=1/self.resample_rate)
+                    kwargs['freq'] = pd.DateOffset(seconds=1 / self.resample_rate)
                 if self.resample_direction == 'right':
                     kwargs['start'] = times[0]
                 elif self.resample_direction == 'left':
@@ -409,6 +399,7 @@ class Pipeline(Node):
                 else:
                     def middle(a):
                         return int(np.ceil(len(a) / 2)) - 1
+
                     kwargs['start'] = times[middle(times)] - (middle(data) * kwargs['freq'])
                 times = pd.date_range(**kwargs)
 
@@ -417,4 +408,3 @@ class Pipeline(Node):
                 times = pd.date_range(start=times[0], end=times[-1], periods=len(data))
 
         return pd.DataFrame(data, times, columns)
-
