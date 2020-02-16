@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from timeflux.core.node import Node
 from timeflux.core.exceptions import ValidationError, WorkerInterrupt
 from timeflux.helpers.background import Task
-from timeflux.helpers.port import match_events, get_meta, traverse
+from timeflux.helpers.port import match_events, get_meta
 from timeflux.helpers.clock import now, min_time, max_time
 
 # Statuses
@@ -153,7 +153,7 @@ class Pipeline(Node):
         if self._status == READY:
             self._receive()
             if self._X is not None:
-                args = [np.array(self._X)]  # todo: check I did not break any test when multiple epochs
+                args = [np.array(self._X)]  
                 if self.mode.startswith('fit'):
                     args.append(self._y)
                 # TODO: optionally loop through epochs instead of sending them all at once
