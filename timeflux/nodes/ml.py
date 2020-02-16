@@ -153,7 +153,8 @@ class Pipeline(Node):
         if self._status == READY:
             self._receive()
             if self._X is not None:
-                args = [np.array(self._X)]  
+                args = [self._X]
+                # args = [np.array(self._X)]
                 if self.mode.startswith('fit'):
                     args.append(self._y)
                 # TODO: optionally loop through epochs instead of sending them all at once
