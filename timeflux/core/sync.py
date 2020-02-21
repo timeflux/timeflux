@@ -42,7 +42,7 @@ class Client:
 
     _buffer_size = 128
 
-    def __init__(self, host, port=12300, rounds=600, timeout=1, now=time.perf_counter):
+    def __init__(self, host='localhost', port=12300, rounds=600, timeout=1, now=time.perf_counter):
         self.logger = logging.getLogger(__name__)
         self._host = host
         self._port = port
