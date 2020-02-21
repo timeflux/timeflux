@@ -25,11 +25,14 @@ class Server:
         self._sock.bind((self._host, self._port))
         self.logger.info('Sync server listening on %s:%d', self._host, self._port)
         while True:
-            data, address = self._sock.recvfrom(self._buffer_size)
-            t1 = self.now()
-            t2 = self.now()
-            data += b',%.6f,%.9f' % (t1, t2)
-            l = self._sock.sendto(data, address)
+            try:
+                data, address = self._sock.recvfrom(self._buffer_size)
+                t1 = self.now()
+                t2 = self.now()
+                data += b',%.6f,%.9f' % (t1, t2)
+                l = self._sock.sendto(data, address)
+            except:
+                pass
 
     def stop(self):
         self._sock.close()
@@ -39,8 +42,8 @@ class Client:
 
     _buffer_size = 128
 
-    def __init__(self, host, port=12300, rounds=600, timeout=1, now=time.perf_counter):
-        self.logger = self.logger.getLogger(__name__)
+    def __init__(self, host='localhost', port=12300, rounds=600, timeout=1, now=time.perf_counter):
+        self.logger = logging.getLogger(__name__)
         self._host = host
         self._port = port
         self._rounds = rounds
@@ -81,6 +84,7 @@ class Client:
         _, offset, _, _ = stats.theilslopes(offset, delay)
         self.offset_remote = offset
         self.logger.info('Offset: %f', offset)
+        return offset
 
 
     def stop(self):
