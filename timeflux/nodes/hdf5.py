@@ -1,16 +1,14 @@
 """timeflux.nodes.hdf5: HDF5 nodes"""
 
 import pandas as pd
-import numpy as np
 import timeflux.helpers.clock as clock
 import os
 import time
 from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.core.node import Node
-from timeflux.core.io import Port
+
 
 class Replay(Node):
-
     """Replay a HDF5 file."""
 
     def __init__(self, filename, keys, speed=1, timespan=None, resync=True):
@@ -56,7 +54,7 @@ class Replay(Node):
                 first = self._store.select(key, start=0, stop=1).index[0]
                 # Get last index
                 nrows = self._store.get_storer(key).nrows
-                last = self._store.select(key, start=nrows-1, stop=nrows).index[0]
+                last = self._store.select(key, start=nrows - 1, stop=nrows).index[0]
                 # Check index type
                 if type(first) != pd.Timestamp:
                     self.logger.warning('%s: Invalid index. Will be skipped.', key)
@@ -66,6 +64,10 @@ class Replay(Node):
                     self._start = first
                 if last > self._stop:
                     self._stop = last
+                if self._store.get_node(key)._v_attrs.__contains__('meta'):
+                    meta = self._store.get_node(key)._v_attrs['meta']
+                else:
+                    meta = {}
                 # Set output port name, port will be created dynamically
                 name = 'o' + key.replace('/', '_')
                 # Update sources
@@ -73,7 +75,8 @@ class Replay(Node):
                     'start': first,
                     'stop': last,
                     'nrows': nrows,
-                    'name': name
+                    'name': name,
+                    'meta': meta
                 }
             except KeyError:
                 self.logger.warning('%s: Key not found.', key)
@@ -89,7 +92,6 @@ class Replay(Node):
 
         # Last update
         self._last = now
-
 
     def update(self):
 
@@ -117,6 +119,7 @@ class Replay(Node):
 
             # Update port
             getattr(self, source['name']).data = data
+            getattr(self, source['name']).meta = source['meta']
 
         self._current = max
 
@@ -125,7 +128,6 @@ class Replay(Node):
 
 
 class Save(Node):
-
     """Save to HDF5."""
 
     def __init__(self, filename=None, path='/tmp', complib='zlib', complevel=9, min_itemsize=None):
@@ -160,7 +162,6 @@ class Save(Node):
         self._store = pd.HDFStore(filename, complib=complib, complevel=complevel)
         self.min_itemsize = min_itemsize
 
-
     def update(self):
         if self.ports is not None:
             for name, port in self.ports.items():
@@ -176,7 +177,6 @@ class Save(Node):
                     node = self._store.get_node(key)
                     if node:
                         self._store.get_node(key)._v_attrs['meta'] = port.meta
-
 
     def terminate(self):
         try:
