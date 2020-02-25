@@ -64,6 +64,7 @@ class Replay(Node):
                     self._start = first
                 if last > self._stop:
                     self._stop = last
+                # Extract meta
                 if self._store.get_node(key)._v_attrs.__contains__('meta'):
                     meta = self._store.get_node(key)._v_attrs['meta']
                 else:
