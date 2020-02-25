@@ -12,7 +12,7 @@ class Window(Node):
 
         Args:
             length (float): The length of the window, in seconds.
-            step (float): The sliding step, in seconds.
+            step (float): The minimal sliding step, in seconds.
                 If None (the default), the step will be set to the window duration.
                 If 0, the data will be sent as soon as it is available.
         """
@@ -40,7 +40,7 @@ class Window(Node):
             # Step
             if high - self._updated >= self._step:
                 # Clear old data
-                self._buffer = self._buffer[low:]
+                self._buffer = self._buffer[self._buffer.index > low]
                 # Remember the last time the buffer was updated
                 self._updated = high
                 # Output
