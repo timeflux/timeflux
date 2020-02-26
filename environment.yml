@@ -23,7 +23,7 @@ dependencies:
 - python-graphviz>=0.13
 - pip>=19.3
 - pip:
-  - pylsl>=1.13.1
+  - pylsl
   - python-osc>=1.7.0
   - git+https://github.com/timeflux/timeflux
   - git+https://github.com/timeflux/timeflux_example
