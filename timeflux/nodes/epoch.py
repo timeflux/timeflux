@@ -59,6 +59,9 @@ class Epoch(Node):
                 # Start a new epoch
                 low = index - self._before
                 high = index + self._after
+                if not self._buffer.index.is_monotonic:
+                    self.logger.warning(f"Index should be monotonic. Skipping epoch {row['data']}")
+                    return
                 self._epochs.append({
                     'data': self._buffer[low:high],
                     'meta': {
