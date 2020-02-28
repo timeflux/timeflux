@@ -9,7 +9,7 @@ pyzmq>=18.1
 coloredlogs>=10.0
 tables>=3.6
 Cython>=0.29.6
-pylsl>=1.13.1
+pylsl
 python-osc==1.7.0
 python-dotenv==0.10
 jsonschema>=3.0
@@ -17,3 +17,4 @@ pytest>=5.3
 sphinx>=2.2
 sphinx_rtd_theme>=0.4
 graphviz=>0.13
+scikit-learn>=0.21.3
