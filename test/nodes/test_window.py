@@ -78,7 +78,7 @@ def test_not_monotonic(data):
 
 
 def test_no_memory_leek(data):
-    # receive too much data, avoid memory leak by truncate buffer
+    # receive too much data, avoid memory leak by truncating buffer
     node = Window(length=1, step=.2)
     data.reset()
     node.i.data = data.next(30)
