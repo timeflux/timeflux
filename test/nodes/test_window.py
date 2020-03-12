@@ -75,3 +75,12 @@ def test_not_monotonic(data):
     not_monotonic.index = not_monotonic.index[:5].append([not_monotonic.index[3:-2]])
     node.i.data = not_monotonic
     node.update()
+
+
+def test_no_memory_leek(data):
+    # step lower than length
+    node = Window(length=1, step=.2)
+    data.reset()
+    node.i.data = data.next(30)
+    node.update()
+    assert len(node._buffer) == 8

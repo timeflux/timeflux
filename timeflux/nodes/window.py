@@ -49,3 +49,5 @@ class Window(Node):
             self.logger.warning('This node is falling behind: it is receiving '
                                 'more data that it can generate. Verify the step size '
                                 'and the graph rate')
+            # truncate buffer to avoid memory leaks
+            self._buffer = self._buffer[self._buffer.index > self._buffer.index[-1] - self._length + self._step]
