@@ -108,27 +108,22 @@ class Expression(Node):
         self._expr_ports = None
 
     def update(self):
-
         self.o.meta = self.i.meta
-
         if self._eval_on == 'ports':
             if self._expr_ports is None:
                 self._expr_ports = [port_name for port_name, _, _
-                                    in self.iterate()
+                                    in self.iterate('i_*')
                                     if port_name in self._expr]
-                self._expr_ports = set(self._expr_ports) - set('i')
             _local_dict = {port_name: self.ports.get(port_name).data
                            for port_name in self._expr_ports}
             if np.any([data is None or data.empty
                        for data in _local_dict.values()]):
                 return
-
             self.o.data = pd.eval(expr=self._expr,
                                   local_dict=_local_dict,
                                   **self._kwargs)
             for port_name in self._expr_ports:
                 self.o.meta.update(self.ports.get(port_name).meta)
-
         elif self._eval_on == 'columns':
             self.o = self.i
             if self.i.data is not None and not self.i.data.empty:
