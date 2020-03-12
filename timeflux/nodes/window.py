@@ -19,7 +19,7 @@ class Window(Node):
         if step is None:
             step = length
         if step > length:
-            raise ValueError('Step of window should be smaller or equal to length. ')
+            raise ValueError('`step` must be less than or equal to `length`.')
         self._length = pd.Timedelta(seconds=length)
         self._step = pd.Timedelta(seconds=step)
         self._buffer = None
@@ -30,24 +30,22 @@ class Window(Node):
             return
         # Sanity check
         if not self.i.data.index.is_monotonic:
-            self.logger.warning('Window received data with not monotonic index.')
-
+            self.logger.warning('Indices are non-monotonic.')
         # Append new data
         if self._buffer is None:
             self._buffer = self.i.data
         else:
             self._buffer = self._buffer.append(self.i.data)
-        # Calculate if we are ready to window the current buffer
+        # Update the default output if we have enough data
         low = self._buffer.index[0]
         high = low + self._length
         if self._buffer.index[-1] >= high:
             self.o.data = self._buffer[self._buffer.index < high]
             self.o.meta = self.o.meta
             self._buffer = self._buffer[self._buffer.index >= low + self._step]
-
+        # Make sure we are not overflowing
         if not self._buffer.empty and (self._buffer.index[-1] - self._buffer.index[0]) > self._length:
             self.logger.warning('This node is falling behind: it is receiving '
-                                'more data that it can generate. Verify the step size '
-                                'and the graph rate')
-            # truncate buffer to avoid memory leaks
+                                'more data than it can send. Check the window '
+                                'parameters and the graph rate.')
             self._buffer = self._buffer[self._buffer.index > self._buffer.index[-1] - self._length + self._step]
