@@ -12,37 +12,40 @@ class Window(Node):
 
         Args:
             length (float): The length of the window, in seconds.
-            step (float): The minimal sliding step, in seconds.
+            step (float|None): The minimal sliding step, in seconds.
                 If None (the default), the step will be set to the window duration.
                 If 0, the data will be sent as soon as it is available.
         """
-
-        if step is None: step = length
+        if step is None:
+            step = length
+        if step > length:
+            raise ValueError('`step` must be less than or equal to `length`.')
         self._length = pd.Timedelta(seconds=length)
         self._step = pd.Timedelta(seconds=step)
         self._buffer = None
-        self._updated = pd.Timestamp(0)
 
     def update(self):
         # Return immediately if we don't have any data
         if not self.i.ready():
             return
+        # Sanity check
+        if not self.i.data.index.is_monotonic:
+            self.logger.warning('Indices are non-monotonic.')
         # Append new data
         if self._buffer is None:
             self._buffer = self.i.data
         else:
             self._buffer = self._buffer.append(self.i.data)
-        # Time range
-        high = self._buffer.index[-1]
-        low = high - self._length
-        # Make sure we have enough data
-        if self._buffer.index[0] <= low:
-            # Step
-            if high - self._updated >= self._step:
-                # Clear old data
-                self._buffer = self._buffer[self._buffer.index > low]
-                # Remember the last time the buffer was updated
-                self._updated = high
-                # Output
-                self.o.data = self._buffer
-                self.o.meta = self.i.meta
+        # Update the default output if we have enough data
+        low = self._buffer.index[0]
+        high = low + self._length
+        if self._buffer.index[-1] >= high:
+            self.o.data = self._buffer[self._buffer.index < high]
+            self.o.meta = self.o.meta
+            self._buffer = self._buffer[self._buffer.index >= low + self._step]
+        # Make sure we are not overflowing
+        if not self._buffer.empty and (self._buffer.index[-1] - self._buffer.index[0]) > self._length:
+            self.logger.warning('This node is falling behind: it is receiving '
+                                'more data than it can send. Check the window '
+                                'parameters and the graph rate.')
+            self._buffer = self._buffer[self._buffer.index > self._buffer.index[-1] - self._length + self._step]
