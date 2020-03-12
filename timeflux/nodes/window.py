@@ -12,7 +12,7 @@ class Window(Node):
 
         Args:
             length (float): The length of the window, in seconds.
-            step (float): The minimal sliding step, in seconds.
+            step (float|None): The minimal sliding step, in seconds.
                 If None (the default), the step will be set to the window duration.
                 If 0, the data will be sent as soon as it is available.
         """

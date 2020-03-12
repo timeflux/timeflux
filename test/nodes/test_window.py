@@ -13,20 +13,21 @@ def data():
 
 
 def check_parameters():
+    # step should be lower than window length
     with pytest.raises(ValueError):
         node = Window(length=1, step=2)
 
 
 def test_not_enough_data(data):
+    # not enough data to window
     node = Window(length=1, step=None)
-    # Not enough data to
     node.i.data = data.next(5)
     node.update()
     assert node.o.data == None
 
 
 def test_enough_data(data):
-    # enough data to
+    # receive enough data window
     node = Window(length=1, step=None)
     node.i.data = data.next(11)
     node.update()
@@ -34,9 +35,8 @@ def test_enough_data(data):
 
 
 def test_no_overlap(data):
-    # reset generator and node states
+    # test step equals length
     node = Window(length=1, step=None)
-    # Send enough data for an epoch, but no event
     node.i.data = data.next(11)
     node.update()
     o1 = node.o.data
@@ -68,7 +68,7 @@ def test_low_step(data):
 
 
 def test_not_monotonic(data):
-    # step lower than length
+    # receive data that is not monotonic
     node = Window(length=1, step=.2)
     data.reset()
     not_monotonic = data.next(11)
@@ -78,7 +78,7 @@ def test_not_monotonic(data):
 
 
 def test_no_memory_leek(data):
-    # step lower than length
+    # receive too much data, avoid memory leak by truncate buffer
     node = Window(length=1, step=.2)
     data.reset()
     node.i.data = data.next(30)
