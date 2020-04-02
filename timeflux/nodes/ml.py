@@ -41,7 +41,7 @@ class Pipeline(Node):
     Args:
         steps (dict): Pipeline steps and settings
         fit (bool):
-        mode ('predict'|'predict_proba'|'predict_log_proba'|transform'|'fit_predict'|'fit_transform'):
+        mode ('predict'|'predict_proba'|'predict_log_proba'|'transform'|'fit_predict'|'fit_transform'):
         meta_label (str|tuple|None):
         event_start_accumulation (str):
         event_stop_accumulation (str):
@@ -53,10 +53,6 @@ class Pipeline(Node):
         resample_rate (None|float):
         model: Load a pickle model - NOT IMPLEMENTED
         cv: Cross-validation - NOT IMPLEMENTED
-
-    Example:
-        .. literalinclude:: /../test/graphs/ml.yaml
-           :language: yaml
 
     """
 
