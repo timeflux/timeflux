@@ -152,11 +152,16 @@ class Pub(Node):
         time.sleep(wait)
 
     def update(self):
-        if self.i.data is not None or self.i.meta:
-            try:
-                self._socket.send_serialized([self._topic, self.i.data, self.i.meta], self._serializer)
-            except zmq.ZMQError as e:
-                self.logger.error(e)
+        for name, suffix, port in self.iterate('i*'):
+            if port.ready() or port.meta:
+                if not suffix:
+                    topic = self._topic
+                else:
+                    topic = self._topic + suffix.encode('utf-8')
+                try:
+                    self._socket.send_serialized([topic, port.data, port.meta], self._serializer)
+                except zmq.ZMQError as e:
+                    self.logger.error(e)
 
 
 class Sub(Node):
