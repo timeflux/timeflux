@@ -7,6 +7,11 @@ import time
 from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.core.node import Node
 
+# Ignore the "object name is not a valid Python identifier" message
+import warnings
+from tables.exceptions import NaturalNameWarning
+warnings.simplefilter('ignore', NaturalNameWarning)
+
 
 class Replay(Node):
     """Replay a HDF5 file."""
