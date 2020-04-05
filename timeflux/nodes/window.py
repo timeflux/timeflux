@@ -41,7 +41,7 @@ class Window(Node):
         high = low + self._length
         if self._buffer.index[-1] >= high:
             self.o.data = self._buffer[self._buffer.index < high]
-            self.o.meta = self.o.meta
+            self.o.meta = self.i.meta
             self._buffer = self._buffer[self._buffer.index >= low + self._step]
         # Make sure we are not overflowing
         if not self._buffer.empty and (self._buffer.index[-1] - self._buffer.index[0]) > self._length:
