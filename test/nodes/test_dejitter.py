@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
+import logging
 from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.helpers.testing import DummyData, Looper
 from timeflux.nodes.dejitter import Snap, Interpolate
@@ -11,12 +12,6 @@ dummy_data_with_jitter = DummyData(rate=rate, jitter=.05)
 
 num_cols = 5
 dummy_data_no_jitter = DummyData(rate=rate, jitter=0.0, cols=[f'ch{k}' for k in range(num_cols)])
-
-dummy_data_not_monotonic = DummyData(rate=rate, jitter=.05, num_rows=100)
-# swap rows 51 and 52 to have a DataFrame with not monotonic index
-dummy_data_not_monotonic._data = dummy_data_not_monotonic._data.iloc[
-    list(np.arange(0, 50)) + [52, 51] + list(np.arange(52, 100))]
-assert ~ dummy_data_not_monotonic._data.index.is_monotonic
 
 
 def test_round_on_data_with_jitter():
@@ -102,9 +97,12 @@ def test_interpolate_on_linear_data():
     pd.testing.assert_frame_equal(interpolate.o.data, linear_data.iloc[:-1])
 
 
-def test_data_not_monotonic():
-    data = dummy_data_not_monotonic
+def test_data_not_monotonic(caplog):
+    data = pd.DataFrame(
+        [[0, 0], [0, 0]],
+        [pd.Timestamp('2018-01-01 00:00:00.100'), pd.Timestamp('2018-01-01 00:00:00.000')]
+    )
     node = Interpolate(rate=rate)
-    looper = Looper(data, node)
-    with pytest.raises(WorkerInterrupt):
-        _, _ = looper.run(chunk_size=8)
+    node.i.data = data
+    node.update()
+    assert caplog.record_tuples[0][2] == 'Data index should be strictly monotonic'
