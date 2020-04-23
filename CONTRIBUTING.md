@@ -1,4 +1,4 @@
-# Contributing A Patch
+# Contributing a patch
 
 1. Submit an issue describing your proposed change to the repo in question.
 2. The repo owner will respond to your issue promptly.
