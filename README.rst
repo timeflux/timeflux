@@ -41,7 +41,5 @@ Getting started
 
 .. |Python package| image:: https://github.com/timeflux/timeflux/workflows/Python%20package/badge.svg
 .. |PyPI| image:: https://badge.fury.io/py/timeflux.svg
-    :target: https://pypi.org/project/timeflux/
 .. |Contributor Covenant| image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
-    :target: CODE_OF_CONDUCT.md
 .. |Logo| image:: https://avatars3.githubusercontent.com/u/44117793?v=4&s=100
