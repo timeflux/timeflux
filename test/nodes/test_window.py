@@ -4,15 +4,17 @@ import pandas as pd
 import pytest
 
 from timeflux.helpers import testing as helpers
-from timeflux.nodes.window import Window
+from timeflux.nodes.window import Window, TimeWindow, SampleWindow
 
 
 @pytest.fixture(scope="function")
 def data():
     return helpers.DummyData(jitter=0)
 
-
-def check_parameters():
+def test_check_parameters():
+    # index must be 'time' or 'sample'
+    with pytest.raises(ValueError):
+        node = Window(length=1, index='foo')
     # step should be lower than window length
     with pytest.raises(ValueError):
         node = Window(length=1, step=2)
