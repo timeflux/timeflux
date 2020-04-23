@@ -21,6 +21,7 @@ dependencies:
 - sphinx>=2.2
 - sphinx_rtd_theme>=0.4
 - python-graphviz>=0.13
+- pbr>=5.4
 - pip>=19.3
 - pip:
   - pylsl
