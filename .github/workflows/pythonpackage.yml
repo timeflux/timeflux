@@ -27,9 +27,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-    - name: Install locally
-      run: |
-        pip install -e .
     - name: Lint with flake8
       run: |
         pip install flake8
@@ -39,5 +36,7 @@ jobs:
         #flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
+        pip install -e .
+        pip install git+https://github.com/timeflux/timeflux_example
         pip install pytest
         pytest
