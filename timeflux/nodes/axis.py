@@ -4,35 +4,41 @@ from timeflux.core.node import Node
 
 
 class Rename(Node):
+
+    """ Alter axes labels.
+
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+        o (Port): Default output, provides DataFrame and meta.
+
+    Args:
+        kwargs: see arguments from
+        [pandas.DataFrame.rename method](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html)
+
+    """
+
     def __init__(self, **kwargs):
-        ''' Alter axes labels.
-        Attributes:
-            i (Port): Default data input, expects DataFrame.
-            o (Port): Default output, provides DataFrame and meta.
-        Args:
-            kwargs: see arguments from
-            [pandas.DataFrame.rename method](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.rename.html)
-        '''
-        super().__init__()
         self._kwargs = kwargs
 
     def update(self):
         if self.i.ready():
-            self.o = self.i
-            self.o.data.rename(**self._kwargs, inplace=True)
+            self.o.data = self.i.data.rename(**self._kwargs)
 
 
 class RenameColumns(Node):
-    def __init__(self, names):
-        """ Rename column labels from a list
-        Attributes:
-            i (Port): Default data input, expects DataFrame.
-            o (Port): Default output, provides DataFrame and meta.
-        Args:
-            names (list): New column names
-        """
 
-        super().__init__()
+    """ Rename column labels from a list
+
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+        o (Port): Default output, provides DataFrame and meta.
+
+    Args:
+        names (list): New column names.
+
+    """
+
+    def __init__(self, names):
         if not isinstance(names, list):
             raise ValueError('names should be a list')
         self.names = names
@@ -50,15 +56,18 @@ class RenameColumns(Node):
 
 
 class AddSuffix(Node):
-    def __init__(self, suffix):
-        """ Suffix labels with string suffix.
+
+    """ Suffix labels with string suffix.
+
         Attributes:
             i (Port): Default data input, expects DataFrame.
             o (Port): Default output, provides DataFrame and meta.
         Args:
-            suffix (string): The string to add after each column label
-        """
-        super().__init__()
+            suffix (string): The string to add after each column label.
+
+    """
+
+    def __init__(self, suffix):
         if not isinstance(suffix, str):
             raise ValueError('suffix should be a string')
         self._suffix = suffix
