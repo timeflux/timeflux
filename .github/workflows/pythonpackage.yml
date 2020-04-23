@@ -38,5 +38,6 @@ jobs:
       run: |
         pip install -e .
         pip install git+https://github.com/timeflux/timeflux_example
-        pip install pytest
-        pytest
+        pip install pytest pytest-cov
+        # Ignore MNE tests as it is a heavy dependency and will soon be removed from core
+        pytest --cov=timeflux -k "not mne"

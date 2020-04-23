@@ -21,10 +21,10 @@ def test_random():
     assert_frame_equal(node.o.data, expected)
 
 # TODO: make a generic test for replay
-def test_replay():
-    filename = pytest.path + '/data/data.hdf5'
-    keys = ['/nexus/signal/nexus_signal_raw', '/unity/events/unity_events']
-    node = Replay(filename, keys, 40)
-    node.update()
-    rate = effective_rate(node.o_nexus_signal_nexus_signal_raw.data)
-    assert True
+#def test_replay():
+    # filename = pytest.path + '/data/replay.hdf5'
+    # keys = ['/nexus/signal/nexus_signal_raw', '/unity/events/unity_events']
+    # node = Replay(filename, keys, 40)
+    # node.update()
+    # rate = effective_rate(node.o_nexus_signal_nexus_signal_raw.data)
+    # assert True
