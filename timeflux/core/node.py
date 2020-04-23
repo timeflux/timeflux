@@ -42,12 +42,27 @@ class Node(ABC):
         raise AttributeError(f"type object '{type(self).__name__}' has no attribute '{name}'")
 
 
+    def bind(self, source, target):
+        """Create an alias of a port
+
+        Args:
+            source (string): The name of the source port
+            target (string): The name of the target port
+
+        """
+
+        if target == 'i' or target.startswith('i_') or target == 'o' or target.startswith('o_'):
+            getattr(self, source) # Create the source port if it does not already exist
+            self.ports[target] = self.ports[source]
+            setattr(self, target, self.ports[source])
+
+
     def iterate(self, name='*'):
         """Iterate through ports.
 
-        If ``name`` ends with the globbing character (`*`), the generator iterates through all existing
-        ports matching that pattern. Otherwise, only one port is returned. If it does not already exist,
-        it is automatically created.
+        If ``name`` ends with the globbing character (`*`), the generator iterates
+        through all existing ports matching that pattern. Otherwise, only one port is
+        returned. If it does not already exist, it is automatically created.
 
         Args:
             name (string): The matching pattern.
@@ -74,9 +89,11 @@ class Node(ABC):
     def clear(self):
         """Reset all ports.
 
-        It is assumed that numbered ports (i.e. those with a name ending with an underscore followed by numbers)
-        are temporary and must be completely removed. All other ports are simply emptied to avoid the cost of
-        reinstanciating a new `Port` object before each update.
+        It is assumed that numbered ports (i.e. those with a name ending with an
+        underscore followed by numbers) are temporary and must be completely removed.
+        The only exception is when they are bound to a default or named port.
+        All other ports are simply emptied to avoid the cost of reinstanciating a new
+        `Port` object before each update.
 
         """
 
@@ -84,11 +101,15 @@ class Node(ABC):
             self._re_dynamic_port = re.compile('.*_[0-9]+$')
 
         remove = []
+        ids = []
 
         for name, port in self.ports.items():
             port.clear()
             if self._re_dynamic_port.match(name):
-                remove.append(name)
+                if id(port) not in ids:
+                    remove.append(name)
+                    continue
+            ids.append(id(port))
 
         for name in remove:
             del self.ports[name]
