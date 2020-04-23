@@ -1,0 +1,19 @@
+import:
+  - broker.yaml
+  - pub.yaml
+
+graphs:
+  - id: Subscriber
+    nodes:
+    - id: sub
+      module: timeflux.nodes.zmq
+      class: Sub
+      params:
+        topics: [test]
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+      - source: sub:test
+        target: display
+    rate: 5

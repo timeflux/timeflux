@@ -1,0 +1,6 @@
+graphs:
+  - id: Broker
+    nodes:
+    - id: proxy
+      module: timeflux.nodes.zmq
+      class: Broker

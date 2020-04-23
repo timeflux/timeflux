@@ -1,0 +1,15 @@
+graphs:
+  - id: Publisher
+    nodes:
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
+    - id: pub
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: test
+    edges:
+      - source: random
+        target: pub
+    rate: 5
