@@ -1,3 +1,5 @@
+![Python package](https://github.com/timeflux/timeflux/workflows/Python%20package/badge.svg) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
+
 ![](https://avatars3.githubusercontent.com/u/44117793?v=4&s=100)
 
 # Timeflux
