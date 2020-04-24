@@ -1,6 +1,7 @@
 """Generate random events"""
 
 import copy
+import datetime
 import numpy as np
 import pandas as pd
 
@@ -36,6 +37,7 @@ class States(Node):
             'auto_transition' is the transition to automatically apply after 'auto_transition_seconds'.
         initial (string): The state to start in. Defaults to first item in states.
         event_label (string): The column in i or i_events to look for transitions in.
+        reflexive_transitions (bool): Whether a state can transition from itself to itself. Default: False.
 
     Attributes:
         i (Port): (optional) Default input, expects a pandas.DataFrame with timestamp index. The events are taken from this if there is no i_events.
@@ -96,7 +98,6 @@ class States(Node):
     """
 
     def __init__(self, states, transitions={}, properties={}, initial=None, event_label=None, reflexive_transitions=False):
-        super().__init__()
         self._states = states
         self._transitions = transitions
         self._event_label = event_label
@@ -104,7 +105,7 @@ class States(Node):
 
         # For every state add a direct transition from any other state.
         for state in self._states:
-            if not state in self._transitions:
+            if state not in self._transitions:
                 self._transitions[state] = {'to': state}
 
         for transition_name, transition in self._transitions.items():
@@ -113,7 +114,7 @@ class States(Node):
                 if not reflexive_transitions:
                     froms = copy.copy(self._states)
                     froms.remove(transition['to'])
-                transition['from'] = froms
+                self._transitions[transition_name]['from'] = froms
 
         # If the initial state is not specified, use the first listed state.
         self._state = initial if initial is not None else next(iter(self._states))
@@ -149,7 +150,7 @@ class States(Node):
             self._has_state_indices = True
 
         else: # We can switch states even without a source of time indices, the indices will come from events or auto-transitions.
-            self._end_time = np.datetime64(datetime.datetime.utcnow()) #pd.Timestamp.now()
+            self._end_time = np.datetime64(datetime.datetime.utcnow())
             self._has_state_indices = False
 
         events = self._get_events()

@@ -6,16 +6,15 @@ from timeflux.nodes.states import States
 
 pandas_data = DummyData()
 
-def test_states_no_events():
-    pandas_data.reset()
-    node = States(initial='foo', states=['foo', 'bar'], event_label='label')
-    # Send data but no event
-    node.i.data = pandas_data.next(20)
-    node.i.data['label'] = np.NaN
-    node.update()
-    assert node._state == 'foo'
-    expected_states = pd.DataFrame({'state': 'foo'}, index=node.i.data.index)
-    pd.testing.assert_frame_equal(node.o.data, expected_states)
+# def test_states_no_events():
+#     pandas_data.reset()
+#     node = States(initial='foo', states=['foo', 'bar'], event_label='label')
+#     # Send data but no event
+#     node.i.data = pandas_data.next(20)
+#     node.i.data['label'] = np.NaN
+#     node.update()
+#     expected_states = pd.DataFrame({'state': 'foo'}, index=node.i.data.index)
+#     pd.testing.assert_frame_equal(node.o.data, expected_states)
 
 
 def test_states_no_relevant_events():
@@ -43,13 +42,12 @@ def test_states_with_relevant_events():
     expected_states.iloc[3:] = 'bar'
     expected_states.iloc[10:] = 'baz' # state name, not transition name 'bump'
     expected_transitions.loc[node.i.data.index[3], 'transition'] = 'bar'
-    expected_transitions.loc[node.i.data.index[4], 'transition'] = 'bar' # bar is a valid transition from bar to bar
+    # bar is NOT a valid transition from bar to bar because reflexive_transitions is False by default.
     expected_transitions.loc[node.i.data.index[10], 'transition'] = 'bump' # transition name, not state name 'baz'
 
 
     node.update()
     pd.testing.assert_frame_equal(node.o.data, expected_states)
-    print(node.o_transitions.data)
     pd.testing.assert_frame_equal(node.o_transitions.data, expected_transitions)
 
     node.i.data = pandas_data.next(20)
@@ -62,6 +60,26 @@ def test_states_with_relevant_events():
     expected_states.iloc[6:] = 'foo'
     expected_transitions.loc[node.i.data.index[4], 'transition'] = 'bar'
     expected_transitions.loc[node.i.data.index[6], 'transition'] = 'foo'
+
+    node.update()
+    pd.testing.assert_frame_equal(node.o.data, expected_states)
+    pd.testing.assert_frame_equal(node.o_transitions.data, expected_transitions)
+
+def test_states_with_reflexive_transitions():
+    pandas_data.reset()
+    node = States(initial='foo', states=['foo', 'bar', 'baz'], event_label='label', reflexive_transitions=True)
+    node.i.data = pandas_data.next(20)
+    expected_states = pd.DataFrame({'state': 'foo'}, index=node.i.data.index)
+    expected_transitions = pd.DataFrame(columns=['transition'])
+
+    node.i.data.loc[node.i.data.index[3], 'label'] = 'bar'
+    node.i.data.loc[node.i.data.index[4], 'label'] = 'bar'
+    node.i.data.loc[node.i.data.index[10], 'label'] = 'baz'
+    expected_states.iloc[3:] = 'bar'
+    expected_states.iloc[10:] = 'baz' # state name, not transition name 'bump'
+    expected_transitions.loc[node.i.data.index[3], 'transition'] = 'bar'
+    expected_transitions.loc[node.i.data.index[4], 'transition'] = 'bar' # bar is a valid transition from bar to bar
+    expected_transitions.loc[node.i.data.index[10], 'transition'] = 'baz'
 
     node.update()
     pd.testing.assert_frame_equal(node.o.data, expected_states)
