@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 from timeflux.helpers.testing import DummyData
-from timeflux.nodes.events import States
+from timeflux.nodes.states import States
 
 pandas_data = DummyData()
 
