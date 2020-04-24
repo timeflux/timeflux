@@ -139,12 +139,12 @@ class States(Node):
     def update(self):
         self.o.meta = self.i.meta
         self.o_transitions.meta = self.i.meta
-        self._state_series = pd.Series()
-        self._transition_series = pd.Series()
+        self._state_series = pd.Series(dtype='object')
+        self._transition_series = pd.Series(dtype='object')
 
         if self.i.ready():
             self._end_time = self.i.data.index[-1]
-            self._state_series = pd.Series(index=self.i.data.index)
+            self._state_series = pd.Series(index=self.i.data.index, dtype="object")
             self._state_series.iloc[0] = self._state
             self._last_transition_time = self._last_transition_time if self._last_transition_time is not None else self.i.data.index[0]
             self._has_state_indices = True
@@ -236,7 +236,7 @@ class States(Node):
             self._event_label = self._event_label if self._event_label is not None else events.columns[0]
             # Discard irrelevant events and columns.
             events = events[self._event_label]
-            events.loc[~events.isin(self._transitions)] = np.NaN
+            events = events.where(events.isin(self._transitions))
             events = events.dropna()
 
         # Handle events that occur out of scope. This can happen if i_events is indexed differently to i.

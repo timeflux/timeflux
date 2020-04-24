@@ -183,7 +183,7 @@ def test_states_with_auto_transitions():
     node.update()
     pd.testing.assert_frame_equal(node.o.data, expected_states)
     node.i.data = pandas_data.next(20)
-    node.i.data['label'] = np.NaN
+    node.i.data.loc[:,'label'] = np.NaN
     expected_states = pd.DataFrame({'state': 'bar'}, index=node.i.data.index)
 
     # The carried over auto-transition from bar to foo
