@@ -1,0 +1,74 @@
+# Note that this file is in a separate directory. If I put in on the root
+# directory, the resulting package will include all other files instead of
+# the source files only.
+
+{% set name = "timeflux" %}
+{% set version = "0.4" %}
+{% set tag = "v0.4" %}
+
+package:
+  name: "{{ name | lower }}"
+  version: "{{ version }}"
+
+source:
+  git_url:  https://github.com/timeflux/timeflux.git
+  git_tag: "{{ tag }}"
+
+requirements:
+  build:
+    - python>=3.7,<3.8
+    - setuptools
+
+  run:
+    - python>=3.7,<3.8
+    # NOTE: In my opinion, dependencies should be top-version limited. In case a new
+    #       library version breaks timeflux.
+    - networkx>=2.4
+    - pyyaml>=5.1
+    - numpy>=1.17
+    - pandas>=0.25
+    - xarray>=0.14
+    - bottleneck>=1.3
+    - scipy>=1.3
+    - pyzmq>=18.1
+    - coloredlogs>=10.0
+    - pytables>=3.6
+    - jsonschema>=3.0
+    - python-graphviz>=0.13
+    # NOTE: due to this dependency, which is only available on conda-forge,
+    #       the build procedure is a bit more complicated (it needs to add the
+    #       conda-forge channel)
+    - python-dotenv>=0.10
+    # REMOVED dependencies, because they are not on conda, only installable through pip:
+    # - pylsl>=1.13.1
+    # - python-osc>=1.7.0
+
+test:
+  # TODO: Re-activate and test this later
+  #  source_files:
+  #    - tests/*
+  requires:
+    - pytest>=5.3
+  #    - pytest-mock
+  #  commands:
+  #    - py.test tests
+  imports:
+    - timeflux
+    - timeflux.core
+    - timeflux.nodes
+    - timeflux.helpers
+
+build:
+  noarch: python
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+extra:
+  maintainers:
+    - contact@timeflux.io
+
+about:
+  home: https://timeflux.io
+  summary: Acquisition and real-time processing of biosignals
+  license: MIT
+  license_family: MIT
+  doc_url: https://doc.timeflux.io/latest/

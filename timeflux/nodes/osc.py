@@ -1,12 +1,21 @@
 """timeflux.nodes.osc: Simple OSC client and server"""
 
-import pandas as pd
+import logging
 from threading import Thread, Lock
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-from pythonosc.udp_client import SimpleUDPClient
+
 from timeflux.helpers.clock import now
 from timeflux.core.node import Node
+
+# Dynamically import osc
+logger = logging.getLogger(__name__)
+try:
+    from pythonosc.dispatcher import Dispatcher
+    from pythonosc.osc_server import BlockingOSCUDPServer
+    from pythonosc.udp_client import SimpleUDPClient
+except ModuleNotFoundError:
+    logger.exception('python-osc is not installed, you will encounter NameErrors '
+                     'unless you install python-osc')
+
 
 class Server(Node):
 
