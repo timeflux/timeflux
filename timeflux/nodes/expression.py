@@ -129,3 +129,29 @@ class Expression(Node):
             if self.i.data is not None and not self.i.data.empty:
                 self.o.data = self.i.data.eval(expr=self._expr,
                                                **self._kwargs)
+
+
+class ExpressionFilter(Expression):
+
+    """Filter values using an expression
+
+    Values that do not satisfy the expression will be set to NaN. You can use a Missing node to drop these or set to
+    some other value.
+
+    For further documentation on how to work with expressions, see timeflux.nodes.expression.Expression.
+
+    Attributes:
+        See timeflux.nodes.expression.Expression
+
+    Args:
+       See timeflux.nodes.expression.Expression
+
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def update(self):
+        super().update()
+        if self.o.data is not None:
+            self.o.data = self.i.data.where(self.o.data)
