@@ -82,12 +82,12 @@ class Interpolate(Node):
     def update(self):
 
         self.o.meta = self.i.meta
-        self.o.meta['rate'] = self._rate
 
         # if the rate has not been set in the constructor, get it from the meta
         if self._rate is None:
             self._rate = self.i.meta.get('rate')
             self._set_timedelta()
+        self.o.meta['rate'] = self._rate
 
         if self.i.data is None or self.i.data.empty:
             return
