@@ -50,7 +50,20 @@ class Scheduler:
                         dst_port.data = data
                         dst_port.meta = meta
             # Update node
-            self._nodes[step['node']].update()
+            try:
+                self._nodes[step['node']].update()
+            except Exception as e:
+                inputs = self._nodes[step['node']].iterate('i*')
+                input_log = ''.join('\n\n%s: %s\n\n' % (name, port.data) for name, suffix, port in inputs)
+                self.logger.warn("Node {} failed at update with {} '{}'. {}".format(step['node'], type(e), e.args[0], input_log))
+                message = "'{}' (raised while updating timeflux node {})".format(e.args[0], step['node'])
+                args = list(e.args)
+                args[0] = message
+                e.args = tuple(args)
+                raise e from None
+
+
+
 
 
     def terminate(self):
