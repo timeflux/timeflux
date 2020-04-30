@@ -25,18 +25,27 @@ class DataFrameMissing(Node):
 
     Args:
         create (bool): Whether to output an empty dataframe if input is None
-        dropna (bool,string,dict): Whether to drop NaN values using Pandas dropna.
+        dropna (bool,dict): Whether to drop NaN values using Pandas dropna.
                          If dict, then the whole dict is supplied to pandas.DataFrame.dropna as **kwargs.
-        fillna (bool,scalar,dict): Whether to replace NaN values using Pandas fillna.
+        fillna (scalar,dict): Whether to replace NaN values using Pandas fillna.
                          If scalar then NaNs are replaced with that value.
                          If dict, then the whole dict is supplied to pandas.DataFrame.fillna as **kwargs.
     """
 
-    def __init__(self, create=False, dropna=False, fillna=False, columns=None):
+    def __init__(self, create=False, dropna=False, fillna=None, columns=None):
 
         self._create = create
-        self._dropna = dropna
-        self._fillna = fillna
+
+        if dropna is False:
+            self._dropna = None
+        else:
+            self._dropna = dropna if type(dropna) is dict else {}
+
+        if fillna is None:
+            self._fillna = None
+        else:
+            self._fillna = fillna if type(fillna) is dict else {'value': fillna}
+
         self._empty_dataframe = None
         if columns is not None:
             self._empty_dataframe = pd.DataFrame(columns=columns)
@@ -67,13 +76,11 @@ class DataFrameMissing(Node):
                 self.o.data = self.o.data[~self.o.data.index.duplicated(keep='first')]
                 self.o.data = self.o.data.sort_index()
 
-        if self._dropna is not False:
-            args = self._dropna if type(self._dropna) is dict else {}
-            self.o.data = self.o.data.dropna(**args)
+        if self._dropna is not None:
+            self.o.data = self.o.data.dropna(**self._dropna)
 
-        if self._fillna is not False:
-            args = self._fillna if type(self._fillna) is dict else {'value': self._fillna}
-            self.o.data = self.o.data.fillna(**args)
+        if self._fillna is not None:
+            self.o.data = self.o.data.fillna(**self._fillna)
 
 
 
