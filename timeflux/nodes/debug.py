@@ -28,5 +28,4 @@ class Dump(Node):
     def update(self):
         if self.i.ready():
             self.i.data['index'] = self.i.data.index
-            self.i.data['index'] = pd.to_timedelta(self.i.data['index']).dt.total_seconds()
             self.writer.writerows(self.i.data.values.tolist())
