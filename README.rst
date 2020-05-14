@@ -39,7 +39,7 @@ Getting started
 
 `Read the documentation <https://doc.timeflux.io>`__.
 
-.. |Build| image:: https://img.shields.io/github/workflow/status/timeflux/timeflux/build
+.. |Tests| image:: https://img.shields.io/github/workflow/status/timeflux/timeflux/test
 .. |Doc| image:: https://img.shields.io/readthedocs/timeflux/latest
 .. |PyPI| image:: https://img.shields.io/pypi/v/timeflux
 .. |Contributor Covenant| image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg

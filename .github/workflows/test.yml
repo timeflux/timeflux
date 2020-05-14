@@ -1,4 +1,4 @@
-name: build
+name: tests
 
 on:
   push:
@@ -23,13 +23,18 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-    - name: Check style
+        pip install -e ".[dev]"
+    - name: Test formatting
       run: |
         pip install black
         black --check timeflux
-    - name: Test with pytest
+    - name: Test documentation
       run: |
-        pip install -e ".[dev]"
+        cd doc
+        make
+        cd ..
+    - name: Test code
+      run: |
         pip install git+https://github.com/timeflux/timeflux_example
         pip install pytest pytest-cov
         # Ignore MNE tests as it is a heavy dependency and will soon be removed from core
