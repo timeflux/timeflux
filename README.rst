@@ -1,4 +1,4 @@
-|Build| |Doc| |PyPI| |Contributor Covenant|
+|Tests| |Doc| |PyPI| |Contributor Covenant|
 
 |Logo|
 

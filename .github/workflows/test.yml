@@ -1,4 +1,4 @@
-name: tests
+name: test
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
     - name: Test documentation
       run: |
         cd doc
-        make
+        make html
         cd ..
     - name: Test code
       run: |
