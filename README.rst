@@ -1,4 +1,4 @@
-|Build| |PyPI| |Contributor Covenant|
+|Build| |Doc| |PyPI| |Contributor Covenant|
 
 |Logo|
 
@@ -40,6 +40,7 @@ Getting started
 `Read the documentation <https://doc.timeflux.io>`__.
 
 .. |Build| image:: https://github.com/timeflux/timeflux/workflows/build/badge.svg
+.. |Doc| image:: https://readthedocs.org/projects/timeflux/badge/?version=latest
 .. |PyPI| image:: https://badge.fury.io/py/timeflux.svg
 .. |Contributor Covenant| image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
 .. |Logo| image:: https://avatars3.githubusercontent.com/u/44117793?v=4&s=100
