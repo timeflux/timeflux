@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-    - name: Lint with flake8
+    - name: Check style
       run: |
         pip install black
         black --check timeflux
