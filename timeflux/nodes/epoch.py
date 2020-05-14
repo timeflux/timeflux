@@ -29,7 +29,7 @@ class Epoch(Node):
         after (float): Length after onset, in seconds.
 
     Example:
-        .. literalinclude:: /../test/graphs/epoch.yaml
+        .. literalinclude:: /../examples/epoch.yaml
            :language: yaml
 
     """

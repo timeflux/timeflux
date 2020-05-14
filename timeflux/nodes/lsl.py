@@ -29,7 +29,7 @@ class Send(Node):
         source (string, None): The unique identifier for the stream. If ``None``, it will be auto-generated.
 
     Example:
-        .. literalinclude:: /../test/graphs/lsl.yaml
+        .. literalinclude:: /../examples/lsl.yaml
            :language: yaml
 
     """
@@ -83,7 +83,7 @@ class Receive(Node):
         max_samples (int): The maximum number of samples to return per call.
 
     Example:
-        .. literalinclude:: /../test/graphs/lsl_multiple.yaml
+        .. literalinclude:: /../examples/lsl_multiple.yaml
            :language: yaml
 
     """

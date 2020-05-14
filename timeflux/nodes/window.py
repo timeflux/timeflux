@@ -10,18 +10,18 @@ class Window(Node):
     Attributes:
         i (Port): Default data input, expects DataFrame.
 
-        Args:
-            length (float|int): The length of the window, in seconds or samples.
-            step (float|int|None): The minimal sliding step, in seconds or samples.
-                If None (the default), the step will be set to the length of the window.
-                If 0, the data will be sent as soon as it is available.
-            index (string):
-                If "time" (the default), the length of the window is in seconds.
-                If "sample", the length of the window is in samples.
-            epochs (boolean):
-                Whether the defaut output should be bound to an numbered output, thus
-                simulating an epoch. This could be useful if piped to a Machine Learning
-                node.
+    Args:
+        length (float|int): The length of the window, in seconds or samples.
+        step (float|int|None): The minimal sliding step, in seconds or samples.
+            If None (the default), the step will be set to the length of the window.
+            If 0, the data will be sent as soon as it is available.
+        index (string):
+            If "time" (the default), the length of the window is in seconds.
+            If "sample", the length of the window is in samples.
+        epochs (boolean):
+            Whether the defaut output should be bound to an numbered output, thus
+            simulating an epoch. This could be useful if piped to a Machine Learning
+            node.
 
     """
 
