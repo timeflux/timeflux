@@ -8,6 +8,7 @@ For consistency, we invite you to respect these guidelines while developing new 
 Style
 -----
 
+- `Black <https://black.readthedocs.io/>`_
 - `PEP 8 <https://www.python.org/dev/peps/pep-0008/>`_
 - `Google Python Style Guide <http://google.github.io/styleguide/pyguide.html>`_
 

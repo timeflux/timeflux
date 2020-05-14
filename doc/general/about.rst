@@ -23,4 +23,4 @@ Timeflux is primarily developed by `Pierre Clisson <https://clisson.net>`_ and `
 Citing
 ------
 
-The `introduction paper <https://timeflux.io/Timeflux_GBCIC2019.pdf>`_ has been be published in the Proceedings of the 2019 Graz BCI Conference.
+The `introduction paper <https://timeflux.io/assets/pdf/Timeflux_GBCIC2019.pdf>`_ has been be published in the Proceedings of the 2019 Graz BCI Conference.

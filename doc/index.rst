@@ -71,18 +71,3 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
     extending/branches.rst
     extending/best_practices.rst
 
-
-.. raw:: latex
-
-    \part{API reference}
-
-
-.. toctree::
-    :hidden:
-    :maxdepth: 1
-    :caption: API reference
-    :name: api
-    :glob:
-
-    api/modules_*
-    misc/indices.rst
