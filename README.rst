@@ -41,6 +41,6 @@ Getting started
 
 .. |Build| image:: https://img.shields.io/github/workflow/status/timeflux/timeflux/build
 .. |Doc| image:: https://img.shields.io/readthedocs/timeflux/latest
-.. |PyPI| image:: https://badge.fury.io/py/timeflux.svg
+.. |PyPI| image:: https://img.shields.io/pypi/v/timeflux
 .. |Contributor Covenant| image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
 .. |Logo| image:: https://avatars3.githubusercontent.com/u/44117793?v=4&s=100
