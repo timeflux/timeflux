@@ -1,4 +1,4 @@
-|Python package| |PyPI| |Contributor Covenant|
+|Build| |PyPI| |Contributor Covenant|
 
 |Logo|
 
