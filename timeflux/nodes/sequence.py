@@ -2,8 +2,8 @@
 
 from timeflux.core.node import Node
 
-class Sequence(Node):
 
+class Sequence(Node):
     def __init__(self):
         """Generate a sequence"""
         self._current = 0

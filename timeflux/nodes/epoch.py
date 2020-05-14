@@ -34,7 +34,7 @@ class Epoch(Node):
 
     """
 
-    def __init__(self, event_trigger, before=.2, after=.6):
+    def __init__(self, event_trigger, before=0.2, after=0.6):
 
         self._event_trigger = event_trigger
         self._before = pd.Timedelta(seconds=before)
@@ -60,17 +60,21 @@ class Epoch(Node):
                 low = index - self._before
                 high = index + self._after
                 if not self._buffer.index.is_monotonic:
-                    self.logger.warning(f"Index should be monotonic. Skipping epoch {row['data']}.")
+                    self.logger.warning(
+                        f"Index should be monotonic. Skipping epoch {row['data']}."
+                    )
                     return
-                self._epochs.append({
-                    'data': self._buffer[low:high],
-                    'meta': {
-                        'onset': index,
-                        'context': row['data'],
-                        'before': self._before.total_seconds(),
-                        'after': self._after.total_seconds()
+                self._epochs.append(
+                    {
+                        "data": self._buffer[low:high],
+                        "meta": {
+                            "onset": index,
+                            "context": row["data"],
+                            "before": self._before.total_seconds(),
+                            "after": self._after.total_seconds(),
+                        },
                     }
-                })
+                )
 
         # Trim main buffer
         if self._buffer is not None:
@@ -81,21 +85,21 @@ class Epoch(Node):
         if self._epochs and self.i.ready():
             complete = 0
             for epoch in self._epochs:
-                high = epoch['meta']['onset'] + self._after
+                high = epoch["meta"]["onset"] + self._after
                 last = self.i.data.index[-1]
-                if epoch['data'].empty:
-                    low = epoch['meta']['onset'] - self._before
+                if epoch["data"].empty:
+                    low = epoch["meta"]["onset"] - self._before
                     mask = (self.i.data.index >= low) & (self.i.data.index <= high)
                 else:
-                    low = epoch['data'].index[-1]
+                    low = epoch["data"].index[-1]
                     mask = (self.i.data.index > low) & (self.i.data.index <= high)
                 # Append
-                epoch['data'] = epoch['data'].append(self.i.data[mask])
+                epoch["data"] = epoch["data"].append(self.i.data[mask])
                 # Send if we have enough data
                 if last >= high:
-                    o = getattr(self, 'o_' + str(complete))
-                    o.data = epoch['data']
-                    o.meta = {'epoch': epoch['meta']}
+                    o = getattr(self, "o_" + str(complete))
+                    o.data = epoch["data"]
+                    o.meta = {"epoch": epoch["meta"]}
                     complete += 1
             if complete > 0:
                 del self._epochs[:complete]  # Unqueue
@@ -128,8 +132,7 @@ class ToXArray(Node):
 
     """
 
-    def __init__(self, reporting='warn',
-                 output='DataArray', context_key=None):
+    def __init__(self, reporting="warn", output="DataArray", context_key=None):
 
         self._reporting = reporting
         self._output = output
@@ -140,58 +143,75 @@ class ToXArray(Node):
     def update(self):
 
         if not self._ready:
-            ports_ready = [port for _, _, port in self.iterate('i*') if port.ready()]
+            ports_ready = [port for _, _, port in self.iterate("i*") if port.ready()]
             if len(ports_ready) < 1:
                 return
             # initialize attributes on first ready port
             port = ports_ready[0]
             if port.ready():
                 self._columns = port.data.columns
-                self._before = port.meta['epoch']['before']
-                self._after = port.meta['epoch']['after']
+                self._before = port.meta["epoch"]["before"]
+                self._after = port.meta["epoch"]["after"]
                 self._num_times = len(port.data)
-                self._times = pd.TimedeltaIndex(data=np.linspace(-self._before,
-                                                                 self._after,
-                                                                 self._num_times), unit='s')
+                self._times = pd.TimedeltaIndex(
+                    data=np.linspace(-self._before, self._after, self._num_times),
+                    unit="s",
+                )
                 self._rate = 1 / (self._times[1] - self._times[0]).total_seconds()
                 self._ready = True
 
-        ports_ready = [port for _, _, port in self.iterate(name='i*') if self._valid_port(port)]
+        ports_ready = [
+            port for _, _, port in self.iterate(name="i*") if self._valid_port(port)
+        ]
 
         if not ports_ready:
             return
 
-        list_onset = [port.meta['epoch'].get('onset') for port in ports_ready]
-        list_context = [port.meta['epoch'].get('context') for port in ports_ready]
+        list_onset = [port.meta["epoch"].get("onset") for port in ports_ready]
+        list_context = [port.meta["epoch"].get("context") for port in ports_ready]
         list_epochs = [port.data for port in ports_ready]
 
         data = np.stack([epoch.values for epoch in list_epochs], axis=0)
 
-        meta = {'epochs_context': list_context, 'epochs_onset': list_onset,
-                'rate': self._rate}
+        meta = {
+            "epochs_context": list_context,
+            "epochs_onset": list_onset,
+            "rate": self._rate,
+        }
 
-        if self._output == 'DataArray':
+        if self._output == "DataArray":
             if self._context_key is not None:
-                data_array = xr.DataArray(data, dims=('target', 'time', 'space'),
-                                          coords=([self._extract_target(context)
-                                                   for context in list_context],
-                                                  self._times,
-                                                  self._columns))
+                data_array = xr.DataArray(
+                    data,
+                    dims=("target", "time", "space"),
+                    coords=(
+                        [self._extract_target(context) for context in list_context],
+                        self._times,
+                        self._columns,
+                    ),
+                )
             else:
-                data_array = xr.DataArray(data, dims=('epoch', 'time', 'space'),
-                                          coords=(np.arange(data.shape[0]),
-                                                  self._times,
-                                                  self._columns))
+                data_array = xr.DataArray(
+                    data,
+                    dims=("epoch", "time", "space"),
+                    coords=(np.arange(data.shape[0]), self._times, self._columns),
+                )
             self.o.data = data_array
             self.o.meta = meta
         else:  # Dataset
-            data_array = xr.DataArray(data, dims=('epoch', 'time', 'space'),
-                                      coords=(np.arange(data.shape[0]),
-                                              self._times,
-                                              self._columns))
+            data_array = xr.DataArray(
+                data,
+                dims=("epoch", "time", "space"),
+                coords=(np.arange(data.shape[0]), self._times, self._columns),
+            )
             self.o.data = xr.Dataset(
-                {'data': data_array, 'target': [self._extract_target(context)
-                                                for context in list_context]})
+                {
+                    "data": data_array,
+                    "target": [
+                        self._extract_target(context) for context in list_context
+                    ],
+                }
+            )
             self.o.meta = meta
 
     def _extract_target(self, context):
@@ -206,16 +226,20 @@ class ToXArray(Node):
         """ Checks that the port has valid meta and data. """
         if port.data is None or port.data.empty:
             return False
-        if 'epoch' not in port.meta:
+        if "epoch" not in port.meta:
             return False
         if port.data.shape[0] != self._num_times:
-            if self._reporting == 'error':
-                raise WorkerInterrupt(f'Received an epoch with {port.data.shape[0]} '
-                                     f'samples instead of {self._num_times}.')
-            elif self._reporting == 'warn':
-                self.logger.warning(f'Received an epoch with {port.data.shape[0]} '
-                                    f'samples instead of {self._num_times}. '
-                                    f'Skipping.')
+            if self._reporting == "error":
+                raise WorkerInterrupt(
+                    f"Received an epoch with {port.data.shape[0]} "
+                    f"samples instead of {self._num_times}."
+                )
+            elif self._reporting == "warn":
+                self.logger.warning(
+                    f"Received an epoch with {port.data.shape[0]} "
+                    f"samples instead of {self._num_times}. "
+                    f"Skipping."
+                )
                 return False
             else:  # reporting is None
                 # be cool

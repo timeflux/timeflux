@@ -97,10 +97,12 @@ class Expression(Node):
 
     def __init__(self, expr, eval_on, **kwargs):
 
-        if 'global_dict' in kwargs:
-            raise (ValueError(
-                'global_dict cannot be passed as additional arguments for pandas.eval '
-            ))
+        if "global_dict" in kwargs:
+            raise (
+                ValueError(
+                    "global_dict cannot be passed as additional arguments for pandas.eval "
+                )
+            )
 
         self._eval_on = eval_on
         self._kwargs = kwargs
@@ -109,23 +111,25 @@ class Expression(Node):
 
     def update(self):
         self.o.meta = self.i.meta
-        if self._eval_on == 'ports':
+        if self._eval_on == "ports":
             if self._expr_ports is None:
-                self._expr_ports = [port_name for port_name, _, _
-                                    in self.iterate('i_*')
-                                    if port_name in self._expr]
-            _local_dict = {port_name: self.ports.get(port_name).data
-                           for port_name in self._expr_ports}
-            if np.any([data is None or data.empty
-                       for data in _local_dict.values()]):
+                self._expr_ports = [
+                    port_name
+                    for port_name, _, _ in self.iterate("i_*")
+                    if port_name in self._expr
+                ]
+            _local_dict = {
+                port_name: self.ports.get(port_name).data
+                for port_name in self._expr_ports
+            }
+            if np.any([data is None or data.empty for data in _local_dict.values()]):
                 return
-            self.o.data = pd.eval(expr=self._expr,
-                                  local_dict=_local_dict,
-                                  **self._kwargs)
+            self.o.data = pd.eval(
+                expr=self._expr, local_dict=_local_dict, **self._kwargs
+            )
             for port_name in self._expr_ports:
                 self.o.meta.update(self.ports.get(port_name).meta)
-        elif self._eval_on == 'columns':
+        elif self._eval_on == "columns":
             self.o = self.i
             if self.i.data is not None and not self.i.data.empty:
-                self.o.data = self.i.data.eval(expr=self._expr,
-                                               **self._kwargs)
+                self.o.data = self.i.data.eval(expr=self._expr, **self._kwargs)

@@ -10,9 +10,17 @@
 import pandas as pd
 import numpy as np
 import uuid
-from pylsl import StreamInfo, StreamOutlet, StreamInlet, resolve_stream, resolve_byprop, pylsl
+from pylsl import (
+    StreamInfo,
+    StreamOutlet,
+    StreamInlet,
+    resolve_stream,
+    resolve_byprop,
+    pylsl,
+)
 from time import time
 from timeflux.core.node import Node
+
 
 class Send(Node):
 
@@ -34,12 +42,9 @@ class Send(Node):
 
     """
 
-    _dtypes = {
-        'double64': np.number,
-        'string': np.object
-    }
+    _dtypes = {"double64": np.number, "string": np.object}
 
-    def __init__(self, name, type='Signal', format='double64', rate=0.0, source=None):
+    def __init__(self, name, type="Signal", format="double64", rate=0.0, source=None):
         if not source:
             source = str(uuid.uuid4())
         self._name = name
@@ -52,15 +57,26 @@ class Send(Node):
     def update(self):
         if isinstance(self.i.data, pd.core.frame.DataFrame):
             if not self._outlet:
-                labels = list(self.i.data.select_dtypes(include=[self._dtypes[self._format]]))
-                info = StreamInfo(self._name, self._type, len(labels), self._rate, self._format, self._source)
-                channels = info.desc().append_child('channels')
+                labels = list(
+                    self.i.data.select_dtypes(include=[self._dtypes[self._format]])
+                )
+                info = StreamInfo(
+                    self._name,
+                    self._type,
+                    len(labels),
+                    self._rate,
+                    self._format,
+                    self._source,
+                )
+                channels = info.desc().append_child("channels")
                 for label in labels:
-                    if not isinstance('string', type(label)):
+                    if not isinstance("string", type(label)):
                         label = str(label)
-                    channels.append_child('channel').append_child_value('label', label)
+                    channels.append_child("channel").append_child_value("label", label)
                 self._outlet = StreamOutlet(info)
-            values = self.i.data.select_dtypes(include=[self._dtypes[self._format]]).values
+            values = self.i.data.select_dtypes(
+                include=[self._dtypes[self._format]]
+            ).values
             stamps = self.i.data.index.values.astype(np.float64)
             for row, stamp in zip(values, stamps):
                 self._outlet.push_sample(row, stamp)
@@ -88,16 +104,31 @@ class Receive(Node):
 
     """
 
-    def __init__(self, name=None, prop='name', value=None, timeout=1.0, unit='s', offset_correction=False, sync='local', channels=None, max_samples=1024):
+    def __init__(
+        self,
+        name=None,
+        prop="name",
+        value=None,
+        timeout=1.0,
+        unit="s",
+        offset_correction=False,
+        sync="local",
+        channels=None,
+        max_samples=1024,
+    ):
         if name:
-            self.logger.warning('The "name" parameter is deprecated. Use "prop" and "value" instead.')
+            self.logger.warning(
+                'The "name" parameter is deprecated. Use "prop" and "value" instead.'
+            )
             value = name
-            prop = 'name'
+            prop = "name"
         if not value:
-            raise  ValueError('Please specify a stream name or a property and value.')
+            raise ValueError("Please specify a stream name or a property and value.")
         if offset_correction:
-            self.logger.warning('The "offset_correction" parameter is deprecated. Use "sync" instead.')
-            sync = 'local'
+            self.logger.warning(
+                'The "offset_correction" parameter is deprecated. Use "sync" instead.'
+            )
+            sync = "local"
         self._prop = prop
         self._value = value
         self._inlet = None
@@ -111,34 +142,35 @@ class Receive(Node):
 
     def update(self):
         if not self._inlet:
-            self.logger.debug(f'Resolving stream with {self._prop} {self._value}')
+            self.logger.debug(f"Resolving stream with {self._prop} {self._value}")
             streams = resolve_byprop(self._prop, self._value, timeout=self._timeout)
-            if not streams: return
-            self.logger.debug('Stream acquired')
+            if not streams:
+                return
+            self.logger.debug("Stream acquired")
             self._inlet = StreamInlet(streams[0])
             info = self._inlet.info()
             self._meta = {
-                'name': info.name(),
-                'type': info.type(),
-                'rate': info.nominal_srate(),
-                'info': str(info.as_xml()).replace('\n', '').replace('\t', '')
+                "name": info.name(),
+                "type": info.type(),
+                "rate": info.nominal_srate(),
+                "info": str(info.as_xml()).replace("\n", "").replace("\t", ""),
             }
             if isinstance(self._channels, list):
                 self._labels = self._channels
             else:
                 description = info.desc()
-                channel = description.child('channels').first_child()
-                self._labels = [channel.child_value('label')]
+                channel = description.child("channels").first_child()
+                self._labels = [channel.child_value("label")]
                 for _ in range(info.channel_count() - 1):
                     channel = channel.next_sibling()
-                    self._labels.append(channel.child_value('label'))
+                    self._labels.append(channel.child_value("label"))
         if self._inlet:
             values, stamps = self._inlet.pull_chunk(max_samples=self._max_samples)
             if stamps:
                 stamps = np.array(stamps)
-                if self._sync == 'local':
+                if self._sync == "local":
                     stamps += self._offset
-                elif self._sync == 'network':
+                elif self._sync == "network":
                     stamps = stamps + self._inlet.time_correction() + self._offset
                 stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
             self.o.set(values, stamps, self._labels, self._meta)

@@ -21,29 +21,37 @@ class UTCFormatterFile(logging.Formatter):
     converter = time.gmtime
 
 
-class Handler():
-
+class Handler:
     def __init__(self):
-        self.logger = logging.getLogger('timeflux')
+        self.logger = logging.getLogger("timeflux")
 
     def handle(self, record):
         self.logger.handle(record)
 
 
-def init_listener(level_console='INFO', level_file='DEBUG', file=None):
+def init_listener(level_console="INFO", level_file="DEBUG", file=None):
 
     q = get_queue()
 
-    level_styles = {'debug': {'color': 'white'}, 'info': {'color': 'cyan'}, 'warning': {'color': 'yellow'},
-                    'error': {'color': 'red'}, 'critical': {'color': 'magenta'}}
-    field_styles = {'asctime': {'color': 'blue'}, 'levelname': {'color': 'black', 'bright': True},
-                    'processName': {'color': 'green'}}
-    record_format = '%(asctime)s %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s'
+    level_styles = {
+        "debug": {"color": "white"},
+        "info": {"color": "cyan"},
+        "warning": {"color": "yellow"},
+        "error": {"color": "red"},
+        "critical": {"color": "magenta"},
+    }
+    field_styles = {
+        "asctime": {"color": "blue"},
+        "levelname": {"color": "black", "bright": True},
+        "processName": {"color": "green"},
+    }
+    record_format = "%(asctime)s %(levelname)-10s %(module)-12s %(process)-8s %(processName)-16s %(message)s"
 
     # On Windows, the colors will not work unless we initialize the console with colorama
-    if sys.platform.startswith('win'):
+    if sys.platform.startswith("win"):
         try:
             import colorama
+
             colorama.init()
         except ImportError:
             # On Windows, without colorama, do not use the colors
@@ -52,57 +60,51 @@ def init_listener(level_console='INFO', level_file='DEBUG', file=None):
 
     # Define config
     config = {
-        'version': 1,
-        'root': {
-            'handlers': ['default'],
+        "version": 1,
+        "root": {"handlers": ["default"],},
+        "loggers": {
+            "timeflux": {"propagate": False, "level": "DEBUG", "handlers": ["console"]},
         },
-        'loggers': {
-            'timeflux': {
-                'propagate': False,
-                'level': 'DEBUG',
-                'handlers': ['console']
+        "formatters": {
+            "console": {
+                "()": "timeflux.core.logging.UTCFormatterConsole",
+                "format": record_format,
+                "datefmt": "%Y-%m-%d %H:%M:%S,%f",
+                "field_styles": field_styles,
+                "level_styles": level_styles,
+            },
+            "file": {
+                "class": "timeflux.core.logging.UTCFormatterFile",
+                "format": record_format,
             },
         },
-        'formatters': {
-            'console': {
-                '()': 'timeflux.core.logging.UTCFormatterConsole',
-                'format': record_format,
-                'datefmt': '%Y-%m-%d %H:%M:%S,%f',
-                'field_styles': field_styles,
-                'level_styles': level_styles,
+        "handlers": {
+            "default": {
+                "class": "logging.StreamHandler",
+                "formatter": "console",
+                "stream": "ext://sys.stdout",
             },
-            'file': {
-                'class': 'timeflux.core.logging.UTCFormatterFile',
-                'format': record_format
-            }
+            "console": {
+                "level": level_console,
+                "class": "logging.StreamHandler",
+                "formatter": "console",
+                "stream": "ext://sys.stdout",
+            },
+            "file": {
+                "level": level_file,
+                "class": "logging.FileHandler",
+                "filename": "timeflux.log",
+                "mode": "a",
+                "delay": True,
+                "formatter": "file",
+            },
         },
-        'handlers': {
-            'default': {
-                'class': 'logging.StreamHandler',
-                'formatter': 'console',
-                'stream': 'ext://sys.stdout',
-            },
-            'console': {
-                'level': level_console,
-                'class': 'logging.StreamHandler',
-                'formatter': 'console',
-                'stream': 'ext://sys.stdout',
-            },
-            'file': {
-                'level': level_file,
-                'class': 'logging.FileHandler',
-                'filename': 'timeflux.log',
-                'mode': 'a',
-                'delay': True,
-                'formatter': 'file',
-            },
-        }
     }
 
     if file:
         now = datetime.now()
-        config['loggers']['timeflux']['handlers'].append('file')
-        config['handlers']['file']['filename'] = now.strftime(file)
+        config["loggers"]["timeflux"]["handlers"].append("file")
+        config["handlers"]["file"]["filename"] = now.strftime(file)
 
     logging.config.dictConfig(config)
 
@@ -119,23 +121,14 @@ def terminate_listener():
 def init_worker(queue):
 
     config = {
-        'version': 1,
-        'handlers': {
-            'queue': {
-                'class': 'logging.handlers.QueueHandler',
-                'queue': queue
-            },
+        "version": 1,
+        "handlers": {
+            "queue": {"class": "logging.handlers.QueueHandler", "queue": queue},
         },
-        'loggers': {
-            'timeflux': {
-                'propagate': False,
-                'level' : 'DEBUG',
-                'handlers': ['queue']
-            }
+        "loggers": {
+            "timeflux": {"propagate": False, "level": "DEBUG", "handlers": ["queue"]}
         },
-        'root': {
-            'handlers': ['queue']
-        }
+        "root": {"handlers": ["queue"]},
     }
 
     logging.config.dictConfig(config)
@@ -143,5 +136,5 @@ def init_worker(queue):
 
 def get_queue():
     if not _QUEUE:
-        globals()['_QUEUE'] = Queue()
+        globals()["_QUEUE"] = Queue()
     return _QUEUE

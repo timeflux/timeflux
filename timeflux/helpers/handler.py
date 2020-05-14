@@ -54,7 +54,7 @@ def launch_posix(args):
     try:
         subprocess.Popen(args)
     except:
-        _exit_with_error(f'Invalid arguments: {args}')
+        _exit_with_error(f"Invalid arguments: {args}")
 
 
 def launch_windows(args, port=10000):
@@ -62,16 +62,16 @@ def launch_windows(args, port=10000):
     try:
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.setblocking(False)
-        server.bind(('localhost', port))
+        server.bind(("localhost", port))
         server.listen(1)
     except:
-        _exit_with_error(f'Could not start server on port {port}.')
+        _exit_with_error(f"Could not start server on port {port}.")
     try:
-        #flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
+        # flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
         flags = subprocess.HIGH_PRIORITY_CLASS
         process = subprocess.Popen(args, creationflags=flags)
     except:
-        _exit_with_error(f'Invalid arguments: {args}')
+        _exit_with_error(f"Invalid arguments: {args}")
     while True:
         try:
             # Kill the process if a connection is received
@@ -81,7 +81,7 @@ def launch_windows(args, port=10000):
         except BlockingIOError:
             try:
                 # Exit the loop is the process is already dead
-                process.wait(.1)
+                process.wait(0.1)
                 break
             except subprocess.TimeoutExpired:
                 pass
@@ -90,21 +90,21 @@ def launch_windows(args, port=10000):
 def terminate_posix():
     """Find oldest Timeflux process and terminate it."""
     try:
-        pid = int(subprocess.check_output(['pgrep', '-of', 'timeflux']))
-        print(f'Sending INT signal to PID {pid}.')
+        pid = int(subprocess.check_output(["pgrep", "-of", "timeflux"]))
+        print(f"Sending INT signal to PID {pid}.")
         os.kill(pid, signal.SIGINT)
     except:
-        _exit_with_error('No running Timeflux instance found.')
+        _exit_with_error("No running Timeflux instance found.")
 
 
 def terminate_windows(port=10000):
     """Terminate the Timeflux process by connecting to the TCP server."""
     client = socket.socket()
     try:
-        client.connect(('localhost', port))
+        client.connect(("localhost", port))
         client.close()
     except:
-        _exit_with_error('No running Timeflux instance found.')
+        _exit_with_error("No running Timeflux instance found.")
 
 
 def _exit_with_error(message):
@@ -112,16 +112,17 @@ def _exit_with_error(message):
     sys.exit(1)
 
 
-if __name__ == '__main__':
-    if len(sys.argv) == 1: sys.exit()
-    if sys.argv[1] == 'launch':
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        sys.exit()
+    if sys.argv[1] == "launch":
         args = sys.argv[2:]
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             launch_windows(args)
         else:
             launch_posix(args)
-    if sys.argv[1] == 'terminate':
-        if sys.platform == 'win32':
+    if sys.argv[1] == "terminate":
+        if sys.platform == "win32":
             terminate_windows()
         else:
             terminate_posix()

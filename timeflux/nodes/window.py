@@ -3,6 +3,7 @@
 from timeflux.core.node import Node
 import pandas as pd
 
+
 class Window(Node):
 
     """Provide sliding windows.
@@ -25,13 +26,15 @@ class Window(Node):
 
     """
 
-    def __init__(self, length, step=None, index='time', epochs=False):
+    def __init__(self, length, step=None, index="time", epochs=False):
 
-        if index not in ['time', 'sample']: raise ValueError('Invalid `index` value.')
-        mixin = TimeWindow if index == 'time' else SampleWindow
-        self.__class__ = type('SlidingWindow', (mixin, Window), {})
+        if index not in ["time", "sample"]:
+            raise ValueError("Invalid `index` value.")
+        mixin = TimeWindow if index == "time" else SampleWindow
+        self.__class__ = type("SlidingWindow", (mixin, Window), {})
         self.__init__(length, step)
-        if epochs: self.bind('o', 'o_0')
+        if epochs:
+            self.bind("o", "o_0")
 
     def update(self):
 
@@ -39,13 +42,12 @@ class Window(Node):
 
 
 class TimeWindow(Node):
-
     def __init__(self, length, step=None):
 
         if step is None:
             step = length
         if step > length:
-            raise ValueError('`step` must be less than or equal to `length`.')
+            raise ValueError("`step` must be less than or equal to `length`.")
         self._length = pd.Timedelta(seconds=length)
         self._step = pd.Timedelta(seconds=step)
         self._buffer = None
@@ -58,7 +60,7 @@ class TimeWindow(Node):
 
         # Sanity check
         if not self.i.data.index.is_monotonic:
-            self.logger.warning('Indices are non-monotonic.')
+            self.logger.warning("Indices are non-monotonic.")
 
         # Append new data
         if self._buffer is None:
@@ -75,18 +77,25 @@ class TimeWindow(Node):
             self._buffer = self._buffer[self._buffer.index >= low + self._step]
 
         # Make sure we are not overflowing
-        if not self._buffer.empty and (self._buffer.index[-1] - self._buffer.index[0]) > self._length:
-            self.logger.warning('This node is falling behind: it is receiving '
-                                'more data than it can send. Check the window '
-                                'parameters and the graph rate.')
-            self._buffer = self._buffer[self._buffer.index > self._buffer.index[-1] - self._length + self._step]
+        if (
+            not self._buffer.empty
+            and (self._buffer.index[-1] - self._buffer.index[0]) > self._length
+        ):
+            self.logger.warning(
+                "This node is falling behind: it is receiving "
+                "more data than it can send. Check the window "
+                "parameters and the graph rate."
+            )
+            self._buffer = self._buffer[
+                self._buffer.index > self._buffer.index[-1] - self._length + self._step
+            ]
 
 
 class SampleWindow(Node):
-
     def __init__(self, length, step=None):
 
-        if step is None: step = length
+        if step is None:
+            step = length
         self._length = length
         self._step = step
         self._buffer = None
@@ -104,7 +113,7 @@ class SampleWindow(Node):
 
         # Make sure we have enough data
         if len(self._buffer) >= self._length:
-            self.o.data = self._buffer[-self._length:]
+            self.o.data = self._buffer[-self._length :]
             self.o.meta = self.i.meta
             # Step
-            self._buffer = self.o.data[self._step:]
+            self._buffer = self.o.data[self._step :]

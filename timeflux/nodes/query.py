@@ -1,8 +1,6 @@
-
 import numpy as np
 from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.core.node import Node
-
 
 
 class SelectRange(Node):
@@ -69,13 +67,19 @@ class SelectRange(Node):
 
     def _mask(self):
         if self._inclusive:
-            mask = [(self.i.data.index.get_level_values(l) >= r[0]) &
-                    (self.i.data.index.get_level_values(l) <= r[1])
-                    for l, r in (self._ranges).items() if r is not None]
+            mask = [
+                (self.i.data.index.get_level_values(l) >= r[0])
+                & (self.i.data.index.get_level_values(l) <= r[1])
+                for l, r in (self._ranges).items()
+                if r is not None
+            ]
         else:
-            mask = [(self.i.data.index.get_level_values(l) > r[0]) &
-                    (self.i.data.index.get_level_values(l) < r[1])
-                    for l, r in (self._ranges).items() if r is not None]
+            mask = [
+                (self.i.data.index.get_level_values(l) > r[0])
+                & (self.i.data.index.get_level_values(l) < r[1])
+                for l, r in (self._ranges).items()
+                if r is not None
+            ]
         return mask
 
 
@@ -124,7 +128,6 @@ class XsQuery(Node):
         See the documentation of `pandas.DataFrame.xs <https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.xs.html>`_  .
 
     """
-
 
     def __init__(self, key, **kwargs):
         """

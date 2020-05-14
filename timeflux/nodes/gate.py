@@ -33,8 +33,7 @@ class Gate(Node):
 
     """
 
-
-    def __init__(self, event_opens, event_closes, event_label='label', truncate=False):
+    def __init__(self, event_opens, event_closes, event_label="label", truncate=False):
         self._event_label = event_label
         self._event_opens = event_opens
         self._event_closes = event_closes
@@ -47,7 +46,7 @@ class Gate(Node):
         if self.i_events.ready():
             for index, row in self.i_events.data.iterrows():
                 if row[self._event_label] == self._trigger:
-                    self.logger.debug(f'Gate received {self._trigger}.')
+                    self.logger.debug(f"Gate received {self._trigger}.")
                     self._next()
                     # keep track of opening/closing of the gate
                     self._times.append(index)
@@ -58,39 +57,43 @@ class Gate(Node):
         # if the gate is closing, reset status and trigger iterator,
         # else (gate is closed), return
 
-        if self._status == 'open':
+        if self._status == "open":
             self.o = self.i
-            self.o.meta['gate_status'] = self._status
+            self.o.meta["gate_status"] = self._status
             if self._truncate and self.o.ready():
                 if isinstance(self.o.data, xr.DataArray):
-                    self.o.data = self.o.data.sel({'time': slice(self._times[0], self.o.data.time[-1])})
+                    self.o.data = self.o.data.sel(
+                        {"time": slice(self._times[0], self.o.data.time[-1])}
+                    )
                 else:  # isinstance(self.o.data,pd.DataFrame)
                     # truncate the data after opening time
-                    self.o.data = self.o.data[self._times[0]:]
-        elif self._status == 'closing':
+                    self.o.data = self.o.data[self._times[0] :]
+        elif self._status == "closing":
             self.o = self.i
-            self.o.meta.update({'gate_status': 'closed', 'gate_times': self._times})
+            self.o.meta.update({"gate_status": "closed", "gate_times": self._times})
             # truncate the data between opening and closing times
             if self._truncate and self.o.ready():
                 if isinstance(self.o.data, xr.DataArray):
-                    self.o.data = self.o.data.sel({'time': slice(self._times[0], self._times[1])})
+                    self.o.data = self.o.data.sel(
+                        {"time": slice(self._times[0], self._times[1])}
+                    )
                 else:  # isinstance(self.o.data,pd.DataFrame)
-                    self.o.data = self.o.data[self._times[0]:self._times[1]]
+                    self.o.data = self.o.data[self._times[0] : self._times[1]]
             self._reset()
         else:  # self._status == 'closed'
             self.o.data = None
-            self.o.meta = {'gate_status': 'closed'}
+            self.o.meta = {"gate_status": "closed"}
 
     def _next(self):
         # iterates trigger (expected event) and status (defining the mode of the node)
         self._status = next(self._status_iterator)
         self._trigger = next(self._trigger_iterator)
-        self.logger.debug(f'Gate is {self._status}.')
+        self.logger.debug(f"Gate is {self._status}.")
 
     def _reset(self):
         # Reset iterator states
         self._times = []
         self._trigger_iterator = cycle([self._event_opens, self._event_closes])
-        self._status_iterator = cycle(['closed', 'open', 'closing'])
+        self._status_iterator = cycle(["closed", "open", "closing"])
         # initialize trigger and status
         self._next()

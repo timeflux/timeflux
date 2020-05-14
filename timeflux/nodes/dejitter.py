@@ -28,7 +28,7 @@ class Snap(Node):
 
         # if the rate has not been set in the constructor, get it from the meta
         if self._rate is None:
-            self._rate = self.i.meta.get('rate')
+            self._rate = self.i.meta.get("rate")
 
         # When we have not received data, there is nothing to do
         if self._rate is None or self.i.data is None or self.i.data.empty:
@@ -36,7 +36,7 @@ class Snap(Node):
 
         # At this point, we are sure that we have some data to process
         self.o.data.index = self.o.data.index.round(str(1 / self._rate) + "S")
-        self.o.meta['rate'] = self._rate
+        self.o.meta["rate"] = self._rate
 
 
 class Interpolate(Node):
@@ -64,7 +64,7 @@ class Interpolate(Node):
         computation duration.
     """
 
-    def __init__(self, rate=None, method='cubic', n_min=3, n_max=10):
+    def __init__(self, rate=None, method="cubic", n_min=3, n_max=10):
 
         self._rate = rate
         if self._rate is not None:
@@ -77,7 +77,9 @@ class Interpolate(Node):
 
     def _set_timedelta(self):
         self._timespan = 1 / self._rate
-        self._timedelta = pd.to_timedelta(self._timespan, 's')  # sampling period of the interpolated signal
+        self._timedelta = pd.to_timedelta(
+            self._timespan, "s"
+        )  # sampling period of the interpolated signal
 
     def update(self):
 
@@ -85,52 +87,66 @@ class Interpolate(Node):
 
         # if the rate has not been set in the constructor, get it from the meta
         if self._rate is None:
-            self._rate = self.i.meta.get('rate')
+            self._rate = self.i.meta.get("rate")
             self._set_timedelta()
-        self.o.meta['rate'] = self._rate
+        self.o.meta["rate"] = self._rate
 
         if self.i.data is None or self.i.data.empty:
             return
 
         # initialize the first datetime index.
         if self._last_datetime is None:
-            self._last_datetime = self.i.data.index.round(str(self._timespan) + 'S')[0]
+            self._last_datetime = self.i.data.index.round(str(self._timespan) + "S")[0]
             self._buffer = pd.DataFrame()
-            self._times = np.arange(self._last_datetime,
-                                    self.i.data.index[-1],
-                                    self._timedelta,
-                                    dtype='datetime64[us]')
+            self._times = np.arange(
+                self._last_datetime,
+                self.i.data.index[-1],
+                self._timedelta,
+                dtype="datetime64[us]",
+            )
         else:
-            self._times = np.arange(self._last_datetime + self._timedelta,
-                                    self.i.data.index[-1],
-                                    self._timedelta,
-                                    dtype='datetime64[us]')
+            self._times = np.arange(
+                self._last_datetime + self._timedelta,
+                self.i.data.index[-1],
+                self._timedelta,
+                dtype="datetime64[us]",
+            )
 
         # interpolate
         self._interpolate()
 
     def _drop_duplicates(self, data):
-        return data.loc[~data.index.duplicated(keep='first')]
+        return data.loc[~data.index.duplicated(keep="first")]
 
     def _make_monotonic(self, data):
-        return data[np.diff(pd.Index([self._last_datetime]).append(data.index)) / np.timedelta64(1, 's') > 0]
+        return data[
+            np.diff(pd.Index([self._last_datetime]).append(data.index))
+            / np.timedelta64(1, "s")
+            > 0
+        ]
 
     def _interpolate(self):
         # interpolate current chunk
-        self._buffer = self._buffer.append(self.i.data, sort=True)  # append last sample be able to interpolate
+        self._buffer = self._buffer.append(
+            self.i.data, sort=True
+        )  # append last sample be able to interpolate
 
         if not self._buffer.index.is_monotonic:
-            self.logger.warning('Data index should be strictly monotonic')
+            self.logger.warning("Data index should be strictly monotonic")
             self._buffer = self._make_monotonic(self._buffer)
 
-        data_to_interpolate = self._buffer.append(pd.DataFrame(index=self._times),
-                                                  sort=True)
+        data_to_interpolate = self._buffer.append(
+            pd.DataFrame(index=self._times), sort=True
+        )
         data_to_interpolate = self._drop_duplicates(data_to_interpolate).sort_index()
 
         if (self._buffer.notnull().sum(axis=0) > self._n_min).all():
-            self.o.data = (data_to_interpolate.interpolate(axis=0, method=self._method)
-                           .reindex(self._times).loc[self._last_datetime:]
-                           .dropna(axis=0, how='any'))
+            self.o.data = (
+                data_to_interpolate.interpolate(axis=0, method=self._method)
+                .reindex(self._times)
+                .loc[self._last_datetime :]
+                .dropna(axis=0, how="any")
+            )
 
             if not self.o.data.empty:
                 self._last_datetime = self.o.data.index[-1]

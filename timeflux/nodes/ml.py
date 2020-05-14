@@ -18,6 +18,7 @@ ACCUMULATING = 1
 FITTING = 2
 READY = 3
 
+
 class Pipeline(Node):
     """ Fit, transform and predict.
 
@@ -56,21 +57,23 @@ class Pipeline(Node):
 
     """
 
-    def __init__(self,
-                 steps,
-                 fit=True,
-                 mode='predict',
-                 meta_label=('epoch', 'context', 'target'),
-                 event_start_accumulation='accumulation_starts',
-                 event_stop_accumulation='accumulation_stops',
-                 event_start_training='training_starts',
-                 buffer_size='5s',
-                 passthrough=False,
-                 resample=False,
-                 resample_direction='right',
-                 resample_rate=None,
-                 model=None,
-                 cv=None):
+    def __init__(
+        self,
+        steps,
+        fit=True,
+        mode="predict",
+        meta_label=("epoch", "context", "target"),
+        event_start_accumulation="accumulation_starts",
+        event_stop_accumulation="accumulation_stops",
+        event_start_training="training_starts",
+        buffer_size="5s",
+        passthrough=False,
+        resample=False,
+        resample_direction="right",
+        resample_rate=None,
+        model=None,
+        cv=None,
+    ):
 
         # TODO: validation
         # TODO: model loading from file
@@ -90,7 +93,6 @@ class Pipeline(Node):
         self._make_pipeline(steps)
         self._reset()
 
-
     def update(self):
 
         # Let's get ready
@@ -98,10 +100,10 @@ class Pipeline(Node):
 
         # Are we dealing with continuous data or epochs?
         if self._dimensions is None:
-            port_name = 'i_training' if self.fit else 'i'
+            port_name = "i_training" if self.fit else "i"
             if getattr(self, port_name).ready():
                 self._dimensions = 2
-            elif len(list(self.iterate(port_name + '_*'))) > 0:
+            elif len(list(self.iterate(port_name + "_*"))) > 0:
                 self._dimensions = 3
 
         # Set the accumulation boundaries
@@ -131,19 +133,26 @@ class Pipeline(Node):
         if self._status < FITTING:
             if match_events(self.i_events, self.event_start_training) is not None:
                 self._status = FITTING
-                self._task = Task(self._pipeline, 'fit', self._X_train, self._y_train).start()
+                self._task = Task(
+                    self._pipeline, "fit", self._X_train, self._y_train
+                ).start()
 
         # Is the model ready?
         if self._status == FITTING:
             status = self._task.status()
             if status:
-                if status['success']:
-                    self._pipeline = status['instance']
+                if status["success"]:
+                    self._pipeline = status["instance"]
                     self._status = READY
                     self.logger.debug(f"Model fitted in {status['time']} seconds")
                 else:
-                    self.logger.error(f"An error occured while fitting: {status['exception'].args[0]}")
-                    self.logger.debug('\nTraceback (most recent call last):\n' + ''.join(status['traceback']))
+                    self.logger.error(
+                        f"An error occured while fitting: {status['exception'].args[0]}"
+                    )
+                    self.logger.debug(
+                        "\nTraceback (most recent call last):\n"
+                        + "".join(status["traceback"])
+                    )
                     raise WorkerInterrupt()
 
         # Run the pipeline
@@ -151,7 +160,7 @@ class Pipeline(Node):
             self._receive()
             if self._X is not None:
                 args = [self._X]
-                if self.mode.startswith('fit'):
+                if self.mode.startswith("fit"):
                     args.append(self._y)
                 # TODO: optionally loop through epochs instead of sending them all at once
                 self._out = getattr(self._pipeline, self.mode)(*args)
@@ -159,13 +168,11 @@ class Pipeline(Node):
         # Set output streams
         self._send()
 
-
     def terminate(self):
 
         # Kill the fit subprocess
         if self._task is not None:
             self._task.stop()
-
 
     def _reset(self):
 
@@ -177,15 +184,14 @@ class Pipeline(Node):
         self._dimensions = None
         self._shape = ()
         self._task = None
-        if self.mode.startswith('fit'):
+        if self.mode.startswith("fit"):
             self.fit = False
-        elif self.mode.startswith('predict'):
+        elif self.mode.startswith("predict"):
             self.fit = True
         if self.fit:
             self._status = IDLE
         else:
             self._status = READY
-
 
     def _clear(self):
 
@@ -195,43 +201,46 @@ class Pipeline(Node):
         self._X_columns = []
         self._out = None
 
-
     def _make_pipeline(self, steps):
 
         schema = {
-            'type': 'array',
-            'minItems': 1,
-            'items': {
-                'type': 'object',
-                'properties': {
-                    'module': {'type' : 'string'},
-                    'class': {'type' : 'string'},
-                    'args': {'type': 'object'}
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "module": {"type": "string"},
+                    "class": {"type": "string"},
+                    "args": {"type": "object"},
                 },
-                'required': ['module', 'class']
-            }
+                "required": ["module", "class"],
+            },
         }
         try:
             validate(instance=steps, schema=schema)
         except Exception as error:
-            raise ValidationError('steps', error.message)
+            raise ValidationError("steps", error.message)
         pipeline = []
         for step in steps:
             try:
-                args = step['args'] if 'args' in step else {}
-                m = importlib.import_module(step['module'])
-                c = getattr(m, step['class'])
+                args = step["args"] if "args" in step else {}
+                m = importlib.import_module(step["module"])
+                c = getattr(m, step["class"])
                 i = c(**args)
                 pipeline.append(i)
             except ImportError as error:
-                raise ValidationError('steps', f"could not import '{step['module']}'")
+                raise ValidationError("steps", f"could not import '{step['module']}'")
             except AttributeError as error:
-                raise ValidationError('steps', f"could not find class '{step['class']}'")
+                raise ValidationError(
+                    "steps", f"could not find class '{step['class']}'"
+                )
             except TypeError as error:
-                raise ValidationError('steps', f"could not instantiate class '{step['class']}' with the given params")
+                raise ValidationError(
+                    "steps",
+                    f"could not instantiate class '{step['class']}' with the given params",
+                )
         # TODO: memory and verbose args
         self._pipeline = make_pipeline(*pipeline, memory=None, verbose=False)
-
 
     def _accumulate(self, start, stop):
 
@@ -258,21 +267,21 @@ class Pipeline(Node):
                             self._X_train = np.vstack((self._X_train, data.values))
                             indices = data.index.values
                         else:
-                            self.logger.warning('Invalid shape')
+                            self.logger.warning("Invalid shape")
 
         # Accumulate epoched data
         if self._dimensions == 3:
-            for _, _, port in self.iterate('i_training_*'):
+            for _, _, port in self.iterate("i_training_*"):
                 if port.ready():
                     index = port.data.index.values[0]
                     if index >= start and index < stop:
                         data = port.data.values
                         label = get_meta(port, self.meta_label)
                         if self._shape and (data.shape != self._shape):
-                            self.logger.warning('Invalid shape')
+                            self.logger.warning("Invalid shape")
                             continue
                         if self.meta_label is not None and label is None:
-                            self.logger.warning('Invalid label')
+                            self.logger.warning("Invalid label")
                             continue
                         if self._X_train is None:
                             self._X_train = np.array([data])
@@ -298,7 +307,6 @@ class Pipeline(Node):
             if self._y_train is not None:
                 self._y_train = self._y_train[mask]
 
-
     def _receive(self):
 
         # Continuous data
@@ -307,25 +315,25 @@ class Pipeline(Node):
                 if not self._X_columns:
                     self._X_columns = list(self.i.data.columns)
                 if self._shape and (self.i.data.shape[1] != self._shape):
-                    self.logger.warning('Invalid shape')
+                    self.logger.warning("Invalid shape")
                 else:
                     self._X = self.i.data.values
                     self._X_indices = self.i.data.index.values
 
         # Epochs
         if self._dimensions == 3:
-            for name, _, port in self.iterate('i_*'):
-                if port.ready() and 'training' not in name and 'events' not in name:
+            for name, _, port in self.iterate("i_*"):
+                if port.ready() and "training" not in name and "events" not in name:
                     data = port.data.values
                     indices = port.data.index.values
                     label = get_meta(port, self.meta_label)
                     if not self._X_columns:
                         self._X_columns = list(port.data.columns)
                     if self._shape and (data.shape != self._shape):
-                        self.logger.warning('Invalid shape')
+                        self.logger.warning("Invalid shape")
                         continue
                     if not self.fit and self.meta_label is not None and label is None:
-                        self.logger.warning('Invalid label')
+                        self.logger.warning("Invalid label")
                         continue
                     if self._X is None:
                         self._X = []
@@ -336,54 +344,70 @@ class Pipeline(Node):
                     if label is not None:
                         self._y.append(label)
 
-
     def _send(self):
 
         # Passthrough
         if self._status < READY and self.passthrough:
             inputs = []
-            for _, suffix, port in self.iterate('i*'):
-                if not suffix.startswith('_training') and not suffix.startswith('_events'):
+            for _, suffix, port in self.iterate("i*"):
+                if not suffix.startswith("_training") and not suffix.startswith(
+                    "_events"
+                ):
                     inputs.append((suffix, port))
             for suffix, src_port in inputs:
-                dst_port = getattr(self, 'o' + suffix)
+                dst_port = getattr(self, "o" + suffix)
                 dst_port.data = src_port.data
                 dst_port.meta = src_port.meta
 
         # Model
         if self._out is not None:
-            if 'predict' in self.mode:
+            if "predict" in self.mode:
                 # Send events
                 if len(self._X_indices) == len(self._out):
                     # TODO: skip JSON serialization?
-                    data = [[self.mode, json.dumps({'result': self._np_to_native(result)})] for result in self._out]
-                    times = self._X_indices if self._dimensions == 2 else np.asarray(self._X_indices)[:, 0] # Keep the first timestamp of each epoch
-                    names = ['label', 'data']
+                    data = [
+                        [self.mode, json.dumps({"result": self._np_to_native(result)})]
+                        for result in self._out
+                    ]
+                    times = (
+                        self._X_indices
+                        if self._dimensions == 2
+                        else np.asarray(self._X_indices)[:, 0]
+                    )  # Keep the first timestamp of each epoch
+                    names = ["label", "data"]
                     self.o_events.set(data, times, names)
                 else:
-                    self.logger.warning('Number of predictions inconsistent with input length')
+                    self.logger.warning(
+                        "Number of predictions inconsistent with input length"
+                    )
             else:
                 # Send data
                 if self._dimensions == 2:
                     try:
-                        self.o.data = self._reindex(self._out, self._X_indices, self._X_columns)
+                        self.o.data = self._reindex(
+                            self._out, self._X_indices, self._X_columns
+                        )
                     except Exception as e:
-                        self.logger.warning(getattr(e, 'message', repr(e)))
+                        self.logger.warning(getattr(e, "message", repr(e)))
                 if self._dimensions == 3:
                     if len(self._X_indices) == len(self._out):
-                        for i, (data, times) in enumerate(zip(self._out, self._X_indices)):
+                        for i, (data, times) in enumerate(
+                            zip(self._out, self._X_indices)
+                        ):
                             try:
-                                getattr(self, 'o_' + str(i)).data = self._reindex(data, times, self._X_columns)
+                                getattr(self, "o_" + str(i)).data = self._reindex(
+                                    data, times, self._X_columns
+                                )
                             except Exception as e:
-                                self.logger.warning(getattr(e, 'message', repr(e)))
+                                self.logger.warning(getattr(e, "message", repr(e)))
                     else:
-                        self.logger.warning('Number of transforms inconsistent with number of epochs')
-
+                        self.logger.warning(
+                            "Number of transforms inconsistent with number of epochs"
+                        )
 
     def _np_to_native(self, data):
         """Convert numpy scalars and objects to native types."""
-        return getattr(data, 'tolist', lambda: data)()
-
+        return getattr(data, "tolist", lambda: data)()
 
     def _reindex(self, data, times, columns):
 
@@ -391,20 +415,24 @@ class Pipeline(Node):
 
             if self.resample:
                 # Resample at a specific frequency
-                kwargs = { 'periods': len(data) }
+                kwargs = {"periods": len(data)}
                 if self.resample_rate is None:
-                    kwargs['freq'] = pd.infer_freq(times)
-                    kwargs['freq'] = pd.tseries.frequencies.to_offset(kwargs['freq'])
+                    kwargs["freq"] = pd.infer_freq(times)
+                    kwargs["freq"] = pd.tseries.frequencies.to_offset(kwargs["freq"])
                 else:
-                    kwargs['freq'] = pd.DateOffset(seconds=1/self.resample_rate)
-                if self.resample_direction == 'right':
-                    kwargs['start'] = times[0]
-                elif self.resample_direction == 'left':
-                    kwargs['end'] = times[-1]
+                    kwargs["freq"] = pd.DateOffset(seconds=1 / self.resample_rate)
+                if self.resample_direction == "right":
+                    kwargs["start"] = times[0]
+                elif self.resample_direction == "left":
+                    kwargs["end"] = times[-1]
                 else:
+
                     def middle(a):
                         return int(np.ceil(len(a) / 2)) - 1
-                    kwargs['start'] = times[middle(times)] - (middle(data) * kwargs['freq'])
+
+                    kwargs["start"] = times[middle(times)] - (
+                        middle(data) * kwargs["freq"]
+                    )
                 times = pd.date_range(**kwargs)
 
             else:
@@ -412,4 +440,3 @@ class Pipeline(Node):
                 times = pd.date_range(start=times[0], end=times[-1], periods=len(data))
 
         return pd.DataFrame(data, times, columns)
-

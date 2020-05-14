@@ -22,7 +22,7 @@ import zmq
 from subprocess import Popen
 
 
-class Runner():
+class Runner:
 
     """ Background base class. Provides common methods.
 
@@ -45,7 +45,7 @@ class Runner():
         try:
             return self._socket.recv_pyobj(flag)
         except zmq.ZMQError:
-            pass # No data
+            pass  # No data
 
 
 class Task(Runner):
@@ -69,7 +69,7 @@ class Task(Runner):
         super().__init__()
         context = zmq.Context()
         self._socket = context.socket(zmq.PAIR)
-        self._port = self._socket.bind_to_random_port('tcp://127.0.0.1')
+        self._port = self._socket.bind_to_random_port("tcp://127.0.0.1")
         self.done = False
         self.instance = instance
         self.method = method
@@ -78,8 +78,15 @@ class Task(Runner):
 
     def start(self):
         """Run the task."""
-        self._process = Popen(['python', '-m', __name__, str(self._port)])
-        self._send({'instance': self.instance, 'method': self.method, 'args': self.args, 'kwargs': self.kwargs})
+        self._process = Popen(["python", "-m", __name__, str(self._port)])
+        self._send(
+            {
+                "instance": self.instance,
+                "method": self.method,
+                "args": self.args,
+                "kwargs": self.kwargs,
+            }
+        )
         return self
 
     def stop(self):
@@ -122,7 +129,7 @@ class Worker(Runner):
         self.logger = logging.getLogger(__name__)
         context = zmq.Context()
         self._socket = context.socket(zmq.PAIR)
-        self._socket.connect(f'tcp://127.0.0.1:{port}')
+        self._socket.connect(f"tcp://127.0.0.1:{port}")
 
     def execute(self):
         """Get the task from the socket and run it."""
@@ -130,21 +137,23 @@ class Worker(Runner):
         start = time.perf_counter()
         try:
             data = self._receive()
-            result = getattr(data['instance'], data['method'])(*data['args'], **data['kwargs'])
-            response['instance'] = data['instance']
-            response['result'] = result
-            response['success'] = True
+            result = getattr(data["instance"], data["method"])(
+                *data["args"], **data["kwargs"]
+            )
+            response["instance"] = data["instance"]
+            response["result"] = result
+            response["success"] = True
         except Exception as e:
-            response['exception'] = e
-            response['traceback'] = traceback.format_tb(e.__traceback__)
-            response['success'] = False
-        response['time'] = time.perf_counter() - start
+            response["exception"] = e
+            response["traceback"] = traceback.format_tb(e.__traceback__)
+            response["success"] = False
+        response["time"] = time.perf_counter() - start
         self._send(response)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
-    if len(sys.argv) == 1: sys.exit()
+    if len(sys.argv) == 1:
+        sys.exit()
     port = sys.argv[1]
     Worker(port).execute()
-

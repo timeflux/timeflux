@@ -10,7 +10,8 @@ from timeflux.core.node import Node
 # Ignore the "object name is not a valid Python identifier" message
 import warnings
 from tables.exceptions import NaturalNameWarning
-warnings.simplefilter('ignore', NaturalNameWarning)
+
+warnings.simplefilter("ignore", NaturalNameWarning)
 
 
 class Replay(Node):
@@ -37,7 +38,7 @@ class Replay(Node):
 
         # Load store
         try:
-            self._store = pd.HDFStore(filename, mode='r')
+            self._store = pd.HDFStore(filename, mode="r")
         except IOError as e:
             raise WorkerInterrupt(e)
 
@@ -46,14 +47,14 @@ class Replay(Node):
         self._start = pd.Timestamp.max
         self._stop = pd.Timestamp.min
         self._speed = speed
-        self._timespan = None if not timespan else pd.Timedelta(f'{timespan}s')
+        self._timespan = None if not timespan else pd.Timedelta(f"{timespan}s")
         self._resync = resync
 
         for key in keys:
             try:
                 # Check format
                 if not self._store.get_storer(key).is_table:
-                    self.logger.warning('%s: Fixed format. Will be skipped.', key)
+                    self.logger.warning("%s: Fixed format. Will be skipped.", key)
                     continue
                 # Get first index
                 first = self._store.select(key, start=0, stop=1).index[0]
@@ -62,7 +63,7 @@ class Replay(Node):
                 last = self._store.select(key, start=nrows - 1, stop=nrows).index[0]
                 # Check index type
                 if type(first) != pd.Timestamp:
-                    self.logger.warning('%s: Invalid index. Will be skipped.', key)
+                    self.logger.warning("%s: Invalid index. Will be skipped.", key)
                     continue
                 # Find lowest and highest indices across stores
                 if first < self._start:
@@ -70,22 +71,22 @@ class Replay(Node):
                 if last > self._stop:
                     self._stop = last
                 # Extract meta
-                if self._store.get_node(key)._v_attrs.__contains__('meta'):
-                    meta = self._store.get_node(key)._v_attrs['meta']
+                if self._store.get_node(key)._v_attrs.__contains__("meta"):
+                    meta = self._store.get_node(key)._v_attrs["meta"]
                 else:
                     meta = {}
                 # Set output port name, port will be created dynamically
-                name = 'o' + key.replace('/', '_')
+                name = "o" + key.replace("/", "_")
                 # Update sources
                 self._sources[key] = {
-                    'start': first,
-                    'stop': last,
-                    'nrows': nrows,
-                    'name': name,
-                    'meta': meta
+                    "start": first,
+                    "stop": last,
+                    "nrows": nrows,
+                    "name": name,
+                    "meta": meta,
                 }
             except KeyError:
-                self.logger.warning('%s: Key not found.', key)
+                self.logger.warning("%s: Key not found.", key)
 
         # Current time
         now = clock.now()
@@ -102,7 +103,7 @@ class Replay(Node):
     def update(self):
 
         if self._current > self._stop:
-            raise WorkerInterrupt('No more data.')
+            raise WorkerInterrupt("No more data.")
 
         min = self._current
 
@@ -117,15 +118,15 @@ class Replay(Node):
         for key, source in self._sources.items():
 
             # Select data
-            data = self._store.select(key, 'index >= min & index < max')
+            data = self._store.select(key, "index >= min & index < max")
 
             # Add offset
             if self._resync:
                 data.index += self._offset
 
             # Update port
-            getattr(self, source['name']).data = data
-            getattr(self, source['name']).meta = source['meta']
+            getattr(self, source["name"]).data = data
+            getattr(self, source["name"]).meta = source["meta"]
 
         self._current = max
 
@@ -136,7 +137,9 @@ class Replay(Node):
 class Save(Node):
     """Save to HDF5."""
 
-    def __init__(self, filename=None, path='/tmp', complib='zlib', complevel=9, min_itemsize=None):
+    def __init__(
+        self, filename=None, path="/tmp", complib="zlib", complevel=9, min_itemsize=None
+    ):
         """
         Initialize.
 
@@ -161,19 +164,21 @@ class Save(Node):
         """
         os.makedirs(path, exist_ok=True)
         if filename is None:
-            filename = os.path.join(path, time.strftime('%Y%m%d-%H%M%S.hdf5', time.gmtime()))
+            filename = os.path.join(
+                path, time.strftime("%Y%m%d-%H%M%S.hdf5", time.gmtime())
+            )
         else:
             filename = os.path.join(path, filename)
-        self.logger.info('Saving to %s', filename)
+        self.logger.info("Saving to %s", filename)
         self._store = pd.HDFStore(filename, complib=complib, complevel=complevel)
         self.min_itemsize = min_itemsize
 
     def update(self):
         if self.ports is not None:
             for name, port in self.ports.items():
-                if not name.startswith('i'):
+                if not name.startswith("i"):
                     continue
-                key = '/' + name[2:].replace('_', '/')
+                key = "/" + name[2:].replace("_", "/")
                 if port.data is not None:
                     self._store.append(key, port.data, min_itemsize=self.min_itemsize)
                 if port.meta is not None and port.meta:
@@ -182,7 +187,7 @@ class Save(Node):
                     #       just remove any previous change
                     node = self._store.get_node(key)
                     if node:
-                        self._store.get_node(key)._v_attrs['meta'] = port.meta
+                        self._store.get_node(key)._v_attrs["meta"] = port.meta
 
     def terminate(self):
         try:

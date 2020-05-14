@@ -17,9 +17,7 @@ def make_event(label, data={}):
 
     """
     return pd.DataFrame(
-        [[label, json.dumps(data)]],
-        index=[now()],
-        columns=['label', 'data']
+        [[label, json.dumps(data)]], index=[now()], columns=["label", "data"]
     )
 
 
@@ -36,7 +34,7 @@ def match_events(port, label):
     """
     matches = None
     if port.ready():
-        matches = port.data[port.data['label'] == label]
+        matches = port.data[port.data["label"] == label]
         if matches.empty:
             matches = None
     return matches

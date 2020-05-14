@@ -12,8 +12,16 @@ from timeflux.core.node import Node
 
 
 class Events(Node):
-
-    def __init__(self, rows_min=1, rows_max=10, string_min=3, string_max=12, items_min=0, items_max=5, seed=None):
+    def __init__(
+        self,
+        rows_min=1,
+        rows_max=10,
+        string_min=3,
+        string_max=12,
+        items_min=0,
+        items_max=5,
+        seed=None,
+    ):
         """Return random integers from value_min to value_max (inclusive)"""
         self._rows_min = rows_min
         self._rows_max = rows_max
@@ -24,21 +32,27 @@ class Events(Node):
         random.seed(seed)
 
     def random_string(self, length):
-        return ''.join(random.choice(string.ascii_letters) for m in range(length))
+        return "".join(random.choice(string.ascii_letters) for m in range(length))
 
     def update(self):
         rows = []
         for i in range(random.randint(self._rows_min, self._rows_max)):
             row = []
-            row.append(self.random_string(random.randint(self._string_min, self._string_max)))
+            row.append(
+                self.random_string(random.randint(self._string_min, self._string_max))
+            )
             data = {}
             for j in range(random.randint(self._items_min, self._items_max)):
-                key = self.random_string(random.randint(self._string_min, self._string_max))
-                value = self.random_string(random.randint(self._string_min, self._string_max))
+                key = self.random_string(
+                    random.randint(self._string_min, self._string_max)
+                )
+                value = self.random_string(
+                    random.randint(self._string_min, self._string_max)
+                )
                 data[key] = value
             row.append(json.dumps(data))
             rows.append(row)
-        self.o.set(rows, names=['label', 'data'])
+        self.o.set(rows, names=["label", "data"])
 
 
 class Periodic(Node):
@@ -93,7 +107,7 @@ class Periodic(Node):
                     target: display
     """
 
-    def __init__(self, label='clock', data=None, interval=None, phase=None):
+    def __init__(self, label="clock", data=None, interval=None, phase=None):
         super().__init__()
 
         interval = interval or {}
@@ -101,9 +115,9 @@ class Periodic(Node):
         delta_interval = datetime.timedelta(**interval)
         delta_phase = datetime.timedelta(**phase)
         if delta_interval.total_seconds() <= 0:
-            raise ValueError('Periodic must have positive interval')
+            raise ValueError("Periodic must have positive interval")
         if delta_phase.total_seconds() <= 0:
-            raise ValueError('Periodic must have positive phase')
+            raise ValueError("Periodic must have positive phase")
 
         self._period = np.timedelta64(delta_interval)
         self._phase = np.timedelta64(delta_phase)
@@ -115,8 +129,9 @@ class Periodic(Node):
         now = np.datetime64(datetime.datetime.now())
         if self._next_timestamp is None:
             self._next_timestamp = now + self._phase
-            self.logger.debug('Periodic will start sending events at %s',
-                              self._next_timestamp)
+            self.logger.debug(
+                "Periodic will start sending events at %s", self._next_timestamp
+            )
 
         data = []
         times = []
@@ -127,8 +142,8 @@ class Periodic(Node):
             self._next_timestamp += self._period
 
         if data:
-            self.logger.debug('Sending %d events', len(data))
-            self.o.set(data, names=['label', 'data'], timestamps=times)
+            self.logger.debug("Sending %d events", len(data))
+            self.o.set(data, names=["label", "data"], timestamps=times)
 
     def _set_next(self, reference):
         self._next_timestamp = reference + self._period

@@ -1,6 +1,12 @@
 """timeflux.core.exceptions: define exceptions"""
 
-__all__ = ['WorkerInterrupt', 'WorkerLoadError', 'GraphDuplicateNode', 'GraphUndefinedNode', 'ValidationError']
+__all__ = [
+    "WorkerInterrupt",
+    "WorkerLoadError",
+    "GraphDuplicateNode",
+    "GraphUndefinedNode",
+    "ValidationError",
+]
 
 
 class TimefluxException(Exception):
@@ -34,7 +40,7 @@ class WorkerLoadError(TimefluxException):
 class WorkerInterrupt(TimefluxException):
     """Raised when a process stops prematurely."""
 
-    def __init__(self, message='Interrupting', *args):
+    def __init__(self, message="Interrupting", *args):
         self.message = message
         super().__init__(message, *args)
 
@@ -43,5 +49,5 @@ class ValidationError(TimefluxException):
     """Raised input validation fails."""
 
     def __init__(self, param_name, message, *args):
-        self.message = f'Validation error for param `{param_name}`: {message}'
+        self.message = f"Validation error for param `{param_name}`: {message}"
         super().__init__(self.message, *args)

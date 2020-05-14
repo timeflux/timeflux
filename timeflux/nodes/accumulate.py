@@ -34,11 +34,12 @@ class AppendDataFrame(Node):
         self._meta = []
 
     def _release(self):
-        self.logger.info(f'AppendDataFrame is releasing {len(self._data)} '
-                         f'accumulated rows.')
+        self.logger.info(
+            f"AppendDataFrame is releasing {len(self._data)} " f"accumulated rows."
+        )
         self.o.data = self._data
         if self._meta_keys is None:
-            self.o.meta = {'accumulate': self._meta}
+            self.o.meta = {"accumulate": self._meta}
         else:
             self.o.meta = {key: [] for key in self._meta_keys}
             for meta_key in self._meta_keys:
@@ -47,7 +48,7 @@ class AppendDataFrame(Node):
 
     def update(self):
 
-        gate_status = self.i.meta.get('gate_status')
+        gate_status = self.i.meta.get("gate_status")
 
         if self.i.ready():
             # update the meta
@@ -57,7 +58,7 @@ class AppendDataFrame(Node):
             self._data = self._data.append(self.i.data, **self._kwargs)
 
         # if gate is close, release the data and reset the buffer
-        if gate_status == 'closed' and not self._data.empty:
+        if gate_status == "closed" and not self._data.empty:
             self._release()
             self._reset()
 
@@ -93,11 +94,13 @@ class AppendDataArray(Node):
         self._meta = []
 
     def _release(self):
-        self.logger.info(f'AppendDataArray is releasing {len(self._data_list)} '
-                          f'accumulated data chunks.')
+        self.logger.info(
+            f"AppendDataArray is releasing {len(self._data_list)} "
+            f"accumulated data chunks."
+        )
         self.o.data = xr.concat(self._data_list, self._dim, **self._kwargs)
         if self._meta_keys is None:
-            self.o.meta = {'accumulate': self._meta}
+            self.o.meta = {"accumulate": self._meta}
         else:
             self.o.meta = {key: [] for key in self._meta_keys}
             for meta_key in self._meta_keys:
@@ -106,7 +109,7 @@ class AppendDataArray(Node):
 
     def update(self):
 
-        gate_status = self.i.meta.get('gate_status')
+        gate_status = self.i.meta.get("gate_status")
 
         # append the data
         if self.i.ready():
@@ -115,6 +118,6 @@ class AppendDataArray(Node):
             self._meta.append(self.i.meta)
 
         # if gate is close, release the data and reset the buffer
-        if gate_status == 'closed' and self._data_list:
+        if gate_status == "closed" and self._data_list:
             self._release()
             self._reset()

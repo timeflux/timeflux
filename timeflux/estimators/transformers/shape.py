@@ -26,7 +26,8 @@ class Reduce(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         X = np.asarray(X)
-        if X.ndim < 3: return X
+        if X.ndim < 3:
+            return X
         return np.squeeze(X, axis=self._axis)
 
     def fit_transform(self, X, y=None):

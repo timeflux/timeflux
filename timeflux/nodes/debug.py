@@ -14,19 +14,21 @@ class Display(Node):
 
     def update(self):
         if self.i.ready() and self._data:
-            self.logger.debug('\n %s' % self.i.data)
+            self.logger.debug("\n %s" % self.i.data)
         if self.i.meta and self._meta:
-            self.logger.debug('\n %s' % self.i.meta)
+            self.logger.debug("\n %s" % self.i.meta)
 
 
 class Dump(Node):
     """Dump to CSV."""
 
-    def __init__(self, fname='/tmp/dump.csv'):
-        self.writer = csv.writer(open(fname, 'a'))
+    def __init__(self, fname="/tmp/dump.csv"):
+        self.writer = csv.writer(open(fname, "a"))
 
     def update(self):
         if self.i.ready():
-            self.i.data['index'] = self.i.data.index
-            self.i.data['index'] = pd.to_timedelta(self.i.data['index']).dt.total_seconds()
+            self.i.data["index"] = self.i.data.index
+            self.i.data["index"] = pd.to_timedelta(
+                self.i.data["index"]
+            ).dt.total_seconds()
             self.writer.writerows(self.i.data.values.tolist())

@@ -95,8 +95,15 @@ class ApplyMethod(Node):
 
     """
 
-    def __init__(self, method, apply_mode='universal',
-                 axis=0, closed='right', func=None, **kwargs):
+    def __init__(
+        self,
+        method,
+        apply_mode="universal",
+        axis=0,
+        closed="right",
+        func=None,
+        **kwargs,
+    ):
 
         self._axis = axis
         self._closed = closed
@@ -106,23 +113,25 @@ class ApplyMethod(Node):
         if func is not None:
             self._func = func
         else:
-            module_name, function_name = method.rsplit('.', 1)
+            module_name, function_name = method.rsplit(".", 1)
 
             try:
                 module = import_module(module_name)
             except ImportError:
-                raise ImportError(f'Could not import module {module_name}')
+                raise ImportError(f"Could not import module {module_name}")
             try:
                 self._func = getattr(module, function_name)
             except AttributeError:
-                raise ValueError(f'Module {module_name} has no function {function_name}')
+                raise ValueError(
+                    f"Module {module_name} has no function {function_name}"
+                )
 
             if not callable(self._func):
-                raise ValueError(f'Could not call the method {self._methode_name}')
+                raise ValueError(f"Could not call the method {self._methode_name}")
 
-            self._kwargs.update({'raw': True, 'axis': axis})
-            if self._apply_mode == 'reduce':
-                self._kwargs['result_type'] = 'reduce'
+            self._kwargs.update({"raw": True, "axis": axis})
+            if self._apply_mode == "reduce":
+                self._kwargs["result_type"] = "reduce"
 
     def update(self):
 
@@ -131,11 +140,11 @@ class ApplyMethod(Node):
 
         self.o.meta = self.i.meta
         self.o.data = self.i.data.apply(func=self._func, **self._kwargs)
-        if self._apply_mode == 'reduce':
+        if self._apply_mode == "reduce":
             if self._axis == 0:
-                if self._closed == 'right':
+                if self._closed == "right":
                     index_to_keep = self.i.data.index[-1]
-                elif self._closed == 'left':
+                elif self._closed == "left":
                     index_to_keep = self.i.data.index[0]
                 else:  # self._closed == 'middle':
                     index_to_keep = self.i.data.index[len(self.i.data) // 2]

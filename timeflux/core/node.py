@@ -5,23 +5,22 @@ import logging
 from abc import ABC, abstractmethod
 from timeflux.core.io import Port
 
+
 class Node(ABC):
-
-
     def __new__(cls, *args, **kwargs):
         """Create instance and initialize the logger."""
 
         instance = super().__new__(cls)
-        instance.logger = logging.getLogger('timeflux.' + cls.__module__ + '.' + cls.__name__)
+        instance.logger = logging.getLogger(
+            "timeflux." + cls.__module__ + "." + cls.__name__
+        )
         instance.ports = {}
         return instance
-
 
     def __init__(self):
         """Instantiate the node."""
 
         pass
-
 
     def __getattr__(self, name):
         """Create input and output ports on the fly.
@@ -35,12 +34,13 @@ class Node(ABC):
 
         """
 
-        if name == 'i' or name.startswith('i_') or name == 'o' or name.startswith('o_'):
+        if name == "i" or name.startswith("i_") or name == "o" or name.startswith("o_"):
             self.ports[name] = Port()
             setattr(self, name, self.ports[name])
             return self.ports[name]
-        raise AttributeError(f"type object '{type(self).__name__}' has no attribute '{name}'")
-
+        raise AttributeError(
+            f"type object '{type(self).__name__}' has no attribute '{name}'"
+        )
 
     def bind(self, source, target):
         """Create an alias of a port
@@ -51,13 +51,17 @@ class Node(ABC):
 
         """
 
-        if target == 'i' or target.startswith('i_') or target == 'o' or target.startswith('o_'):
-            getattr(self, source) # Create the source port if it does not already exist
+        if (
+            target == "i"
+            or target.startswith("i_")
+            or target == "o"
+            or target.startswith("o_")
+        ):
+            getattr(self, source)  # Create the source port if it does not already exist
             self.ports[target] = self.ports[source]
             setattr(self, target, self.ports[source])
 
-
-    def iterate(self, name='*'):
+    def iterate(self, name="*"):
         """Iterate through ports.
 
         If ``name`` ends with the globbing character (`*`), the generator iterates
@@ -76,15 +80,14 @@ class Node(ABC):
 
         """
 
-        if name.endswith('*'):
+        if name.endswith("*"):
             skip = len(name) - 1
             name = name[:-1]
             for key, port in self.ports.items():
                 if key.startswith(name):
                     yield key, key[skip:], port
         else:
-            yield name, '', getattr(self, name)
-
+            yield name, "", getattr(self, name)
 
     def clear(self):
         """Reset all ports.
@@ -97,8 +100,8 @@ class Node(ABC):
 
         """
 
-        if not hasattr(self, '_re_dynamic_port'):
-            self._re_dynamic_port = re.compile('.*_[0-9]+$')
+        if not hasattr(self, "_re_dynamic_port"):
+            self._re_dynamic_port = re.compile(".*_[0-9]+$")
 
         remove = []
         ids = []
@@ -115,13 +118,11 @@ class Node(ABC):
             del self.ports[name]
             delattr(self, name)
 
-
     @abstractmethod
     def update(self):
         """Update the input and output ports."""
 
         pass
-
 
     def terminate(self):
         """Perform cleanup upon termination."""

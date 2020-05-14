@@ -44,18 +44,17 @@ class Manager:
             self._imports.append(os.path.abspath(config))
             path = os.path.dirname(self._imports[0])
         else:
-            raise ValueError('Could not load application file')
+            raise ValueError("Could not load application file")
 
         # Validate
         validate(app)
 
         # Populate the graph list
-        if 'graphs' in app:
-            self._graphs = app['graphs']
+        if "graphs" in app:
+            self._graphs = app["graphs"]
 
         # Import sub applications
         self._import(app, path)
-
 
     def run(self):
         """Launch as many workers as there are graphs."""
@@ -67,10 +66,9 @@ class Manager:
         except KeyboardInterrupt:
             # Ignore further interrupts
             signal.signal(signal.SIGINT, signal.SIG_IGN)
-            self.logger.info('Interrupting')
+            self.logger.info("Interrupting")
         # Terminate gracefully
         self._terminate()
-
 
     def _launch(self):
         """Launch workers."""
@@ -80,20 +78,19 @@ class Manager:
             self._processes.append(process)
             self.logger.debug("Worker spawned with PID %d", process.pid)
 
-
     def _monitor(self):
         """Wait for at least one worker to terminate."""
-        if not self._processes: return
+        if not self._processes:
+            return
         while True:
             if any(not process.is_alive() for process in self._processes):
                 return
-            time.sleep(.1)
-
+            time.sleep(0.1)
 
     def _terminate(self):
         """Terminate all workers."""
         # https://bugs.python.org/issue26350
-        interrupt = signal.CTRL_C_EVENT if sys.platform == 'win32' else signal.SIGINT
+        interrupt = signal.CTRL_C_EVENT if sys.platform == "win32" else signal.SIGINT
         # Try to terminate gracefully
         for process in self._processes:
             if process.is_alive():
@@ -104,10 +101,10 @@ class Manager:
             if process.is_alive():
                 process.terminate()
 
-
     def _wait(self, timeout=None):
         """Wait for all workers to die."""
-        if not self._processes: return
+        if not self._processes:
+            return
         start = time.time()
         while True:
             try:
@@ -117,45 +114,42 @@ class Manager:
                 if timeout and time.time() - start >= timeout:
                     # Timeout
                     return
-                time.sleep(.1)
+                time.sleep(0.1)
             except:
                 pass
 
-
     def _import(self, app, path):
-        if not 'import' in app: return
+        if not "import" in app:
+            return
         old_path = os.getcwd()
         os.chdir(path)
-        for filename in app['import']:
+        for filename in app["import"]:
             filename = os.path.abspath(filename)
             if filename in self._imports:
-                self.logger.debug('Application %s will not be loaded twice', filename)
+                self.logger.debug("Application %s will not be loaded twice", filename)
                 continue
-            self.logger.debug('Importing %s', filename)
+            self.logger.debug("Importing %s", filename)
             self._imports.append(filename)
             sub = self._load_file(filename)
             try:
                 validate(sub)
             except ValueError as error:
-                raise ValueError(f'Validation failed ({filename})')
-            if 'graphs' in sub:
-                self._graphs += sub['graphs']
+                raise ValueError(f"Validation failed ({filename})")
+            if "graphs" in sub:
+                self._graphs += sub["graphs"]
             self._import(sub, os.path.dirname(filename))
         os.chdir(old_path)
 
-
     def _load_file(self, filename):
-        extension = filename.split('.')[-1]
-        if extension in ('yml', 'yaml'):
+        extension = filename.split(".")[-1]
+        if extension in ("yml", "yaml"):
             return self._load_yaml(filename)
-        elif extension == 'json':
-           return self._load_json(filename)
-
+        elif extension == "json":
+            return self._load_json(filename)
 
     def _load_yaml(self, filename):
         with open(filename) as stream:
             return yaml.safe_load(stream)
-
 
     def _load_json(self, filename):
         with open(filename) as stream:

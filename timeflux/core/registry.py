@@ -1,5 +1,6 @@
 """ Share context between nodes """
 
+
 class Registry:
 
     cycle_start = None

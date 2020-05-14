@@ -50,14 +50,15 @@ class ToDataFrame(Node):
         index_dim (str, `time`): Name of the dimension to set the index of the DataFrame.
     """
 
-    def __init__(self, index_dim='time'):
+    def __init__(self, index_dim="time"):
 
         self._index_dim = index_dim
         self._indexes = None
 
     def _set_indexes(self, data):
-        self._indexes_to_unstack = [index for index in list(data.indexes.keys())
-                                    if index != self._index_dim]
+        self._indexes_to_unstack = [
+            index for index in list(data.indexes.keys()) if index != self._index_dim
+        ]
 
     def update(self):
 
@@ -68,5 +69,5 @@ class ToDataFrame(Node):
 
         if self._indexes_to_unstack is None:
             self._set_indexes(self.i.data)
-        self.o.data = self.i.data.to_dataframe('data').unstack(self._indexes_to_unstack)
+        self.o.data = self.i.data.to_dataframe("data").unstack(self._indexes_to_unstack)
         self.o.data.columns = self.o.data.columns.droplevel(level=0)

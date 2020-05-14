@@ -40,7 +40,7 @@ class RenameColumns(Node):
 
     def __init__(self, names):
         if not isinstance(names, list):
-            raise ValueError('names should be a list')
+            raise ValueError("names should be a list")
         self.names = names
 
     def update(self):
@@ -48,8 +48,11 @@ class RenameColumns(Node):
             return
         data = self.i.data
         if data.shape[1] != len(self.names):
-            self.logger.warning('Received unexpected shape! Expected %d, received %d columns',
-                                len(self.names), data.shape[1])
+            self.logger.warning(
+                "Received unexpected shape! Expected %d, received %d columns",
+                len(self.names),
+                data.shape[1],
+            )
             return
         data.columns = self.names
         self.o.set(data, data.index)
@@ -69,7 +72,7 @@ class AddSuffix(Node):
 
     def __init__(self, suffix):
         if not isinstance(suffix, str):
-            raise ValueError('suffix should be a string')
+            raise ValueError("suffix should be a string")
         self._suffix = suffix
 
     def update(self):
