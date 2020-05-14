@@ -1,0 +1,12 @@
+# Enable version inference
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+write_to = "timeflux/version.py"
+
+# Generate documentation shim
+[tool.docinit]
+
+# https://setuptools.readthedocs.io/en/latest/build_meta.html
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4", "docinit"]
+build-backend = "setuptools.build_meta"
