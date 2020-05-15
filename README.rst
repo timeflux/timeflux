@@ -1,4 +1,4 @@
-|Tests| |Doc| |PyPI| |Contributor Covenant|
+|Build| |Doc| |PyPI| |Contributor Covenant|
 
 |Logo|
 
@@ -39,7 +39,7 @@ Getting started
 
 `Read the documentation <https://doc.timeflux.io>`__.
 
-.. |Tests| image:: https://img.shields.io/github/workflow/status/timeflux/timeflux/test
+.. |Build| image:: https://img.shields.io/github/workflow/status/timeflux/timeflux/build
 .. |Doc| image:: https://img.shields.io/readthedocs/timeflux/latest
 .. |PyPI| image:: https://img.shields.io/pypi/v/timeflux
 .. |Contributor Covenant| image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
