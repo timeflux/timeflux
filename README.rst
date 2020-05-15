@@ -15,18 +15,7 @@ researchers and hackers alike.
 Installation
 ------------
 
-First, get the `Miniconda
-distribution <https://docs.conda.io/en/latest/miniconda.html>`__.
-
-You are now ready to install Timeflux and its dependencies:
-
-::
-
-    $ curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/environment.yml
-    $ conda env create -f environment.yml
-    $ conda activate timeflux
-
-Alternatively, you can install the latest stable release from PyPI:
+You can easily install the latest stable release from PyPI. We higlhy recommend that you use an environment management system such as `Conda <https://docs.conda.io/en/latest/miniconda.html>`__ to keep everything tidy.
 
 ::
 
