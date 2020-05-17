@@ -6,23 +6,18 @@ Getting started
 Installation
 ------------
 
-Before we can do anything, we need a Python 3.7+ distribution. We recommend `Anaconda <https://www.anaconda.com/distribution/>`_. If you don't already have it, go ahead and install it.
+Before we can do anything, we need a Python 3.7+ distribution. We recommend `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`__. If you don't already have it, go ahead and install it.
 
-You will also need `Git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`_.
+If you intend to install from source, you will also need `Git <https://git-scm.com/book/en/v2/Getting-Started-Installing-Git>`__.
 
-Depending on your system, open a shell or command prompt, and install the Python package installer in your base environment:
-
-.. code-block:: bash
-
-    conda install pip
-
-Now that the prerequisites are satisfied, the next order of business is to install Timeflux and its dependencies. To keep things nice and clean, we will do this in a new environment:
+Now that the prerequisites are satisfied, the next order of business is to install Timeflux and its dependencies. To keep things nice and clean, we will do this in a new virtual environment. Depending on your system, open a shell or command prompt:
 
 .. code-block:: bash
 
-    curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/environment.yml
-    conda env create -f environment.yml
+    conda create --name timeflux
     conda activate timeflux
+    pip install timeflux
+    pip install timeflux_example
 
 If everything went well, Timeflux is now installed. Hooray!
 
@@ -44,7 +39,7 @@ First, download a very simple app that we will use as an example:
 
 .. code-block:: bash
 
-    curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/test/graphs/test.yaml
+    curl -O https://raw.githubusercontent.com/timeflux/timeflux/master/examples/test.yaml
 
 If the `timeflux` environment is not already activated, do it:
 
@@ -140,8 +135,3 @@ Notable plugins include:
 
     * `User interface <https://github.com/timeflux/timeflux_ui>`_
     * `Digital Signal Processing <https://github.com/timeflux/timeflux_dsp>`_
-    * `Machine Learning <https://github.com/timeflux/timeflux_ml>`_
-
-
-
-

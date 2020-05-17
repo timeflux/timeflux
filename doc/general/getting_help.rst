@@ -15,4 +15,4 @@ Depending on your requirements, we may be able to offer commercial support, pers
 
 .. tip:: If you don't know how to use a particular node, have a look at the API reference section. You will often find useful information there.
 
-.. tip:: Most nodes have working examples you can get inspiration from. You just need to know where to look :) Example YAML files can usually be found in the `test/graphs` directory of any of the GIT repositories (`Timeflux  <https://github.com/timeflux/timeflux/tree/master/test/graphs>`_ or any plugin, for instance, the `DSP package <https://github.com/timeflux/timeflux_dsp/tree/master/test/graphs>`_).
+.. tip:: Most nodes have working examples you can get inspiration from. You just need to know where to look :) Example YAML files can usually be found in the `examples` directory of any of the GIT repositories (`Timeflux  <https://github.com/timeflux/timeflux/tree/master/examples>`_ or any plugin, for instance, the `DSP package <https://github.com/timeflux/timeflux_dsp/tree/master/examples>`_).

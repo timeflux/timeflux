@@ -71,3 +71,29 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
     extending/branches.rst
     extending/best_practices.rst
 
+
+.. raw:: latex
+
+    \part{Plugins}
+
+
+.. toctree::
+    :hidden:
+    :maxdepth: 1
+    :caption: Plugins
+    :name: plugins
+
+    DSP <https://doc.timeflux.io/projects/timeflux-dsp>
+    UI <https://doc.timeflux.io/projects/timeflux-ui>
+    Example <https://doc.timeflux.io/projects/timeflux-example>
+    OpenBCI <https://doc.timeflux.io/projects/timeflux-openbci>
+    BrainFlow <https://doc.timeflux.io/projects/timeflux-brainflow>
+    BITalino <https://doc.timeflux.io/projects/timeflux-bitalino>
+
+.. toctree::
+    :hidden:
+    :maxdepth: 1
+    :caption: Reference
+    :name: reference
+
+    API <api/index>

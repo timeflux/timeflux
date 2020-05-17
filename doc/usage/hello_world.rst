@@ -12,7 +12,7 @@ For this app, we will use a node that comes from the `timeflux_example <https://
 .. code-block:: bash
 
     conda activate timeflux
-    pip install git+https://github.com/timeflux/timeflux_example
+    pip install timeflux_example
 
 For your first iteration, here is what you will build:
 
@@ -127,7 +127,7 @@ Without further ado, let's install it:
 
 .. code-block:: bash
 
-    pip install git+https://github.com/timeflux/timeflux_ui
+    pip install timeflux_ui
 
 We need to refactor our code a little bit. For better performances (and also for readability), it is a good practice to divide the code into multiple graphs. Remember that nodes inside a graph run sequentially and that graphs inside an application run in parallel.
 
