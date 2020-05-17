@@ -90,6 +90,12 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
     BrainFlow <https://doc.timeflux.io/projects/timeflux-brainflow>
     BITalino <https://doc.timeflux.io/projects/timeflux-bitalino>
 
+
+.. raw:: latex
+
+    \part{Reference}
+
+
 .. toctree::
     :hidden:
     :maxdepth: 1
