@@ -59,22 +59,23 @@ class Epoch(Node):
                 # Start a new epoch
                 low = index - self._before
                 high = index + self._after
-                if not self._buffer.index.is_monotonic:
-                    self.logger.warning(
-                        f"Index should be monotonic. Skipping epoch {row['data']}."
+                if not self._buffer is not None:
+                    if not self._buffer.index.is_monotonic:
+                        self.logger.warning(
+                            f"Index should be monotonic. Skipping epoch {row['data']}."
+                        )
+                        return
+                    self._epochs.append(
+                        {
+                            "data": self._buffer[low:high],
+                            "meta": {
+                                "onset": index,
+                                "context": row["data"],
+                                "before": self._before.total_seconds(),
+                                "after": self._after.total_seconds(),
+                            },
+                        }
                     )
-                    return
-                self._epochs.append(
-                    {
-                        "data": self._buffer[low:high],
-                        "meta": {
-                            "onset": index,
-                            "context": row["data"],
-                            "before": self._before.total_seconds(),
-                            "after": self._after.total_seconds(),
-                        },
-                    }
-                )
 
         # Trim main buffer
         if self._buffer is not None:
