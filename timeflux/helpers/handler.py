@@ -87,14 +87,14 @@ def launch_windows(args, port=10000):
                 pass
 
 
-def terminate_posix():
+def terminate_posix(match="timeflux"):
     """Find oldest Timeflux process and terminate it."""
     try:
-        pid = int(subprocess.check_output(["pgrep", "-of", "timeflux"]))
+        pid = int(subprocess.check_output(["pgrep", "-of", match]))
         print(f"Sending INT signal to PID {pid}.")
         os.kill(pid, signal.SIGINT)
     except:
-        _exit_with_error("No running Timeflux instance found.")
+        _exit_with_error("No running instance found.")
 
 
 def terminate_windows(port=10000):
@@ -104,7 +104,7 @@ def terminate_windows(port=10000):
         client.connect(("localhost", port))
         client.close()
     except:
-        _exit_with_error("No running Timeflux instance found.")
+        _exit_with_error("No running instance found.")
 
 
 def _exit_with_error(message):
@@ -118,11 +118,17 @@ if __name__ == "__main__":
     if sys.argv[1] == "launch":
         args = sys.argv[2:]
         if sys.platform == "win32":
-            launch_windows(args)
+            try:
+                port = int(sys.argv[2])
+                args = args[1:]
+            except ValueError:
+                port = None
+            launch_windows(args, port)
         else:
             launch_posix(args)
     if sys.argv[1] == "terminate":
+        arg = sys.argv[2] if len(sys.argv) >= 3 else None
         if sys.platform == "win32":
-            terminate_windows()
+            terminate_windows(arg)
         else:
-            terminate_posix()
+            terminate_posix(arg)
