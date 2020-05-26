@@ -3,15 +3,19 @@ from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
 
 
 class Expand(BaseEstimator, TransformerMixin):
-    def __init__(self, axis=0):
+    def __init__(self, axis=0, dimensions=3):
         self._axis = axis
+        self._dimensions = dimensions
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
         X = np.asarray(X)
-        return np.expand_dims(X, axis=self._axis)
+        if len(X.shape) < self._dimensions:
+            return np.expand_dims(X, axis=self._axis)
+        else:
+            return X
 
     def fit_transform(self, X, y=None):
         return self.fit(X).transform(X)
