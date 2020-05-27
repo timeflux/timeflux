@@ -8,5 +8,7 @@ python:
       path: .
       extra_requirements:
         - dev
+    - method: setuptools
+      path: .
 sphinx:
   fail_on_warning: true
