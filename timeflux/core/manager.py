@@ -56,6 +56,12 @@ class Manager:
         # Import sub applications
         self._import(app, path)
 
+        # Update the search path
+        for app in self._imports:
+            path = os.path.dirname(app)
+            if path not in sys.path:
+                sys.path.append(path)
+
     def run(self):
         """Launch as many workers as there are graphs."""
         try:
