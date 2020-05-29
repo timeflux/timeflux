@@ -166,18 +166,3 @@ class Manager:
     def _parse_template(self, template):
         template = Template(template)
         return template.render(dict(os.environ))
-
-    # def _load_file(self, filename):
-    #     extension = filename.split(".")[-1]
-    #     if extension in ("yml", "yaml"):
-    #         return self._load_yaml(filename)
-    #     elif extension == "json":
-    #         return self._load_json(filename)
-
-    # def _load_yaml(self, filename):
-    #     with open(filename) as stream:
-    #         return yaml.safe_load(stream)
-
-    # def _load_json(self, filename):
-    #     with open(filename) as stream:
-    #         return json.load(stream)
