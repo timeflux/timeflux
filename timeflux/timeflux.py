@@ -42,9 +42,7 @@ def _args():
     parser.add_argument(
         "-E", "--env-file", default="./.env", help="path to an environment file"
     )
-    parser.add_argument(
-        "-e", "--env", action="append", help="environment variables"
-    )
+    parser.add_argument("-e", "--env", action="append", help="environment variables")
     parser.add_argument("app", help="path to the YAML or JSON application file")
     args = parser.parse_args()
     return args
@@ -60,7 +58,7 @@ def _terminate():
 def _init_env(file, vars):
     load_dotenv(file)
     for env in vars:
-        if '=' in env:
+        if "=" in env:
             env = env.split("=", 1)
             os.environ[env[0]] = env[1]
 
