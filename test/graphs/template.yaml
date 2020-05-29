@@ -1,0 +1,5 @@
+graphs:
+  - nodes:
+    - id: my_node
+      module: my_module
+      class: {{ FOOBAR }}
