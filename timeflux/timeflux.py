@@ -16,7 +16,7 @@ LOGGER = logging.getLogger(__name__)
 def main():
     sys.path.append(os.getcwd())
     args = _args()
-    load_dotenv(args.env)
+    _init_env(args.env_file, args.env)
     _init_logging(args.debug)
     LOGGER.info("Timeflux %s" % __version__)
     _run_hook("pre")
@@ -40,7 +40,10 @@ def _args():
         help="enable debug messages",
     )
     parser.add_argument(
-        "-e", "--env", default="./.env", help="path to an environment file"
+        "-E", "--env-file", default="./.env", help="path to an environment file"
+    )
+    parser.add_argument(
+        "-e", "--env", action="append", help="environment variables"
     )
     parser.add_argument("app", help="path to the YAML or JSON application file")
     args = parser.parse_args()
@@ -52,6 +55,14 @@ def _terminate():
     LOGGER.info("Terminated")
     terminate_listener()
     sys.exit(0)
+
+
+def _init_env(file, vars):
+    load_dotenv(file)
+    for env in vars:
+        if '=' in env:
+            env = env.split("=", 1)
+            os.environ[env[0]] = env[1]
 
 
 def _init_logging(debug):
