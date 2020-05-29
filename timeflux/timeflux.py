@@ -57,10 +57,11 @@ def _terminate():
 
 def _init_env(file, vars):
     load_dotenv(file)
-    for env in vars:
-        if "=" in env:
-            env = env.split("=", 1)
-            os.environ[env[0]] = env[1]
+    if vars is not None:
+        for env in vars:
+            if "=" in env:
+                env = env.split("=", 1)
+                os.environ[env[0]] = env[1]
 
 
 def _init_logging(debug):
