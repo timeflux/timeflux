@@ -46,7 +46,7 @@ class WorkerInterrupt(TimefluxException):
 
 
 class ValidationError(TimefluxException):
-    """Raised input validation fails."""
+    """Raised when input validation fails."""
 
     def __init__(self, param_name, message, *args):
         self.message = f"Validation error for param `{param_name}`: {message}"
