@@ -1,5 +1,6 @@
 """Tests for manager.py"""
 
+import os
 import json
 import pytest
 from timeflux.core.manager import Manager
@@ -26,6 +27,11 @@ def test_load_json_file():
 def test_load_dict():
     m = Manager(test_config)
     assert m._graphs == test_config['graphs']
+
+def test_template():
+    os.environ['FOOBAR'] = 'MyClass'
+    m = Manager(pytest.path + '/graphs/template.yaml')
+    assert m._graphs[0]['nodes'][0]['class'] == 'MyClass'
 
 def test_import():
     m = Manager(pytest.path + '/graphs/import.yaml')
