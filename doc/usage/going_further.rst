@@ -9,6 +9,42 @@ When your application becomes complex, you may want to split it into digestible 
 A few examples are available here: `import.yaml <https://github.com/timeflux/timeflux/blob/master/test/graphs/import.yaml>`_, `import2.yaml <https://github.com/timeflux/timeflux/blob/master/test/graphs/import2.yaml>`_, `import3.yaml <https://github.com/timeflux/timeflux/blob/master/test/graphs/import3.yaml>`_. They are self-explanatory.
 
 
+.. _templates:
+
+Templates
+---------
+
+You can add logic to your `YAML` files, make your apps configurable, and manipulate variables. Timeflux uses `Jinja <https://jinja.palletsprojects.com/en/2.11.x/templates/>`__ under the hood.
+
+Take the following `app.yaml` example:
+
+.. code-block:: yaml
+
+    graphs:
+      - nodes:
+        - id: my_node
+          module: my_module
+          class: {{ FOOBAR }}
+
+Setting an environment variable and invoking Timeflux:
+
+.. code-block:: bash
+
+    timeflux -e FOOBAR="MyClass" app.yaml
+
+Will render the template as:
+
+.. code-block:: yaml
+
+    graphs:
+      - nodes:
+        - id: my_node
+          module: my_module
+          class: MyClass
+
+You are not limited to mere variable substitution. You have the full power of Jinja at your disposal, including control structures, macros, filters, and more.
+
+
 Nodes
 -----
 

@@ -71,18 +71,20 @@ This should print:
 
 .. code-block:: none
 
-    usage: timeflux [-h] [-v] [-d] [-e ENV] app
+    usage: timeflux [-h] [-v] [-d] [-E ENV_FILE] [-e ENV] app
 
     positional arguments:
-      app                path to the YAML or JSON application file
+      app                   path to the YAML or JSON application file
 
     optional arguments:
-      -h, --help         show this help message and exit
-      -v, --version      show program's version number and exit
-      -d, --debug        enable debug messages
-      -e ENV, --env ENV  path to an environment file
+      -h, --help            show this help message and exit
+      -v, --version         show program's version number and exit
+      -d, --debug           enable debug messages
+      -E ENV_FILE, --env-file ENV_FILE
+                            path to an environment file
+      -e ENV, --env ENV     environment variables
 
-Besides the ``-d`` flag we already discussed, the only useful option is ``-e`` or ``--env`` followed by the path to an environment file.
+Besides the ``-d`` flag we already discussed, two options are worth mentioning: ``-E`` or ``--env-file`` and ``-e`` or ``--env``.
 
 
 Environment
@@ -99,9 +101,15 @@ If a file named `.env` is found in the current directory or in any of its parent
     MEANING_OF_LIFE=42
 
 
-As we saw earlier, you can also specify a custom path to an environment file with the ``--env`` option.
+As we saw earlier, you can also specify a custom path to an environment file with the ``--env-file`` option.
 
-Finally, you can temporarily set environment variables for the duration of the session, directly in the console.
+Another way of setting environment variables is with the ``-e`` option:
+
+.. code-block:: bash
+
+    timeflux -e FOO="bar" -e MEANING_OF_LIFE=42 app.yaml
+
+Finally, you can temporarily set environment variables for the duration of the session, directly from the console.
 
 Windows:
 
@@ -124,6 +132,8 @@ The following environment variables are understood by Timeflux:
 - ``TIMEFLUX_HOOK_POST`` -- Name of a Python module that will be run after executing the app.
 
 Others variables may be used by specific nodes and plugins. Refer to the relevant documentation for details.
+
+By combining environment variables and :ref:`templating <templates>`, you can add logic to your `YAML` files and build configurable applications.
 
 
 Plugins
