@@ -23,6 +23,7 @@ class Rename(Node):
     def update(self):
         if self.i.ready():
             self.o.data = self.i.data.rename(**self._kwargs)
+            self.o.meta = self.i.meta
 
 
 class RenameColumns(Node):
@@ -55,7 +56,7 @@ class RenameColumns(Node):
             )
             return
         data.columns = self.names
-        self.o.set(data, data.index)
+        self.o.set(data, data.index, meta=self.i.meta)
 
 
 class AddSuffix(Node):
