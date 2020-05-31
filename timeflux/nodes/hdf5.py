@@ -144,9 +144,7 @@ class Replay(Node):
                 full_path = os.path.join(base, path)
                 if os.path.isfile(full_path):
                     return full_path
-        raise WorkerLoadError(
-            f"File `{path}` could not be found in the search path."
-        )
+        raise WorkerLoadError(f"File `{path}` could not be found in the search path.")
 
 
 class Save(Node):
