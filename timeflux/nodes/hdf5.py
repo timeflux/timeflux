@@ -2,6 +2,7 @@
 
 import pandas as pd
 import timeflux.helpers.clock as clock
+import sys
 import os
 import time
 from timeflux.core.exceptions import WorkerInterrupt
@@ -38,7 +39,7 @@ class Replay(Node):
 
         # Load store
         try:
-            self._store = pd.HDFStore(filename, mode="r")
+            self._store = pd.HDFStore(self._find_path(filename), mode="r")
         except IOError as e:
             raise WorkerInterrupt(e)
 
@@ -132,6 +133,20 @@ class Replay(Node):
 
     def terminate(self):
         self._store.close()
+
+    def _find_path(self, path):
+        path = os.path.normpath(path)
+        if os.path.isabs(path):
+            if os.path.isfile(path):
+                return path
+        else:
+            for base in sys.path:
+                full_path = os.path.join(base, path)
+                if os.path.isfile(full_path):
+                    return full_path
+        raise WorkerLoadError(
+            f"File `{path}` could not be found in the search path."
+        )
 
 
 class Save(Node):
