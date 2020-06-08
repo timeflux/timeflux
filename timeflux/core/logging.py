@@ -13,11 +13,11 @@ from datetime import datetime
 _QUEUE = None
 
 
-class UTCFormatterConsole(coloredlogs.ColoredFormatter):
+class _UTCFormatterConsole(coloredlogs.ColoredFormatter):
     converter = time.gmtime
 
 
-class UTCFormatterFile(logging.Formatter):
+class _UTCFormatterFile(logging.Formatter):
     converter = time.gmtime
 
 
@@ -67,14 +67,14 @@ def init_listener(level_console="INFO", level_file="DEBUG", file=None):
         },
         "formatters": {
             "console": {
-                "()": "timeflux.core.logging.UTCFormatterConsole",
+                "()": "timeflux.core.logging._UTCFormatterConsole",
                 "format": record_format,
                 "datefmt": "%Y-%m-%d %H:%M:%S,%f",
                 "field_styles": field_styles,
                 "level_styles": level_styles,
             },
             "file": {
-                "class": "timeflux.core.logging.UTCFormatterFile",
+                "class": "timeflux.core.logging._UTCFormatterFile",
                 "format": record_format,
             },
         },
