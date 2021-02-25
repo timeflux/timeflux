@@ -112,10 +112,12 @@ class Pipeline(Node):
             if matches is not None:
                 self._accumulation_start = matches.index.values[0]
                 self._status = ACCUMULATING
+                self.logger.debug("Start accumulation")
         if self._accumulation_stop is None:
             matches = match_events(self.i_events, self.event_stop_accumulation)
             if matches is not None:
                 self._accumulation_stop = matches.index.values[0]
+                self.logger.debug("Stop accumulation")
 
         # Always buffer a few seconds, in case the start event is coming late
         if self._status == IDLE:
@@ -133,6 +135,7 @@ class Pipeline(Node):
         if self._status < FITTING:
             if match_events(self.i_events, self.event_start_training) is not None:
                 self._status = FITTING
+                self.logger.debug("Start training with data of shape: %s", self._X_train.shape)
                 self._task = Task(
                     self._pipeline, "fit", self._X_train, self._y_train
                 ).start()
