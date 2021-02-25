@@ -135,9 +135,7 @@ class Pipeline(Node):
         if self._status < FITTING:
             if match_events(self.i_events, self.event_start_training) is not None:
                 self._status = FITTING
-                self.logger.debug(
-                    "Start training with data of shape: %s", self._X_train.shape
-                )
+                self.logger.debug("Start training")
                 self._task = Task(
                     self._pipeline, "fit", self._X_train, self._y_train
                 ).start()

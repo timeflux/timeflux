@@ -298,8 +298,10 @@ def test_fit_success(caplog):
     node.i_events.data = make_event('training_starts')
     while node._status != 3:
         node.update()
+    print(caplog.record_tuples)
     assert node._pipeline[0].n_classes_ == 2
-    assert caplog.record_tuples[0][2].startswith('Model fitted in')
+    assert caplog.record_tuples[0][2] == 'Start training'
+    assert caplog.record_tuples[1][2].startswith('Model fitted in')
 
 def test_fit_error(caplog):
     steps = [{
