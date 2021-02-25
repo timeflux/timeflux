@@ -5,7 +5,7 @@ from timeflux.core.node import Node
 
 class Rename(Node):
 
-    """ Alter axes labels.
+    """Alter axes labels.
 
     Attributes:
         i (Port): Default data input, expects DataFrame.
@@ -28,7 +28,7 @@ class Rename(Node):
 
 class RenameColumns(Node):
 
-    """ Rename column labels from a list
+    """Rename column labels from a list
 
     Attributes:
         i (Port): Default data input, expects DataFrame.
@@ -61,13 +61,13 @@ class RenameColumns(Node):
 
 class AddSuffix(Node):
 
-    """ Suffix labels with string suffix.
+    """Suffix labels with string suffix.
 
-        Attributes:
-            i (Port): Default data input, expects DataFrame.
-            o (Port): Default output, provides DataFrame and meta.
-        Args:
-            suffix (string): The string to add after each column label.
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+        o (Port): Default output, provides DataFrame and meta.
+    Args:
+        suffix (string): The string to add after each column label.
 
     """
 

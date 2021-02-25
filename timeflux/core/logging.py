@@ -61,7 +61,9 @@ def init_listener(level_console="INFO", level_file="DEBUG", file=None):
     # Define config
     config = {
         "version": 1,
-        "root": {"handlers": ["default"],},
+        "root": {
+            "handlers": ["default"],
+        },
         "loggers": {
             "timeflux": {"propagate": False, "level": "DEBUG", "handlers": ["console"]},
         },

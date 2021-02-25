@@ -24,7 +24,7 @@ def _context_to_id(context, context_key, event_id):
 def xarray_to_mne(
     data, meta, context_key, event_id, reporting="warn", ch_types="eeg", **kwargs
 ):
-    """ Convert DataArray and meta into mne Epochs object
+    """Convert DataArray and meta into mne Epochs object
 
     Args:
         data (DataArray): Array of dimensions ('epoch', 'time', 'space')
@@ -107,7 +107,7 @@ def xarray_to_mne(
 
 
 def mne_to_xarray(epochs, context_key, event_id, output="dataarray"):
-    """ Convert mne Epochs object into DataArray along with meta.
+    """Convert mne Epochs object into DataArray along with meta.
 
     Args:
         epochs (mne.Epochs): mne object with the converted data.

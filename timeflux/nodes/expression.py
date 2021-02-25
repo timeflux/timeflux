@@ -5,7 +5,7 @@ from timeflux.core.node import Node
 
 
 class Expression(Node):
-    """ Evaluate a Python expression as a string.
+    """Evaluate a Python expression as a string.
 
     This nodes uses `eval` method from pandas to evaluate a Python expression
     as a string on the data.

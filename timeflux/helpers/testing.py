@@ -174,11 +174,10 @@ class ReadData:
 
 
 class Looper:
-    """ Mimics the scheduler behavior to allow testing the output of a node offline.
-    """
+    """Mimics the scheduler behavior to allow testing the output of a node offline."""
 
     def __init__(self, generator, node, input_port="i", output_port="o"):
-        """ Initialize the helper
+        """Initialize the helper
         :param generator (Node): timeflux node to test
         :param data (Object): data generator object with a method `next` and `reset`
         """
@@ -188,7 +187,7 @@ class Looper:
         self._output_port = output_port
 
     def run(self, chunk_size=None):
-        """ Loop across chunks of a generator, update the node and return data and meta.
+        """Loop across chunks of a generator, update the node and return data and meta.
         :param chunk_size (int): number of samples per chunk
         :return:
         output_data (DataFrame): concatenated output data

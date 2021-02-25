@@ -10,7 +10,7 @@ from timeflux.helpers.port import match_events
 
 
 class Epoch(Node):
-    """ Event-triggered epoching.
+    """Event-triggered epoching.
 
     This node continuously buffers a small amount of data (of a duration of ``before`` seconds) from the default input stream.
     When it detects a marker matching the ``event_trigger`` in the ``label`` column of the event input stream, it starts accumulating data for ``after`` seconds.
@@ -108,7 +108,7 @@ class Epoch(Node):
 
 
 class ToXArray(Node):
-    """ Convert multiple epochs to DataArray
+    """Convert multiple epochs to DataArray
 
     This node iterates over input ports with valid epochs, concatenates them on the
     first axis, and creates a XArray with dimensions ('epoch', 'time', 'space') where

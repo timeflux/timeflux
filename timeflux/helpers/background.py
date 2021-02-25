@@ -24,7 +24,7 @@ from subprocess import Popen
 
 class Runner:
 
-    """ Background base class. Provides common methods.
+    """Background base class. Provides common methods.
 
     .. warning::
         Do not use directly!
@@ -50,7 +50,7 @@ class Runner:
 
 class Task(Runner):
 
-    """ Background task.
+    """Background task.
 
     Launch a 0MQ PAIR server, start a client and dispatch the task.
 
@@ -117,7 +117,7 @@ class Task(Runner):
 
 class Worker(Runner):
 
-    """ Background worker. Connects to the server and executes the task.
+    """Background worker. Connects to the server and executes the task.
 
     .. warning::
         Do not use directly!

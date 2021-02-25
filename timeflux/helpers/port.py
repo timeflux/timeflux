@@ -6,7 +6,7 @@ from timeflux.helpers.clock import now
 
 
 def make_event(label, data={}):
-    """ Create an event DataFrame
+    """Create an event DataFrame
 
     Args:
         label (str): The event label.
@@ -22,7 +22,7 @@ def make_event(label, data={}):
 
 
 def match_events(port, label):
-    """ Find the given label in an event DataFrame
+    """Find the given label in an event DataFrame
 
     Args:
         port (Port): The event port.
@@ -41,7 +41,7 @@ def match_events(port, label):
 
 
 def get_meta(port, keys, default=None):
-    """ Find a deep value in a port's meta
+    """Find a deep value in a port's meta
 
     Args:
         port (Port): The event port.
@@ -56,7 +56,7 @@ def get_meta(port, keys, default=None):
 
 
 def traverse(dictionary, keys, default=None):
-    """ Find a deep value in a dictionary
+    """Find a deep value in a dictionary
 
     Args:
         dictionary (dict): The event port.

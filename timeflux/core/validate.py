@@ -19,10 +19,18 @@ def extend_with_defaults(validator_class):
         for property, subschema in properties.items():
             if "default" in subschema:
                 instance.setdefault(property, subschema["default"])
-        for error in validate_properties(validator, properties, instance, schema,):
+        for error in validate_properties(
+            validator,
+            properties,
+            instance,
+            schema,
+        ):
             yield error
 
-    return validators.extend(validator_class, {"properties": set_defaults},)
+    return validators.extend(
+        validator_class,
+        {"properties": set_defaults},
+    )
 
 
 Validator = extend_with_defaults(Draft7Validator)

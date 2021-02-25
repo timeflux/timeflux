@@ -20,7 +20,7 @@ READY = 3
 
 
 class Pipeline(Node):
-    """ Fit, transform and predict.
+    """Fit, transform and predict.
 
     Training on continuous data is always unsupervised.
     Training on epoched data can either be supervised or unsupervised.
