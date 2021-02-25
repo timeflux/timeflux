@@ -19,7 +19,6 @@ def test_check_parameters():
     with pytest.raises(ValueError):
         node = Window(length=1, step=2)
 
-
 def test_not_enough_data(data):
     # not enough data to window
     node = Window(length=1, step=None)
@@ -27,14 +26,12 @@ def test_not_enough_data(data):
     node.update()
     assert node.o.data == None
 
-
 def test_enough_data(data):
     # receive enough data window
     node = Window(length=1, step=None)
     node.i.data = data.next(11)
     node.update()
     pd.testing.assert_frame_equal(node.o.data, data._data.iloc[0:10, :])
-
 
 def test_no_overlap(data):
     # test step equals length
@@ -50,7 +47,6 @@ def test_no_overlap(data):
     pd.testing.assert_frame_equal(o1.append(o2), data._data.iloc[0:20])
     # assert window length
     assert len(o2) == 10
-
 
 def test_low_step(data):
     # step lower than length
@@ -68,7 +64,6 @@ def test_low_step(data):
     # assert window length
     assert len(o2) == 10
 
-
 def test_not_monotonic(data):
     # receive data that is not monotonic
     node = Window(length=1, step=.2)
@@ -78,8 +73,7 @@ def test_not_monotonic(data):
     node.i.data = not_monotonic
     node.update()
 
-
-def test_no_memory_leek(data):
+def test_no_memory_leak(data):
     # receive too much data, avoid memory leak by truncating buffer
     node = Window(length=1, step=.2)
     data.reset()
