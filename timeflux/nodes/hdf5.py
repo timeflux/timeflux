@@ -18,7 +18,7 @@ warnings.simplefilter("ignore", NaturalNameWarning)
 class Replay(Node):
     """Replay a HDF5 file."""
 
-    def __init__(self, filename, keys, speed=1, timespan=None, resync=True):
+    def __init__(self, filename, keys, speed=1, timespan=None, resync=True, start=0):
         """
         Initialize.
 
@@ -30,11 +30,17 @@ class Replay(Node):
             The list of keys to replay.
         speed: float
             The speed at which the data must be replayed. 1 means real-time.
+            Default: 1
         timespan: float
             The timespan of each chunk, in seconds.
             If not None, will take precedence over the `speed` parameter
+            Default: None
         resync: boolean
             If False, timestamps will not be resync'ed to current time
+            Default: True
+        start: float
+            Start directly at the given time offset, in seconds
+            Default: 0
         """
 
         # Load store
@@ -91,6 +97,9 @@ class Replay(Node):
 
         # Current time
         now = clock.now()
+
+        # Starting timestamp
+        self._start += pd.Timedelta(f"{start}s")
 
         # Time offset
         self._offset = pd.Timestamp(now) - self._start
@@ -163,14 +172,18 @@ class Save(Node):
             an auto-generated filename is used.
         path : string
             The directory where the HDF5 file will be written.
+            Default: "/tmp"
         complib : string
             The compression lib to be used.
             see: https://www.pytables.org/usersguide/libref/helper_classes.html
+            Default: "zlib"
         complevel : int
             The compression level. A value of 0 disables compression.
+            Default: 9
             see: https://www.pytables.org/usersguide/libref/helper_classes.html
-        min_itemsize : int | dict
+        min_itemsize : int
             The string columns size
+            Default: None
             see: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.HDFStore.append.html
             see: http://pandas.pydata.org/pandas-docs/stable/io.html#string-columns
 
