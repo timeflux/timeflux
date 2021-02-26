@@ -7,7 +7,7 @@ import logging.config
 import logging.handlers
 import coloredlogs
 from multiprocessing import Queue
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 _QUEUE = None
@@ -104,7 +104,7 @@ def init_listener(level_console="INFO", level_file="DEBUG", file=None):
     }
 
     if file:
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
         config["loggers"]["timeflux"]["handlers"].append("file")
         config["handlers"]["file"]["filename"] = now.strftime(file)
 
