@@ -48,6 +48,7 @@ class TimeWindow(Node):
             step = length
         if step > length:
             raise ValueError("`step` must be less than or equal to `length`.")
+        self._silence = True if step == 0 else False
         self._length = pd.Timedelta(seconds=length)
         self._step = pd.Timedelta(seconds=step)
         self._buffer = None
@@ -81,7 +82,7 @@ class TimeWindow(Node):
             not self._buffer.empty
             and (self._buffer.index[-1] - self._buffer.index[0]) > self._length
         ):
-            if self._step is not 0:
+            if not self._silence:
                 self.logger.warning(
                     "This node is falling behind: it is receiving "
                     "more data than it can send. Check the window "
