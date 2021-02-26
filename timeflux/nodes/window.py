@@ -81,11 +81,12 @@ class TimeWindow(Node):
             not self._buffer.empty
             and (self._buffer.index[-1] - self._buffer.index[0]) > self._length
         ):
-            self.logger.warning(
-                "This node is falling behind: it is receiving "
-                "more data than it can send. Check the window "
-                "parameters and the graph rate."
-            )
+            if self._step is not 0:
+                self.logger.warning(
+                    "This node is falling behind: it is receiving "
+                    "more data than it can send. Check the window "
+                    "parameters and the graph rate."
+                )
             self._buffer = self._buffer[
                 self._buffer.index > self._buffer.index[-1] - self._length + self._step
             ]
