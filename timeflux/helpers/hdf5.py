@@ -1,13 +1,14 @@
 """Enumerate groups in a HFD5 file."""
 
 import sys
-import tables
+import pandas as pd
 
 
 def info(fname):
-    f = tables.open_file(fname, "r")
-    print(f)
-    f.close()
+    store = pd.HDFStore(fname, "r")
+    for key in store.keys():
+        print(key)
+    store.close()
 
 
 if __name__ == "__main__":
