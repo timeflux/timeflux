@@ -160,7 +160,7 @@ class Save(Node):
     """Save to HDF5."""
 
     def __init__(
-        self, filename=None, path="/tmp", complib="zlib", complevel=9, min_itemsize=None
+        self, filename=None, path="/tmp", complib="zlib", complevel=3, min_itemsize=None
     ):
         """
         Initialize.
