@@ -5,7 +5,7 @@ import timeflux.helpers.clock as clock
 import sys
 import os
 import time
-from timeflux.core.exceptions import WorkerInterrupt
+from timeflux.core.exceptions import WorkerInterrupt, WorkerLoadError
 from timeflux.core.node import Node
 
 # Ignore the "object name is not a valid Python identifier" message
