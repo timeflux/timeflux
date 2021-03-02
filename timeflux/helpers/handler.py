@@ -119,16 +119,16 @@ if __name__ == "__main__":
         args = sys.argv[2:]
         if sys.platform == "win32":
             try:
-                port = int(sys.argv[2])
+                port = (int(sys.argv[2]),)
                 args = args[1:]
             except ValueError:
-                port = None
-            launch_windows(args, port)
+                port = ()
+            launch_windows(args, *port)
         else:
             launch_posix(args)
     if sys.argv[1] == "terminate":
-        arg = sys.argv[2] if len(sys.argv) >= 3 else None
+        arg = (sys.argv[2],) if len(sys.argv) >= 3 else ()
         if sys.platform == "win32":
-            terminate_windows(arg)
+            terminate_windows(*arg)
         else:
-            terminate_posix(arg)
+            terminate_posix(*arg)
