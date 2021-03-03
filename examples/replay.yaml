@@ -17,4 +17,4 @@ graphs:
     - source: replay:nexus_signal_nexus_signal_raw
       target: display
 
-    rate: 0
+    rate: 10
