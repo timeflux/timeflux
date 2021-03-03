@@ -1,5 +1,4 @@
 graphs:
-
   - nodes:
     - id: replay
       module: timeflux.nodes.hdf5
@@ -7,14 +6,17 @@ graphs:
       params:
         filename: test/data/data.hdf5
         keys:
-          - /nexus/signal/nexus_signal_raw
-          - /unity/events/unity_events
-    - id: display
+          - /eeg/signal/raw
+          - /game/events
+    - id: display_signal
       module: timeflux.nodes.debug
       class: Display
-
+    - id: display_events
+      module: timeflux.nodes.debug
+      class: Display
     edges:
-    - source: replay:nexus_signal_nexus_signal_raw
-      target: display
-
+    - source: replay:eeg_signal_raw
+      target: display_signal
+    - source: replay:game_events
+      target: display_events
     rate: 10
