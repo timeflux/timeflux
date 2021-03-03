@@ -9,7 +9,6 @@ graphs:
         keys:
           - /nexus/signal/nexus_signal_raw
           - /unity/events/unity_events
-        timespan: .04
     - id: display
       module: timeflux.nodes.debug
       class: Display
