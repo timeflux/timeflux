@@ -83,7 +83,7 @@ def launch_windows(args, port=10000):
                 # Exit the loop is the process is already dead
                 process.wait(0.1)
                 break
-            except subprocess.TimeoutExpired:
+            except:
                 pass
 
 
