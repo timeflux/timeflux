@@ -106,29 +106,16 @@ class Receive(Node):
 
     def __init__(
         self,
-        name=None,
         prop="name",
         value=None,
         timeout=1.0,
         unit="s",
-        offset_correction=False,
         sync="local",
         channels=None,
         max_samples=1024,
     ):
-        if name:
-            self.logger.warning(
-                'The "name" parameter is deprecated. Use "prop" and "value" instead.'
-            )
-            value = name
-            prop = "name"
         if not value:
             raise ValueError("Please specify a stream name or a property and value.")
-        if offset_correction:
-            self.logger.warning(
-                'The "offset_correction" parameter is deprecated. Use "sync" instead.'
-            )
-            sync = "local"
         self._prop = prop
         self._value = value
         self._inlet = None
