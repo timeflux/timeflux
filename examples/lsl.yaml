@@ -2,21 +2,16 @@ graphs:
 
   - id: Sender
     nodes:
-    - id: replay
-      module: timeflux.nodes.hdf5
-      class: Replay
-      params:
-        filename: data/data.hdf5
-        keys:
-          - /nexus/signal/nexus_signal_raw
-        timespan: 1
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
     - id: outlet
       module: timeflux.nodes.lsl
       class: Send
       params:
         name: test
     edges:
-      - source: replay:nexus_signal_nexus_signal_raw
+      - source: random
         target: outlet
     rate: 1
 
@@ -29,6 +24,7 @@ graphs:
         prop: name
         value: test
         unit: ns
+        sync: null
     - id: display
       module: timeflux.nodes.debug
       class: Display

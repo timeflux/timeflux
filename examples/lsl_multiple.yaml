@@ -1,3 +1,7 @@
+# Make sure you have a valid LSL configuration!
+# Check the test directory for an example lsl_api.cfg
+# See: https://labstreaminglayer.readthedocs.io/info/lslapicfg.html
+
 graphs:
 
   - id: Sender
@@ -35,6 +39,7 @@ graphs:
         prop: type
         value: random
         unit: ns
+        sync: None
     - id: display
       module: timeflux.nodes.debug
       class: Display
@@ -49,8 +54,10 @@ graphs:
       module: timeflux.nodes.lsl
       class: Receive
       params:
-        name: test_2
+        prop: name
+        value: test_2
         unit: ns
+        sync: None
     - id: display
       module: timeflux.nodes.debug
       class: Display

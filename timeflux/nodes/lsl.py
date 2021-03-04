@@ -93,7 +93,7 @@ class Receive(Node):
         prop (string): The property to look for during stream resolution (e.g., ``name``, ``type``, ``source_id``).
         value (string): The value that the property should have (e.g., ``EEG`` for the type property).
         timeout (float): The resolution timeout, in seconds.
-        unit (string): Unit of the timestamps (e.g., ``s``, ``ms``, ``us``, ``ns``). The LSL library uses seconds by default. Timeflux uses nanoseconds by default.
+        unit (string): Unit of the timestamps (e.g., ``s``, ``ms``, ``us``, ``ns``). The LSL library uses seconds by default. Timeflux uses nanoseconds. Default: ``s``.
         sync (string, None): The method used to synchronize timestamps. Use ``local`` if you receive the stream from another application on the same computer. Use ``network`` if you receive from another computer. Use ``None`` if you receive from a Timeflux instance on the same computer.
         channels (list, None): Override the channel names. If ``None``, the names defined in the LSL stream will be used.
         max_samples (int): The maximum number of samples to return per call.
@@ -125,7 +125,7 @@ class Receive(Node):
         self._channels = channels
         self._timeout = timeout
         self._max_samples = max_samples
-        self._offset = time() - pylsl.local_clock()
+        self._offset = np.timedelta64(int((time() - pylsl.local_clock()) * 1e9), "ns")
 
     def update(self):
         if not self._inlet:
@@ -154,10 +154,13 @@ class Receive(Node):
         if self._inlet:
             values, stamps = self._inlet.pull_chunk(max_samples=self._max_samples)
             if stamps:
-                stamps = np.array(stamps)
+                stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
                 if self._sync == "local":
                     stamps += self._offset
                 elif self._sync == "network":
-                    stamps = stamps + self._inlet.time_correction() + self._offset
-                stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
+                    stamps = (
+                        stamps
+                        + np.timedelta64(self._inlet.time_correction() * 1e9, "ns")
+                        + self._offset
+                    )
             self.o.set(values, stamps, self._labels, self._meta)
