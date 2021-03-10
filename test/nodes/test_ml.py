@@ -332,7 +332,7 @@ def test_fit_reset(caplog):
     node.i_events.data = make_event('reset')
     node.update()
     assert caplog.record_tuples[0][2] == 'Start training'
-    assert caplog.record_tuples[1][2].startswith('Reset')
+    assert caplog.record_tuples[1][2] == 'Reset'
     assert node._status == 0
 
 def test_receive_2D():
