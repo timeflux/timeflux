@@ -66,6 +66,7 @@ class Pipeline(Node):
         event_start_accumulation="accumulation_starts",
         event_stop_accumulation="accumulation_stops",
         event_start_training="training_starts",
+        event_reset=None,
         buffer_size="5s",
         passthrough=False,
         resample=False,
@@ -85,6 +86,7 @@ class Pipeline(Node):
         self.event_start_accumulation = event_start_accumulation
         self.event_stop_accumulation = event_stop_accumulation
         self.event_start_training = event_start_training
+        self.event_reset = event_reset
         self.passthrough = passthrough
         self.resample = resample
         self.resample_direction = resample_direction
@@ -97,6 +99,15 @@ class Pipeline(Node):
 
         # Let's get ready
         self._clear()
+
+        # Reset
+        if self.event_reset:
+            matches = match_events(self.i_events, self.event_reset)
+            if matches is not None:
+                self.logger.debug("Reset")
+                if self._status == FITTING:
+                    self._task.stop()
+                self._reset()
 
         # Are we dealing with continuous data or epochs?
         if self._dimensions is None:

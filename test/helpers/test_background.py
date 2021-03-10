@@ -34,3 +34,17 @@ def test_exception(working_path):
         status = task.status()
     assert status['success'] == False
     assert status['exception'].args[0] == 'failed'
+
+def test_stop_running(working_path):
+    task = Task(DummyWorker(), 'echo', delay=5).start()
+    sleep(.5)
+    assert task.done == False
+    task.stop()
+    assert task.done == True
+
+def test_stop_not_running(working_path):
+    task = Task(DummyWorker(), 'echo').start()
+    while not task.done:
+        status = task.status()
+    task.stop()
+    assert task.done == True

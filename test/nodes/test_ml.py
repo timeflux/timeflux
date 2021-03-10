@@ -321,6 +321,20 @@ def test_fit_interrupt():
     node = Pipeline(steps=dummy_classifier)
     node.terminate()
 
+def test_fit_reset(caplog):
+    caplog.set_level(logging.DEBUG)
+    node = Pipeline(steps=dummy_classifier, event_reset='reset')
+    node._status = -1 # bypass accumulation
+    node._X_train = np.array([-1, 1, 1, 1])
+    node._y_train = np.array([0, 1, 1, 1])
+    node.i_events.data = make_event('training_starts')
+    node.update()
+    node.i_events.data = make_event('reset')
+    node.update()
+    assert caplog.record_tuples[0][2] == 'Start training'
+    assert caplog.record_tuples[1][2].startswith('Reset')
+    assert node._status == 0
+
 def test_receive_2D():
     node = Pipeline(steps=dummy_transformer, fit=False, mode='transform')
     node.i.data = DummyData().next()
@@ -556,7 +570,3 @@ def test_transform_3D_output(random):
     assert np.array_equal(node.i_0.data.index.values, node.o_0.data.index.values)
     assert list(node.i_0.data.columns) == columns
     assert list(node.i_1.data.columns) == columns
-
-def test_reset():
-    pass
-
