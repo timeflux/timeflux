@@ -179,7 +179,7 @@ class Save(Node):
             Default: "zlib"
         complevel : int
             The compression level. A value of 0 disables compression.
-            Default: 9
+            Default: 3
             see: https://www.pytables.org/usersguide/libref/helper_classes.html
         min_itemsize : int
             The string columns size
