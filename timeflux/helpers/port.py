@@ -5,19 +5,22 @@ import pandas as pd
 from timeflux.helpers.clock import now
 
 
-def make_event(label, data={}):
+def make_event(label, data={}, serialize=True):
     """Create an event DataFrame
 
     Args:
         label (str): The event label.
         data (dict): The optional data dictionary.
+        serialize (bool): Whether to JSON serialize the data or not.
 
     Returns:
         Dataframe
 
     """
+    if serialize:
+        data = json.dumps(data)
     return pd.DataFrame(
-        [[label, json.dumps(data)]], index=[now()], columns=["label", "data"]
+        [[label, data]], index=[now()], columns=["label", "data"]
     )
 
 
