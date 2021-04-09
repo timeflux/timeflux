@@ -216,6 +216,7 @@ class Pipeline(Node):
         self._y = None
         self._X_indices = []
         self._X_columns = []
+        self._X_meta = None
         self._out = None
 
     def _make_pipeline(self, steps):
@@ -336,12 +337,14 @@ class Pipeline(Node):
                 else:
                     self._X = self.i.data.values
                     self._X_indices = self.i.data.index.values
+                    self._X_meta = self.i.meta
 
         # Epochs
         if self._dimensions == 3:
             for name, _, port in self.iterate("i_*"):
                 if port.ready() and "training" not in name and "events" not in name:
                     data = port.data.values
+                    meta = port.meta
                     indices = port.data.index.values
                     label = get_meta(port, self.meta_label)
                     if not self._X_columns:
@@ -356,8 +359,11 @@ class Pipeline(Node):
                         self._X = []
                     if self._y is None and label is not None:
                         self._y = []
+                    if self._X_meta is None:
+                        self._X_meta = []
                     self._X.append(data)
                     self._X_indices.append(indices)
+                    self._X_meta.append(meta)
                     if label is not None:
                         self._y.append(label)
 
@@ -392,7 +398,12 @@ class Pipeline(Node):
                         else np.asarray(self._X_indices)[:, 0]
                     )  # Keep the first timestamp of each epoch
                     names = ["label", "data"]
-                    self.o_events.set(data, times, names)
+                    meta = (
+                        self._X_meta
+                        if self._dimensions == 2
+                        else {"epochs": self._X_meta}
+                    )  # port.meta should always be an object
+                    self.o_events.set(data, times, names, meta)
                 else:
                     self.logger.warning(
                         "Number of predictions inconsistent with input length"
@@ -404,6 +415,7 @@ class Pipeline(Node):
                         self.o.data = self._reindex(
                             self._out, self._X_indices, self._X_columns
                         )
+                        self.o.meta = self._X_meta
                     except Exception as e:
                         self.logger.warning(getattr(e, "message", repr(e)))
                 if self._dimensions == 3:
@@ -415,6 +427,7 @@ class Pipeline(Node):
                                 getattr(self, "o_" + str(i)).data = self._reindex(
                                     data, times, self._X_columns
                                 )
+                                getattr(self, "o_" + str(i)).meta = self._X_meta[i]
                             except Exception as e:
                                 self.logger.warning(getattr(e, "message", repr(e)))
                     else:

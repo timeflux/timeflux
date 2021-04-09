@@ -526,8 +526,10 @@ def test_predict_2D_output(random):
     node = Pipeline(steps=classifier, mode='fit_predict', meta_label=None)
     stream = DummyData(start_date=now())
     node.i.data = stream.next(5)
+    node.i.meta = {'foo': 'bar'}
     node.update()
     assert len(node.o_events.data) == 5
+    assert node.o_events.meta == node.i.meta
 
 def test_predict_3D_output():
     node = Pipeline(steps=dummy_classifier, mode='predict', meta_label='target')
@@ -541,17 +543,22 @@ def test_predict_3D_output():
         node.update()
     node.i_0.data = stream.next(5)
     node.i_1.data = stream.next(5)
+    node.i_0.meta = {'index': 0}
+    node.i_1.meta = {'index': 1}
     node.update()
     assert len(node.o_events.data) == 2
+    assert node.o_events.meta == {'epochs': [{'index': 0}, {'index': 1}]}
 
 def test_transform_2D_output(random):
     node = Pipeline(steps=dummy_transformer, mode='fit_transform')
     columns = ['A', 'B', 'C', 'D', 'E']
     node.i.data = DummyData(start_date=now()).next()
+    node.i.meta = {'foo': 'bar'}
     node.i.data.columns = columns
     node.update()
     assert np.array_equal(node.i.data.index.values, node.o.data.index.values)
     assert list(node.o.data.columns) == columns
+    assert node.o.meta == node.i.meta
 
 def test_transform_3D_output(random):
     pipeline = [
@@ -566,8 +573,12 @@ def test_transform_3D_output(random):
     node.i_1.data = stream.next()
     node.i_0.data.columns = columns
     node.i_1.data.columns = columns
+    node.i_0.meta = {'index': 0}
+    node.i_1.meta = {'index': 1}
     node.update()
     assert len(list(node.iterate('o_*'))) == 2
     assert np.array_equal(node.i_0.data.index.values, node.o_0.data.index.values)
     assert list(node.i_0.data.columns) == columns
     assert list(node.i_1.data.columns) == columns
+    assert node.o_0.meta == node.i_0.meta
+    assert node.o_1.meta == node.i_1.meta
