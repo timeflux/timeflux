@@ -2,6 +2,20 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
 
 
+class Transpose(BaseEstimator, TransformerMixin):
+    def __init__(self, axes):
+        self._axes = axes
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        return np.transpose(X, self._axes)
+
+    def fit_transform(self, X, y=None):
+        return self.fit(X).transform(X)
+
+
 class Expand(BaseEstimator, TransformerMixin):
     def __init__(self, axis=0, dimensions=3):
         self._axis = axis
