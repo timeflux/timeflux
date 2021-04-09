@@ -224,6 +224,7 @@ def test_trim_2D(random):
     node._X_train_indices = np.array(data.index.values, dtype=np.datetime64)
     start = np.datetime64('2018-01-01T00:00:05')
     stop = np.datetime64('2018-01-01T00:00:15')
+    node._dimensions = 2
     node._accumulate(start, stop)
     assert len(node._X_train_indices) == 10
     assert len(node._X_train) == 10

@@ -9,7 +9,7 @@ from sklearn.pipeline import make_pipeline
 from timeflux.core.node import Node
 from timeflux.core.exceptions import ValidationError, WorkerInterrupt
 from timeflux.helpers.background import Task
-from timeflux.helpers.port import match_events, get_meta
+from timeflux.helpers.port import make_event, match_events, get_meta
 from timeflux.helpers.clock import now, min_time, max_time
 
 # Statuses
@@ -25,7 +25,7 @@ class Pipeline(Node):
     Training on continuous data is always unsupervised.
     Training on epoched data can either be supervised or unsupervised.
 
-    If fit is `False`, input events are ignored, and not initital training is performed.
+    If fit is `False`, input events are ignored, and initital training is not performed.
     Automatically set to False if mode is either 'fit_predict' or fit_transform'.
     Automatically set to True if mode is either 'predict', 'predict_proba' or 'predict_log_proba'.
 
@@ -47,6 +47,7 @@ class Pipeline(Node):
         event_start_accumulation (str):
         event_stop_accumulation (str):
         event_start_training (str):
+        event_reset (str):
         buffer_size (str):
         passthrough (bool):
         resample (bool):
@@ -159,6 +160,8 @@ class Pipeline(Node):
                     self._pipeline = status["instance"]
                     self._status = READY
                     self.logger.debug(f"Model fitted in {status['time']} seconds")
+                    # TODO: this can potentially be overwritten in _send()
+                    self.o_events.data = make_event("ready")
                 else:
                     self.logger.error(
                         f"An error occured while fitting: {status['exception'].args[0]}"
