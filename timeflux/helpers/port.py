@@ -19,9 +19,7 @@ def make_event(label, data={}, serialize=True):
     """
     if serialize:
         data = json.dumps(data)
-    return pd.DataFrame(
-        [[label, data]], index=[now()], columns=["label", "data"]
-    )
+    return pd.DataFrame([[label, data]], index=[now()], columns=["label", "data"])
 
 
 def match_events(port, label):
