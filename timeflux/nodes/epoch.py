@@ -109,6 +109,46 @@ class Epoch(Node):
                 self.o = self.o_0  # Bind default output to the first epoch
 
 
+class Trim(Node):
+    """Trim data so epochs are of equal length.
+
+    Because real-time data is often jittered, the `Epoch` node is not always able to
+    provide dataframes of equal dimensions. This can be problematic if the data is
+    further processed by the `Pipeline` node, for example. This simple node takes care
+    of trimming the extra samples. It should be placed just after an `Epoch` node.
+
+    Attributes:
+        i_* (Port): Epoched data input, expects DataFrame.
+        o_* (Port): Trimmed epochs, provides DataFrame and meta.
+
+    Args:
+        samples (int): The maximum number of samples per epoch.
+                       If `0`, the size of the first epoch is used.
+
+    """
+
+    def __init__(self, samples=0):
+        self.samples = samples
+
+    def update(self):
+        ports = []
+        for _, _, port in self.iterate("i_*"):
+            if port.ready():
+                if self.samples == 0:
+                    self.samples = len(port.data)
+                if len(port.data) < self.samples:
+                    self.logger.warn(
+                        f"Epoch rejected: not enough sample ({len(port.data)}<{self.samples})"
+                    )
+                else:
+                    port.data = port.data.head(self.samples)
+                    ports.append(port)
+        for i, port in enumerate(ports):
+            o = getattr(self, f"o_{i}")
+            o.data = port.data
+            o.meta = port.meta
+
+
 class ToXArray(Node):
     """Convert multiple epochs to DataArray
 
