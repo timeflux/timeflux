@@ -61,16 +61,18 @@ class Epoch(Node):
                 high = index + self._after
                 if self._buffer is not None:
                     if not self._buffer.index.is_monotonic:
-                        self.logger.warning(
-                            f"Index should be monotonic. Skipping epoch {row['data']}."
-                        )
+                        self.logger.warning("Index must be monotonic. Skipping epoch.")
                         return
+                    try:
+                        context = json.loads(row["data"])
+                    except json.JSONDecodeError:
+                        context = row["data"]
                     self._epochs.append(
                         {
                             "data": self._buffer[low:high],
                             "meta": {
                                 "onset": index,
-                                "context": row["data"],
+                                "context": context,
                                 "before": self._before.total_seconds(),
                                 "after": self._after.total_seconds(),
                             },
