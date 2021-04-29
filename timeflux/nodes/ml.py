@@ -75,6 +75,7 @@ class Pipeline(Node):
         resample_rate=None,
         model=None,
         cv=None,
+        use_task = True,
     ):
 
         # TODO: validation
@@ -92,6 +93,7 @@ class Pipeline(Node):
         self.resample = resample
         self.resample_direction = resample_direction
         self.resample_rate = resample_rate
+        self.use_task = use_task
         self._buffer_size = pd.Timedelta(buffer_size)
         self._make_pipeline(steps)
         self._reset()
@@ -106,9 +108,10 @@ class Pipeline(Node):
             matches = match_events(self.i_events, self.event_reset)
             if matches is not None:
                 self.logger.debug("Reset")
-                if self._status == FITTING:
-                    self._task.stop()
-                self._reset()
+                if self._task is not None:
+                    if self._status == FITTING:
+                        self._task.stop()
+                    self._reset()
 
         # Are we dealing with continuous data or epochs?
         if self._dimensions is None:
@@ -148,28 +151,56 @@ class Pipeline(Node):
             if match_events(self.i_events, self.event_start_training) is not None:
                 self._status = FITTING
                 self.logger.debug("Start training")
-                self._task = Task(
-                    self._pipeline, "fit", self._X_train, self._y_train
-                ).start()
+                if self.use_task:
+                    self._task = Task(
+                        self._pipeline, "fit", self._X_train, self._y_train
+                    ).start()
+                else:
+                    try:
+                        self._pipeline = self._pipeline.fit(self._X_train, self._y_train)
+                        self._fitted_success = True
+                    except Exception as error:
+                        self._fitted_success = False
+
 
         # Is the model ready?
         if self._status == FITTING:
-            status = self._task.status()
-            if status:
-                if status["success"]:
-                    self._pipeline = status["instance"]
+            ready_to_proceed = False
+            if self.use_task:
+                status = self._task.status()
+                if status:
+                    ready_to_proceed = True
+            else:
+                ready_to_proceed = True
+            
+            if ready_to_proceed:
+                if self.use_task:
+                    success = status["success"]
+                else:
+                    success = self._fitted_success
+            
+                if success:
+                    if self.use_task:
+                        self._pipeline = status["instance"]
+                        self.logger.debug(f"Model fitted in {status['time']} seconds")
+                    else:
+                        self.logger.debug(f"Model fitted")
                     self._status = READY
-                    self.logger.debug(f"Model fitted in {status['time']} seconds")
                     # TODO: this can potentially be overwritten in _send()
                     self.o_events.data = make_event("ready")
                 else:
-                    self.logger.error(
-                        f"An error occured while fitting: {status['exception'].args[0]}"
-                    )
-                    self.logger.debug(
-                        "\nTraceback (most recent call last):\n"
-                        + "".join(status["traceback"])
-                    )
+                    if self.use_task:
+                        self.logger.error(
+                            f"An error occured while fitting: {status['exception'].args[0]}"
+                        )                
+                        self.logger.debug(
+                            "\nTraceback (most recent call last):\n"
+                            + "".join(status["traceback"])
+                        )
+                    else:
+                        self.logger.error(
+                            f"An error occured while fitting"
+                        ) 
                     raise WorkerInterrupt()
 
         # Run the pipeline
