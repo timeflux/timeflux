@@ -111,7 +111,7 @@ class Pipeline(Node):
                 if self._task is not None:
                     if self._status == FITTING:
                         self._task.stop()
-                    self._reset()
+                self._reset()
 
         # Are we dealing with continuous data or epochs?
         if self._dimensions is None:
