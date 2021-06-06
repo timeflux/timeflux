@@ -266,7 +266,7 @@ class ToXArray(Node):
             return context.get(self._context_key)
 
     def _valid_port(self, port):
-        """ Checks that the port has valid meta and data. """
+        """Checks that the port has valid meta and data."""
         if port.data is None or port.data.empty:
             return False
         if "epoch" not in port.meta:

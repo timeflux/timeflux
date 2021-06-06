@@ -55,7 +55,8 @@ class Signal(Node):
         if samples > 0:
             shape = (samples, self._channels)
             self.o.set(
-                np.random.random_sample(shape) * self._amplitude - (self._amplitude / 2),
+                np.random.random_sample(shape) * self._amplitude
+                - (self._amplitude / 2),
                 names=self._names,
-                meta={"rate": self._rate}
+                meta={"rate": self._rate},
             )
