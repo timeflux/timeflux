@@ -19,7 +19,7 @@ You can easily install the latest stable release from PyPI. We higlhy recommend 
 
 ::
 
-    $ conda create --name timeflux
+    $ conda create --name timeflux python=3.9 pytables bottleneck
     $ conda activate timeflux
     $ pip install timeflux
 

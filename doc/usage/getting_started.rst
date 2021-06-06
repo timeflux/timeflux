@@ -14,7 +14,7 @@ Now that the prerequisites are satisfied, the next order of business is to insta
 
 .. code-block:: bash
 
-    conda create --name timeflux
+    conda create --name timeflux python=3.9 pytables bottleneck
     conda activate timeflux
     pip install timeflux
     pip install timeflux_example
