@@ -85,6 +85,7 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
 
     DSP <https://doc.timeflux.io/projects/timeflux-dsp>
     UI <https://doc.timeflux.io/projects/timeflux-ui>
+    rASR <https://doc.timeflux.io/projects/timeflux-rasr>
     Example <https://doc.timeflux.io/projects/timeflux-example>
     OpenBCI <https://doc.timeflux.io/projects/timeflux-openbci>
     BrainFlow <https://doc.timeflux.io/projects/timeflux-brainflow>
