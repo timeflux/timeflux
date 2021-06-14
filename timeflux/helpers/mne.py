@@ -4,14 +4,16 @@ import pandas as pd
 import numpy as np
 import xarray as xr
 import logging
-
-logger = logging.getLogger()
 from timeflux.core.exceptions import WorkerInterrupt
 
 try:
     import mne
 except ModuleNotFoundError:
-    logger.error("MNE is not installed")
+    raise SystemExit(
+        "MNE is not installed. Optional dependencies can be installed with: 'pip install timeflux[opt]'."
+    )
+
+logger = logging.getLogger()
 
 
 def _context_to_id(context, context_key, event_id):

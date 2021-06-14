@@ -14,9 +14,15 @@ Example:
 
 import sys
 import os
-import graphviz as gv
 from timeflux.core.manager import Manager
 from timeflux.core.graph import Graph
+
+try:
+    import graphviz as gv
+except ModuleNotFoundError:
+    raise SystemExit(
+        "Graphviz is not installed. Optional dependencies can be installed with: 'pip install timeflux[opt]'."
+    )
 
 
 def yaml_to_png(filename, format="png", sort=False):
