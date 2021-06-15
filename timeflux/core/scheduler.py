@@ -1,5 +1,6 @@
 """timeflux.core.schedule: run nodes"""
 
+import os
 import logging
 from time import time, sleep
 from copy import deepcopy
@@ -12,6 +13,7 @@ class Scheduler:
         self._path = path
         self._nodes = nodes
         self._rate = rate
+        self._sleep = float(os.getenv("TIMEFLUX_SLEEP", 0))
 
     def run(self):
         while True:
@@ -24,6 +26,8 @@ class Scheduler:
                 if duration > max_duration:
                     self.logger.debug("Congestion")
                 sleep(max(0, max_duration - duration))
+            else:
+                sleep(self._sleep)
 
     def next(self):
         for step in self._path:
