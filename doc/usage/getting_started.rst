@@ -128,7 +128,7 @@ The following environment variables are understood by Timeflux:
 - ``TIMEFLUX_LOG_LEVEL_CONSOLE`` -- This is the level of details printed in the console. Possible values are `DEBUG`, `INFO`, `WARNING`, `ERROR` and `CRITICAL`. The default value is `INFO`. Running the ``timeflux`` command with the ``-d`` flag is the same as setting this variable to `DEBUG`.
 - ``TIMEFLUX_LOG_LEVEL_FILE`` -- This is the logging level when the output of the application is written to a file. This variable accepts the same values as previously. The default value is ``DEBUG``. Standard `format codes <https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes>`_ are accepted.
 - ``TIMEFLUX_LOG_FILE`` -- If set to a valid path, Timeflux will write the application output to a log file.
-- ``TIMEFLUX_SLEEP`` -- When a graph as a rate of 0, it will run as fast as possible, but will result in a high CPU load. Setting this variable to a non-zero value can help mitigating this issue. Default is `0`.
+- ``TIMEFLUX_SLEEP`` -- When a graph has a rate of zero, it will run as fast as possible, but will result in a high CPU load. Setting this variable to a non-zero value can help mitigating this issue. Default is `0`.
 - ``TIMEFLUX_HOOK_PRE`` -- Name of a Python module that will be run before executing the app.
 - ``TIMEFLUX_HOOK_POST`` -- Name of a Python module that will be run after executing the app.
 
