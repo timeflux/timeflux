@@ -91,7 +91,7 @@ Drivers for open and proprietary hardware (EEG, ECG, PPG, EDA, respiration, eye 
     BrainFlow <https://doc.timeflux.io/projects/timeflux-brainflow>
     HackEEG <https://doc.timeflux.io/projects/timeflux-hackeeg>
     BITalino <https://doc.timeflux.io/projects/timeflux-bitalino>
-
+    Plux <https://doc.timeflux.io/projects/timeflux-plux>
 
 .. raw:: latex
 
