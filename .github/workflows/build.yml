@@ -30,6 +30,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -e ".[dev,opt]"
+        # Since v1.15.0, lib is not included in pylsl anymore, so we install it from conda
+        $CONDA/bin/conda install -c conda-forge liblsl
+        echo "PYLSL_LIB=$CONDA/lib/liblsl.so" >> $GITHUB_ENV
     - name: Test formatting
       run: |
         pip install black
