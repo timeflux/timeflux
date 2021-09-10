@@ -24,7 +24,7 @@ def convert(src, dst=None, data_key="eeg", events_key="events"):
     except:
         return _error("Data key not found.")
     try:
-        rate = store.get_node("eeg")._v_attrs["meta"]["rate"]
+        rate = store.get_node(data_key)._v_attrs["meta"]["rate"]
     except:
         logger.warning("Data rate not set.")
         rate = None
