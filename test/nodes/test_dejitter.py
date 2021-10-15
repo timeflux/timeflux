@@ -4,7 +4,7 @@ import pytest
 import logging
 from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.helpers.testing import DummyData, Looper
-from timeflux.nodes.dejitter import Snap, Interpolate
+from timeflux.nodes.dejitter import Snap, Interpolate, Reindex
 
 rate = 10
 
@@ -106,3 +106,42 @@ def test_data_not_monotonic(caplog):
     node.i.data = data
     node.update()
     assert caplog.record_tuples[0][2] == 'Data index should be strictly monotonic'
+
+
+def test_reindex_no_rate():
+    data = DummyData()
+    node = Reindex()
+    with pytest.raises(WorkerInterrupt):
+        node.i.data = data.next()
+        node.update()
+    with pytest.raises(WorkerInterrupt):
+        node.i.data = data.next()
+        node.i.meta = {}
+        node.update()
+
+def test_reindex_rate_constructor():
+    data = DummyData()
+    node = Reindex(rate=10)
+    node.update()
+    assert node._rate == 10
+
+def test_reindex_rate_meta():
+    data = DummyData()
+    node = Reindex()
+    node.i.data = data.next()
+    node.i.meta = {"rate": 10}
+    node.update()
+    assert node._rate == 10
+    assert node.o.meta["rate"] == 10
+
+def test_reindex_indices():
+    data = DummyData()
+    node = Reindex(rate=10)
+    node.i.data = data.next()
+    node.update()
+    assert node.o.data.index.values[0] == np.datetime64("2017-12-31 23:59:59.998745401")
+    assert node.o.data.index.values[-1] == np.datetime64("2018-01-01 00:00:00.898745401")
+    node.i.data = data.next()
+    node.update()
+    assert node.o.data.index.values[0] == np.datetime64("2018-01-01 00:00:00.998745401")
+    assert node.o.data.index.values[-1] == np.datetime64("2018-01-01 00:00:01.898745401")

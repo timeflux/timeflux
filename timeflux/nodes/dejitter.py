@@ -3,10 +3,63 @@
 import numpy as np
 import pandas as pd
 from timeflux.core.node import Node
+from timeflux.core.exceptions import WorkerInterrupt
+
+
+class Reindex(Node):
+    """A simple dejittering node that will reindex the data according to the sampling rate.
+
+    This node is useful when datetime indices are not monotonic, which can happen if the
+    stream is acquired from a LSL inlet.
+
+    Attributes:
+       i (Port): Default input, expects DataFrame and meta.
+       o (Port): Default output, provides DataArray and meta.
+
+    Args:
+        rate (float|None): Nominal sampling rate. If `None`, the value will be read from the meta data.
+
+    Notes:
+        This node assumes that no samples were lost and that the device clock is relatively stable.
+    """
+
+    def __init__(self, rate=None):
+        self._rate = rate
+        self._frequency = None
+        self._delta = None
+        self._index = None
+
+    def update(self):
+
+        if not self.i.ready():
+            return
+
+        if self._rate is None:
+            self._rate = self.i.meta.get("rate")
+            if self._rate is None:
+                self.logger.error("The rate parameter is required")
+                raise WorkerInterrupt
+
+        if self._frequency is None:
+            frequency = 1 / self._rate
+            self._frequency = pd.DateOffset(seconds=frequency)
+            self._delta = pd.Timedelta(frequency, "second")
+
+        if self._index is None:
+            self._index = self.i.data.index.values[0]
+
+        indices = pd.date_range(
+            start=self._index, periods=len(self.i.data), freq=self._frequency
+        )
+        self._index = indices.values[-1] + self._delta
+
+        self.o = self.i
+        self.o.data.index = indices
+        self.o.meta["rate"] = self._rate
 
 
 class Snap(Node):
-    """Snap time stamps to nearest occurring frequency.
+    """Snap timestamps to the nearest occurring frequency.
 
     Attributes:
        i (Port): Default input, expects DataFrame and meta.
@@ -14,7 +67,7 @@ class Snap(Node):
 
     Args:
         rate (float|None): (optional) nominal sampling frequency of the data, to round
-            the timestamps to (in Hz). If None, the rate will be get from the meta
+            the timestamps to (in Hz). If None, the rate will be obtained from the meta
             of the input port.
     """
 
@@ -52,8 +105,7 @@ class Interpolate(Node):
        o (Port): Default output, provides DataArray and meta.
 
     Args:
-        rate (float|None): (optional) nominal sampling frequency of the data. If None,
-        the rate will be get from the meta of the input port.
+        rate (float|None): (optional) nominal sampling frequency of the data. If None, the rate will be obtained from the meta of the input port.
         method: interpolation method. See the pandas.DataFrame.interpolate documentation.
         n_min: minimum number of samples to perform the interpolation.
         n_max: number of samples to keep in the buffer.
