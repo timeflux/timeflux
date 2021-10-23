@@ -12,7 +12,7 @@ except ModuleNotFoundError:
 logger = logging.getLogger()
 
 
-def convert(src, dst=None, data_key="eeg", events_key="events"):
+def convert(src, dst=None, pmax=300000, dimension="uV", data_key="eeg", events_key="events"):
     if not dst:
         dst = os.path.splitext(src)[0] + ".bdf"
     try:
@@ -31,10 +31,12 @@ def convert(src, dst=None, data_key="eeg", events_key="events"):
     start = data.index[0]
     channels = list(data.columns)
     signals = data.values.T
-    dmin = -8388608
     dmax = 8388607
-    pmin = signals.min()
-    pmax = signals.max()
+    dmin = -8388608
+    if not pmax:
+        pmax = max(abs(signals.min()), signals.max())
+    pmin = -pmax
+    print(pmin, pmax)
     try:
         n_channels = len(channels)
         file_type = 3  # BDF+
@@ -46,7 +48,7 @@ def convert(src, dst=None, data_key="eeg", events_key="events"):
         headers.append(
             {
                 "label": channel,
-                "dimension": "uV",
+                "dimension": dimension,
                 "sample_rate": rate,
                 "physical_min": pmin,
                 "physical_max": pmax,
@@ -85,9 +87,11 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("input", help="input path")
     parser.add_argument("-o", "--output", default=None, help="output path")
+    parser.add_argument("-p", "--pmax", default=300000, type=int, help="maximum physical value (default: 300000)")
+    parser.add_argument("-u", "--unit", default="uV", help="physical unit such as 'uV', 'BPM', 'mA', etc. (default: 'uV')")
     parser.add_argument("-d", "--data", default="eeg", help="data key (default: 'eeg')")
     parser.add_argument(
         "-e", "--events", default="events", help="events key (default: 'events')"
     )
     args = parser.parse_args()
-    convert(args.input, args.output, args.data, args.events)
+    convert(args.input, args.output, args.pmax, args.unit, args.data, args.events)
