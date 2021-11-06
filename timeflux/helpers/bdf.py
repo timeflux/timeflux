@@ -38,7 +38,6 @@ def convert(
     if not pmax:
         pmax = max(abs(signals.min()), signals.max())
     pmin = -pmax
-    print(pmin, pmax)
     try:
         n_channels = len(channels)
         file_type = 3  # BDF+
