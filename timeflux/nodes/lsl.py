@@ -126,9 +126,6 @@ class Receive(Node):
         self._timeout = timeout
         self._max_samples = max_samples
         self._offset = np.timedelta64(int((time() - pylsl.local_clock()) * 1e9), "ns")
-        self.logger.debug(
-            f"LSL clock offset is about {float(self._offset) / 1e9} seconds"
-        )
 
     def update(self):
         if not self._inlet:
