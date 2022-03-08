@@ -126,6 +126,7 @@ class Receive(Node):
         self._timeout = timeout
         self._max_samples = max_samples
         self._offset = np.timedelta64(int((time() - pylsl.local_clock()) * 1e9), "ns")
+        self.logger.debug(f"LSL clock offset is about {float(self._offset) / 1e9} seconds")
 
     def update(self):
         if not self._inlet:
@@ -160,7 +161,7 @@ class Receive(Node):
                 elif self._sync == "network":
                     stamps = (
                         stamps
-                        + np.timedelta64(self._inlet.time_correction() * 1e9, "ns")
+                        + np.timedelta64(round(self._inlet.time_correction() * 1e9), "ns")
                         + self._offset
                     )
             self.o.set(values, stamps, self._labels, self._meta)
