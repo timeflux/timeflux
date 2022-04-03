@@ -37,6 +37,8 @@ graphs:
     - id: save
       module: timeflux.nodes.hdf5
       class: Save
+      params:
+        min_itemsize: null
     edges:
       - source: sub:test
         target: save:foo_bar
