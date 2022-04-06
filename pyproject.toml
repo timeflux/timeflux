@@ -8,5 +8,5 @@ write_to = "timeflux/version.py"
 
 # https://setuptools.readthedocs.io/en/latest/build_meta.html
 [build-system]
-requires = ["setuptools>=42,<58", "wheel", "setuptools_scm[toml]>=3.4", "docinit"]
+requires = ["setuptools>=62", "wheel", "setuptools_scm[toml]>=3.4", "docinit"]
 build-backend = "setuptools.build_meta"
