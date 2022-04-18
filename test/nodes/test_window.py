@@ -44,7 +44,7 @@ def test_no_overlap(data):
     node.update()
     o2 = node.o.data
     # assert continuity (no repeated samples)
-    pd.testing.assert_frame_equal(o1.append(o2), data._data.iloc[0:20])
+    pd.testing.assert_frame_equal(pd.concat([o1, o2]), data._data.iloc[0:20])
     # assert window length
     assert len(o2) == 10
 

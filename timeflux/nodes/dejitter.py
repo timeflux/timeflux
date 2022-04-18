@@ -179,16 +179,16 @@ class Interpolate(Node):
 
     def _interpolate(self):
         # interpolate current chunk
-        self._buffer = self._buffer.append(
-            self.i.data, sort=True
+        self._buffer = pd.concat(
+            [self._buffer, self.i.data], sort=True
         )  # append last sample be able to interpolate
 
         if not self._buffer.index.is_monotonic:
             self.logger.warning("Data index should be strictly monotonic")
             self._buffer = self._make_monotonic(self._buffer)
 
-        data_to_interpolate = self._buffer.append(
-            pd.DataFrame(index=self._times), sort=True
+        data_to_interpolate = pd.concat(
+            [self._buffer, pd.DataFrame(index=self._times)], sort=True
         )
         data_to_interpolate = self._drop_duplicates(data_to_interpolate).sort_index()
 

@@ -42,7 +42,7 @@ class Send(Node):
 
     """
 
-    _dtypes = {"double64": np.number, "string": np.object}
+    _dtypes = {"double64": np.number, "string": object}
 
     def __init__(self, name, type="Signal", format="double64", rate=0.0, source=None):
         if not source:

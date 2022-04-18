@@ -18,7 +18,7 @@ class AppendDataFrame(Node):
         o (Port): Default output, provides DataFrame
 
     Args:
-        **kwargs: key word arguments to pass to pandas.DataFrame.append method.
+        **kwargs: key word arguments to pass to pandas.DataFrame.concat method.
 
     """
 
@@ -55,7 +55,7 @@ class AppendDataFrame(Node):
             self._meta.append(self.i.meta)
 
             # append the data
-            self._data = self._data.append(self.i.data, **self._kwargs)
+            self._data = pd.concat([self._data, self.i.data], **self._kwargs)
 
         # if gate is close, release the data and reset the buffer
         if gate_status == "closed" and not self._data.empty:

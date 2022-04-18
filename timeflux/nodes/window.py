@@ -67,7 +67,7 @@ class TimeWindow(Node):
         if self._buffer is None:
             self._buffer = self.i.data
         else:
-            self._buffer = self._buffer.append(self.i.data)
+            self._buffer = pd.concat([self._buffer, self.i.data])
 
         # Update the default output if we have enough data
         low = self._buffer.index[0]
