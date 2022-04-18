@@ -109,7 +109,7 @@
           "examples": [
             "MyClass"
           ],
-          "pattern": "^[A-Z_][a-zA-Z0-9]+$"
+          "pattern": "^[A-Z_][a-zA-Z0-9_-]+$"
         },
         "params": {
           "type": "object",
