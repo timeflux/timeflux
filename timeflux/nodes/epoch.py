@@ -50,7 +50,7 @@ class Epoch(Node):
                 if self._buffer is None:
                     self._buffer = self.i.data
                 else:
-                    self._buffer = self._buffer.append(self.i.data)
+                    self._buffer = pd.concat([self._buffer, self.i.data])
 
         # Detect onset
         matches = match_events(self.i_events, self._event_trigger)
@@ -97,7 +97,7 @@ class Epoch(Node):
                     low = epoch["data"].index[-1]
                     mask = (self.i.data.index > low) & (self.i.data.index <= high)
                 # Append
-                epoch["data"] = epoch["data"].append(self.i.data[mask])
+                epoch["data"] = pd.concat([epoch["data"], self.i.data[mask]])
                 # Send if we have enough data
                 if last >= high:
                     o = getattr(self, "o_" + str(complete))
