@@ -1,0 +1,30 @@
+graphs:
+  - nodes:
+    - id: data
+      module: timeflux.nodes.random
+      class: Random
+    - id: ui
+      module: timeflux_ui.nodes.ui
+      class: UI
+    - id: gate
+      module: timeflux.nodes.gate
+      class: Gate
+      params:
+        event_opens: start
+        event_closes: stop
+    - id: data_debug
+      module: timeflux.nodes.debug
+      class: Display
+    - id: events_debug
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+    - source: ui:events
+      target: events_debug
+    - source: data
+      target: gate
+    - source: ui:events
+      target: gate:events
+    - source: gate
+      target: data_debug
+    rate: 20
