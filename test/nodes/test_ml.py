@@ -2,6 +2,7 @@ import pytest
 import logging
 import numpy as np
 import pandas as pd
+from os import unlink
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
 from timeflux.core.exceptions import ValidationError, WorkerInterrupt
 from timeflux.helpers.testing import DummyData
@@ -13,10 +14,15 @@ from timeflux.nodes.ml import Pipeline
 class DummyClassifierUnsupervised(BaseEstimator, ClassifierMixin):
 
     def fit(self, X, y=None):
+        self._sum = np.sum(X)
         return self
 
     def predict(self, X):
-        return np.random.rand(X.shape[0])
+        data = []
+        for row in X:
+            self._sum += np.sum(row)
+            data.append(self._sum)
+        return np.array(data)
 
     def fit_predict(self, X, y=None):
         return self.fit(X).predict(X)
@@ -582,3 +588,99 @@ def test_transform_3D_output(random):
     assert list(node.i_1.data.columns) == columns
     assert node.o_0.meta == node.i_0.meta
     assert node.o_1.meta == node.i_1.meta
+
+def test_warmup_invalid_file(caplog):
+    node = Pipeline(steps=dummy_classifier, warmup='warmup.npz')
+    with pytest.raises(WorkerInterrupt) as e:
+        node._warmup()
+    assert caplog.record_tuples[0][2] == 'Warmup file does not exist or cannot be read'
+
+def test_warmup_npy():
+    X = np.array([[1, 2, 3], [4, 5, 6]])
+    path = '/tmp/warmup.npy'
+    np.save(path, X)
+    node = Pipeline(steps=dummy_classifier, warmup=path)
+    node._warmup()
+    assert np.array_equal(node._X_train, X)
+    unlink(path)
+
+def test_warmup_npz():
+    X = np.array([[1, 2, 3], [4, 5, 6]])
+    y = np.array([1, 2])
+    path = '/tmp/warmup.npz'
+    np.savez(path, X=X, y=y)
+    node = Pipeline(steps=dummy_classifier, warmup=path)
+    node._warmup()
+    assert np.array_equal(node._X_train, X)
+    assert np.array_equal(node._y_train, y)
+    unlink(path)
+
+def test_warmup_missing_data(caplog):
+    caplog.set_level(logging.INFO)
+    X = np.array([[1, 2, 3], [4, 5, 6]])
+    y = np.array([1, 2])
+    path = '/tmp/warmup.npz'
+    np.savez(path, a=X, b=y)
+    node = Pipeline(steps=dummy_classifier, warmup=path)
+    node._warmup()
+    assert caplog.record_tuples[0][2] == 'Warmup data is missing'
+    assert caplog.record_tuples[0][1] == logging.WARNING
+    assert caplog.record_tuples[1][2] == 'Warmup labels are missing'
+    assert caplog.record_tuples[1][1] == logging.INFO
+    unlink(path)
+
+def test_warmup_invalid_dimensions(caplog):
+    X = np.array([[1, 2, 3], [4, 5, 6]])
+    y = np.array([1, 2])
+    path = '/tmp/warmup.npz'
+    np.savez(path, X=X, y=y)
+    node = Pipeline(steps=dummy_classifier, warmup=path)
+    node._X_train = np.array([[1, 2], [3, 4]])
+    node._y_train = np.array([1, 2])
+    with pytest.raises(WorkerInterrupt) as e:
+        node._warmup()
+    assert caplog.record_tuples[0][2] == 'Warmup and training data dimensions do not match'
+    unlink(path)
+
+def test_warmup_2D(random, working_path):
+    X = np.ones((20, 5))
+    path = '/tmp/warmup.npy'
+    np.save(path, X)
+    classifier = [{'module': 'test_ml', 'class': 'DummyClassifierUnsupervised'}]
+    node = Pipeline(steps=classifier, mode='predict', meta_label=None, warmup=path)
+    stream = DummyData(start_date=now())
+    node.i_training.data = stream.next(10)
+    node.update()
+    node.clear()
+    node.i_events.data = make_event('training_starts')
+    while node._status != 3:
+        node.update()
+    node.i.data = stream.next(2)
+    node.update()
+    expected = np.array([31.0298, 33.657012]) # without warmup
+    expected += 100 # with warmup
+    assert np.array_equal(node._out, expected)
+    unlink(path)
+
+def test_warmup_3D():
+    X = np.array([[[1]], [[2]]])
+    y = np.array([1, 1])
+    path = '/tmp/warmup.npz'
+    np.savez(path, X=X, y=y)
+    node = Pipeline(steps=dummy_classifier, mode='predict', meta_label='target', warmup=path)
+    node.i_training_0.set([3], [now()], meta={ 'target': 0 })
+    node.i_training_1.set([4], [now()], meta={ 'target': 0 })
+    node.i_training_2.set([5], [now()], meta={ 'target': 1 })
+    node.update()
+    node.clear()
+    node.i_events.data = make_event('training_starts')
+    while node._status != 3:
+        node.update()
+    node.i_0.set([1], [now()])
+    node.i_1.set([1], [now()])
+    node.i_2.set([1], [now()])
+    node.i_3.set([1], [now()])
+    node.update()
+    assert list(node._out) == [1, 1, 1, 1]
+    unlink(path)
+

@@ -53,6 +53,7 @@ class Pipeline(Node):
         resample (bool):
         resample_direction ('right'|'left'|'both'):
         resample_rate (None|float):
+        warmup (str): Load a .npy or .npz file and bootstrap the model with initial data
         model: Load a pickle model - NOT IMPLEMENTED
         cv: Cross-validation - NOT IMPLEMENTED
 
@@ -73,6 +74,7 @@ class Pipeline(Node):
         resample=False,
         resample_direction="right",
         resample_rate=None,
+        warmup=None,
         model=None,
         cv=None,
     ):
@@ -92,6 +94,7 @@ class Pipeline(Node):
         self.resample = resample
         self.resample_direction = resample_direction
         self.resample_rate = resample_rate
+        self.warmup = warmup
         self._buffer_size = pd.Timedelta(buffer_size)
         self._make_pipeline(steps)
         self._reset()
@@ -148,6 +151,7 @@ class Pipeline(Node):
             if match_events(self.i_events, self.event_start_training) is not None:
                 self._status = FITTING
                 self.logger.debug("Start training")
+                self._warmup()
                 self._task = Task(
                     self._pipeline, "fit", self._X_train, self._y_train
                 ).start()
@@ -259,6 +263,36 @@ class Pipeline(Node):
                 )
         # TODO: memory and verbose args
         self._pipeline = make_pipeline(*pipeline, memory=None, verbose=False)
+
+    def _warmup(self):
+
+        if self.warmup:
+            try:
+                data = np.load(self.warmup)
+                if type(data) == np.ndarray:
+                    data = {
+                        "X": data
+                    }  # .npy return an ndarray while .npz return a dict
+                if "X" in data:
+                    if self._X_train is None:
+                        self._X_train = data["X"]
+                    else:
+                        self._X_train = np.vstack((data["X"], self._X_train))
+                else:
+                    self.logger.warning("Warmup data is missing")
+                if "y" in data:
+                    if self._y_train is None:
+                        self._y_train = data["y"]
+                    else:
+                        self._y_train = np.append(data["y"], self._y_train)
+                else:
+                    self.logger.info("Warmup labels are missing")  # OK if unsupervised
+            except OSError:
+                self.logger.error("Warmup file does not exist or cannot be read")
+                raise WorkerInterrupt()
+            except ValueError:
+                self.logger.error("Warmup and training data dimensions do not match")
+                raise WorkerInterrupt()
 
     def _accumulate(self, start, stop):
 
