@@ -283,7 +283,6 @@ class Pipeline(Node):
             self.logger.error("Could not load model")
             raise WorkerInterrupt()
 
-
     def _warmup(self):
 
         if self.warmup:
