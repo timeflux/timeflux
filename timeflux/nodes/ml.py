@@ -4,6 +4,7 @@ import importlib
 import numpy as np
 import pandas as pd
 import json
+from joblib import load
 from jsonschema import validate
 from sklearn.pipeline import make_pipeline
 from timeflux.core.node import Node
@@ -40,7 +41,7 @@ class Pipeline(Node):
         o_events (Port): Event output, provides DataFrame.
 
     Args:
-        steps (dict): Pipeline steps and settings
+        steps (dict): Pipeline steps and settings (ignored if 'model' is set)
         fit (bool):
         mode ('predict'|'predict_proba'|'predict_log_proba'|'transform'|'fit_predict'|'fit_transform'):
         meta_label (str|tuple|None):
@@ -54,14 +55,14 @@ class Pipeline(Node):
         resample_direction ('right'|'left'|'both'):
         resample_rate (None|float):
         warmup (str): Load a .npy or .npz file and bootstrap the model with initial data
-        model: Load a pickle model - NOT IMPLEMENTED
+        model (str): Load a pre-computed model, persisted with joblib
         cv: Cross-validation - NOT IMPLEMENTED
 
     """
 
     def __init__(
         self,
-        steps,
+        steps=None,
         fit=True,
         mode="predict",
         meta_label=("epoch", "context", "target"),
@@ -95,8 +96,14 @@ class Pipeline(Node):
         self.resample_direction = resample_direction
         self.resample_rate = resample_rate
         self.warmup = warmup
+        self.model = model
         self._buffer_size = pd.Timedelta(buffer_size)
-        self._make_pipeline(steps)
+        if model:
+            self._load_pipeline(model)
+        elif steps:
+            self._make_pipeline(steps)
+        else:
+            raise ValueError("You must pass either a 'steps' or 'model' argument")
         self._reset()
 
     def update(self):
@@ -209,6 +216,10 @@ class Pipeline(Node):
             self.fit = False
         elif self.mode.startswith("predict"):
             self.fit = True
+        if self.model is not None:
+            self.fit = False
+            if not self.mode.startswith("fit"):
+                self.meta_label = None
         if self.fit:
             self._status = IDLE
         else:
@@ -263,6 +274,15 @@ class Pipeline(Node):
                 )
         # TODO: memory and verbose args
         self._pipeline = make_pipeline(*pipeline, memory=None, verbose=False)
+
+    def _load_pipeline(self, path):
+
+        try:
+            self._pipeline = load(path)
+        except:
+            self.logger.error("Could not load model")
+            raise WorkerInterrupt()
+
 
     def _warmup(self):
 

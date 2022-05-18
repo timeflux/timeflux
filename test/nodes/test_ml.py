@@ -1,9 +1,11 @@
 import pytest
 import logging
+import joblib
 import numpy as np
 import pandas as pd
 from os import unlink
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
+from sklearn.dummy import DummyClassifier
 from timeflux.core.exceptions import ValidationError, WorkerInterrupt
 from timeflux.helpers.testing import DummyData
 from timeflux.helpers.clock import now, time_range
@@ -86,6 +88,11 @@ dummy_classifier = [{'module': 'sklearn.dummy', 'class': 'DummyClassifier', 'arg
 dummy_regressor = [{'module': 'sklearn.dummy', 'class': 'DummyRegressor'}]
 dummy_transformer = [{'module': 'test_ml', 'class': 'DummyTransformer'}]
 
+
+def test_validation():
+    with pytest.raises(ValueError) as e:
+        node = Pipeline()
+    assert "You must pass either a 'steps' or 'model' argument" in str(e)
 
 def test_passthrough():
     node = Pipeline(steps=dummy_classifier, passthrough=True)
@@ -270,8 +277,8 @@ def test_index_dtype():
 
 def test_make_pipeline_invalid_steps():
     with pytest.raises(ValidationError) as e:
-        Pipeline(steps=None)
-    assert str(e.value) == "Validation error for param `steps`: None is not of type 'array'"
+        Pipeline(steps=1)
+    assert str(e.value) == "Validation error for param `steps`: 1 is not of type 'array'"
 
 def test_make_pipeline_invalid_module():
     steps = [{'module': 'foo', 'class': 'bar'}]
@@ -682,5 +689,24 @@ def test_warmup_3D():
     node.i_3.set([1], [now()])
     node.update()
     assert list(node._out) == [1, 1, 1, 1]
+    unlink(path)
+
+def test_model_invalid_file(caplog):
+    with pytest.raises(WorkerInterrupt) as e:
+        node = Pipeline(model='model.joblib')
+    assert caplog.record_tuples[0][2] == 'Could not load model'
+
+def test_model_load():
+    X = np.array([[[1]], [[2]]])
+    y = np.array([1, 1])
+    clf = DummyClassifier(strategy="most_frequent")
+    clf.fit(X, y)
+    path = '/tmp/model.joblib'
+    joblib.dump(clf, path)
+    node = Pipeline(mode='predict', meta_label=None, model=path)
+    node.i_0.set([3], [now()])
+    node.i_1.set([4], [now()])
+    node.update()
+    assert list(node._out) == [1, 1]
     unlink(path)
 
