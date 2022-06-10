@@ -206,6 +206,8 @@ class Save(Node):
                     continue
                 key = "/" + name[2:].replace("_", "/")
                 if port.data is not None:
+                    if isinstance(port.data, pd.DataFrame) :
+                        port.data.index.freq = None
                     self._store.append(key, port.data, min_itemsize=self.min_itemsize)
                 if port.meta is not None and port.meta:
                     # Note: not none and not an empty dict, because this operation
