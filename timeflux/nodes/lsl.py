@@ -165,4 +165,4 @@ class Receive(Node):
                         )
                         + self._offset
                     )
-            self.o.set(values, stamps, self._labels, self._meta)
+                self.o.set(values, stamps, self._labels, self._meta)
