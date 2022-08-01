@@ -559,7 +559,7 @@ def test_predict_3D_output():
     node.i_0.meta = {'index': 0}
     node.i_1.meta = {'index': 1}
     node.update()
-    assert len(node.o_events.data) == 2
+    assert len(node.o_events.data) == 3 # 'ready' + 2 predictions
     assert node.o_events.meta == {'epochs': [{'index': 0}, {'index': 1}]}
 
 def test_transform_2D_output(random):

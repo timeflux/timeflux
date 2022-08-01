@@ -171,7 +171,6 @@ class Pipeline(Node):
                     self._pipeline = status["instance"]
                     self._status = READY
                     self.logger.debug(f"Model fitted in {status['time']} seconds")
-                    # TODO: this can potentially be overwritten in _send()
                     self.o_events.data = make_event("ready")
                 else:
                     self.logger.error(
@@ -456,7 +455,13 @@ class Pipeline(Node):
                         if self._dimensions == 2
                         else {"epochs": self._X_meta}
                     )  # port.meta should always be an object
-                    self.o_events.set(data, times, names, meta)
+                    rows = pd.DataFrame(data, index=times, columns=names)
+                    if self.o_events.ready():
+                        # Make sure we don't overwrite other events
+                        self.o_events.data = pd.concat([self.o_events.data, rows])
+                    else:
+                        self.o_events.data = rows
+                    self.o_events.meta = meta
                 else:
                     self.logger.warning(
                         "Number of predictions inconsistent with input length"
