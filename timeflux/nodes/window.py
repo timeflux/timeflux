@@ -68,7 +68,7 @@ class Slide(Node):
 
         # Create new windows
         for index in range(self._index, len(self.i.data), self._step_samples):
-            if (index >= 0):
+            if index >= 0:
                 start = index
                 stop = index + self._length_samples
                 self._windows.append(self.i.data[start:stop])
@@ -84,8 +84,6 @@ class Slide(Node):
         if complete > 0:
             del self._windows[:complete]  # Unqueue
             self.o = self.o_0  # Bind default output to the first epoch
-
-
 
 
 class Window(Node):
@@ -206,6 +204,3 @@ class SampleWindow(Node):
             self.o.meta = self.i.meta
             # Step
             self._buffer = self.o.data[self._step :]
-
-
-
