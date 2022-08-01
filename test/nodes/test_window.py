@@ -1,10 +1,11 @@
 """Tests for window.py"""
 
-import pandas as pd
 import pytest
-
+import logging
+import pandas as pd
 from timeflux.helpers import testing as helpers
-from timeflux.nodes.window import Window, TimeWindow, SampleWindow
+from timeflux.nodes.window import Window, TimeWindow, SampleWindow, Slide
+from timeflux.core.exceptions import WorkerInterrupt
 
 
 @pytest.fixture(scope="function")
@@ -80,3 +81,69 @@ def test_no_memory_leak(data):
     node.i.data = data.next(30)
     node.update()
     assert len(node._buffer) == 8
+
+def test_slide_missing_rate(data, caplog):
+    node = Slide(length=1, step=.2)
+    data.reset()
+    node.i.data = data.next(10)
+    with pytest.raises(WorkerInterrupt):
+        node.update()
+    assert caplog.record_tuples == [('timeflux.timeflux.nodes.window.Slide', 40, 'Rate is not specified')]
+
+def test_slide_samples(data):
+    node = Slide(length=.8, step=.1, rate=100)
+    data.reset()
+    node.i.data = data.next(10)
+    node.update()
+    assert node._rate == 100
+    assert node._length_samples == 80
+    assert node._step_samples == 10
+
+def test_slide_new(data):
+    node = Slide(length=.8, step=.1, rate=100)
+    data.reset()
+    node.i.data = data.next(22)
+    node.update()
+    assert node._index == -2
+    assert len(node._windows) == 3
+    assert len(node._windows[0]) == 22
+    assert len(node._windows[1]) == 12
+    assert len(node._windows[2]) == 2
+    node.i.data = data.next(19)
+    node.update()
+    assert node._index == -1
+    assert len(node._windows) == 5
+    node.i.data = data.next(9)
+    node.update()
+    assert len(node._windows) == 5
+    assert node._index == -10
+    node.i.data = data.next(10)
+    node.update()
+    assert len(node._windows) == 6
+
+def test_slide_append(data):
+    node = Slide(length=.8, step=.1, rate=100)
+    data.reset()
+    node.i.data = data.next(22)
+    node.update()
+    assert len(node._windows) == 3
+    assert len(node._windows[0]) == 22
+    assert len(node._windows[1]) == 12
+    assert len(node._windows[2]) == 2
+    node.i.data = data.next(10)
+    node.update()
+    assert len(node._windows) == 4
+    assert len(node._windows[0]) == 22 + 10
+    assert len(node._windows[1]) == 12 + 10
+    assert len(node._windows[2]) == 2 + 10
+    assert len(node._windows[3]) == 2
+
+def test_slide_send(data):
+    node = Slide(length=1, step=.1, rate=100)
+    data.reset()
+    node.i.data = data.next(220)
+    node.update()
+    assert len(node.o_0.data) == 100
+    assert len(node.o_12.data) == 100
+    assert len(node._windows) == 9
+    assert len(node._windows[0]) == 90
