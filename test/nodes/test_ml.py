@@ -560,7 +560,7 @@ def test_predict_3D_output():
     node.i_1.meta = {'index': 1}
     node.update()
     assert len(node.o_events.data) == 3 # 'ready' + 2 predictions
-    assert node.o_events.meta == {'epochs': [{'index': 0}, {'index': 1}]}
+    assert node.o_events.meta == {'epochs': [{'index': 0}, {'index': 1}], 'classes': [0, 1]}
 
 def test_transform_2D_output(random):
     node = Pipeline(steps=dummy_transformer, mode='fit_transform')

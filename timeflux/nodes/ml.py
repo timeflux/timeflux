@@ -455,6 +455,8 @@ class Pipeline(Node):
                         if self._dimensions == 2
                         else {"epochs": self._X_meta}
                     )  # port.meta should always be an object
+                    if hasattr(self._pipeline, "classes_"):
+                        meta["classes"] = list(self._pipeline.classes_)
                     rows = pd.DataFrame(data, index=times, columns=names)
                     if self.o_events.ready():
                         # Make sure we don't overwrite other events
