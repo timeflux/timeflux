@@ -175,7 +175,7 @@ class Pub(Node):
                     topic = self._topic + suffix.encode("utf-8")
                 try:
                     if not port.ready():
-                        port.data = None # make sure we do not send corrupted data
+                        port.data = None  # make sure we do not send corrupted data
                     self._socket.send_serialized(
                         [topic, port.data, port.meta], self._serializer
                     )
