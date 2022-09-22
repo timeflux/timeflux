@@ -183,7 +183,7 @@ class Interpolate(Node):
             [self._buffer, self.i.data], sort=True
         )  # append last sample be able to interpolate
 
-        if not self._buffer.index.is_monotonic:
+        if not self._buffer.index.is_monotonic_increasing:
             self.logger.warning("Data index should be strictly monotonic")
             self._buffer = self._make_monotonic(self._buffer)
 

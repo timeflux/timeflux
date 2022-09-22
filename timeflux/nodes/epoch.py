@@ -60,7 +60,7 @@ class Epoch(Node):
                 low = index - self._before
                 high = index + self._after
                 if self._buffer is not None:
-                    if not self._buffer.index.is_monotonic:
+                    if not self._buffer.index.is_monotonic_increasing:
                         self.logger.warning("Index must be monotonic. Skipping epoch.")
                         return
                     try:

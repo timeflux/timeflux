@@ -196,7 +196,7 @@ class SampleWindow(Node):
         if self._buffer is None:
             self._buffer = self.i.data
         else:
-            self._buffer = self._buffer.append(self.i.data)
+            self._buffer = pd.concat([self._buffer, self.i.data])
 
         # Make sure we have enough data
         if len(self._buffer) >= self._length:
