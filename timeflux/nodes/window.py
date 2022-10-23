@@ -145,7 +145,7 @@ class TimeWindow(Node):
             return
 
         # Sanity check
-        if not self.i.data.index.is_monotonic:
+        if not self.i.data.index.is_monotonic_increasing:
             self.logger.warning("Indices are non-monotonic.")
 
         # Append new data
