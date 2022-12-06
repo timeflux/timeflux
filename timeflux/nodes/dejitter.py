@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+from time import time
 from timeflux.core.node import Node
 from timeflux.core.exceptions import WorkerInterrupt
 
@@ -14,7 +15,7 @@ class Reindex(Node):
 
     Attributes:
        i (Port): Default input, expects DataFrame and meta.
-       o (Port): Default output, provides DataArray and meta.
+       o (Port): Default output, provides DataFrame and meta.
 
     Args:
         rate (float|None): Nominal sampling rate. If `None`, the value will be read from the meta data.
@@ -63,7 +64,7 @@ class Snap(Node):
 
     Attributes:
        i (Port): Default input, expects DataFrame and meta.
-       o (Port): Default output, provides DataArray and meta.
+       o (Port): Default output, provides DataFrame and meta.
 
     Args:
         rate (float|None): (optional) nominal sampling frequency of the data, to round
@@ -102,7 +103,7 @@ class Interpolate(Node):
 
     Attributes:
        i (Port): Default input, expects DataFrame and meta.
-       o (Port): Default output, provides DataArray and meta.
+       o (Port): Default output, provides DataFrame and meta.
 
     Args:
         rate (float|None): (optional) nominal sampling frequency of the data. If None, the rate will be obtained from the meta of the input port.
@@ -203,3 +204,31 @@ class Interpolate(Node):
             if not self.o.data.empty:
                 self._last_datetime = self.o.data.index[-1]
                 self._buffer = self._buffer.tail(self._n_max)
+
+
+class Space(Node):
+    """Evenly space timestamps.
+
+    This is useful to correct drifting data streams.
+
+    Attributes:
+       i (Port): Default input, expects DataFrame and meta.
+       o (Port): Default output, provides DataFrame and meta.
+
+    Example:
+        .. literalinclude:: /../examples/dejitter_space.yaml
+           :language: yaml
+    """
+
+    def __init__(self):
+        self._stop = int(time() * 1e6)
+
+    def update(self):
+        if self.i.ready():
+            self.o = self.i
+            start = self._stop
+            self._stop = int(time() * 1e6)
+            indices = np.linspace(
+                start, self._stop, len(self.o.data), False, dtype="datetime64[us]"
+            )
+            self.o.data.index = indices

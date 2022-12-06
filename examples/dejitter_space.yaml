@@ -1,0 +1,22 @@
+graphs:
+
+  - id: Spacer
+    nodes:
+    - id: random
+      module: timeflux.nodes.random
+      class: Random
+      params:
+        rows_min: 4
+        rows_max: 5
+    - id: space
+      module: timeflux.nodes.dejitter
+      class: Space
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
+    edges:
+      - source: random
+        target: space
+      - source: space
+        target: display
+    rate: 1
