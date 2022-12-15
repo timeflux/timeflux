@@ -67,6 +67,8 @@ class Epoch(Node):
                         context = json.loads(row["data"])
                     except json.JSONDecodeError:
                         context = row["data"]
+                    except TypeError:
+                        context = {}
                     self._epochs.append(
                         {
                             "data": self._buffer[low:high],
