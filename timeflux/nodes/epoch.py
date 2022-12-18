@@ -9,6 +9,119 @@ from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.helpers.port import match_events
 
 
+class Samples(Node):
+    """Fixed-size epoching.
+
+    This node produces equal-length epochs from the default input stream. These epochs are triggered from the `events` stream.
+    Each epoch contains contextual metadata, making this node ideal in front of the `ml` node to train a model.
+    Non-monotonic data, late data, late events, jittered data and jumbled events are all handled reasonably well.
+    Multiple epochs are automatically assigned to dynamic outputs ports. For convenience, the first epoch is bound to the default output, so you can avoid enumerating all output ports if you expects only one epoch.
+
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+        i_events (Port): Event input, expects DataFrame.
+        o (Port): Default output, provides DataFrame and meta.
+        o_* (Port): Dynamic outputs, provide DataFrame and meta.
+
+    Args:
+        trigger (string): The marker name.
+        length (float): The length of the epoch, in seconds.
+        rate (float): The rate of the input stream. If None (the default), it will be taken from the meta data.
+        buffer (float): The length of the buffer, in seconds (default: 5).
+    """
+
+    def __init__(self, trigger, length=0.6, rate=None, buffer=5):
+
+        self._trigger = trigger
+        self._duration_epoch = length
+        self._duration_buffer = buffer
+        self._rate = rate
+        self._length_epoch = None
+        self._length_buffer = None
+        self._buffer = None
+        self._epochs = []
+
+    def update(self):
+
+        if self.i.ready():
+            # We need a rate, either as an argument or from the input meta
+            if not self._rate:
+                if not "rate" in self.i.meta:
+                    self.logger.error("Rate is not specified")
+                    raise WorkerInterrupt()
+                self._rate = self.i.meta["rate"]
+            if not self._length_buffer:
+                self._length_buffer = round(self._duration_buffer * self._rate)
+            if not self._length_epoch:
+                self._length_epoch = round(self._duration_epoch * self._rate)
+
+        # Append to main buffer
+        if self._buffer is None:
+            self._buffer = self.i.data
+        else:
+            self._buffer = pd.concat([self._buffer, self.i.data])
+
+        # Detect onsets
+        matches = match_events(self.i_events, self._trigger)
+        if matches is not None:
+            for index, row in matches.iterrows():
+                # Start a new epoch
+                try:
+                    context = json.loads(row["data"])
+                except json.JSONDecodeError:
+                    context = row["data"]
+                except TypeError:
+                    context = {}
+                self._epochs.append(
+                    {
+                        "data": None,
+                        "meta": {"onset": index, "context": context},
+                    }
+                )
+
+        # Update epochs
+        if self._epochs and self.i.ready():
+            indices = []
+            for index, epoch in enumerate(self._epochs):
+                if epoch["data"] is None:
+                    # Discard if the event is outdated
+                    if epoch["meta"]["onset"] < self.i.data.index[0]:
+                        self.logger.warning("Oudated event")
+                        indices.append(index)
+                    # Find the first sample and initialize the epoch
+                    mask = self.i.data.index >= epoch["meta"]["onset"]
+                    data = self.i.data[mask][: self._length_epoch]
+                    if len(data) > 0:
+                        epoch["data"] = data
+                else:
+                    # Append
+                    mask = self.i.data.index > epoch["data"].index[-1]
+                    remaining = self._length_epoch - len(epoch["data"])
+                    epoch["data"] = pd.concat(
+                        [epoch["data"], self.i.data[mask][:remaining]]
+                    )
+                # Send if the epoch is complete
+                if (
+                    epoch["data"] is not None
+                    and len(epoch["data"]) == self._length_epoch
+                ):
+                    o = getattr(self, "o_" + str(len(indices)))
+                    o.data = epoch["data"]
+                    o.meta = {"rate": self._rate, "epoch": epoch["meta"]}
+                    indices.append(index)
+            if len(indices) > 0:
+                # Remove complete epochs
+                for index in sorted(set(indices), reverse=True):
+                    del self._epochs[index]
+                self.o = self.o_0  # Bind default output to the first epoch
+
+        # Trim main buffer
+        if self._buffer is not None:
+            if len(self._buffer) > self._length_buffer:
+                low = len(self._buffer) - self._length_buffer
+                self._buffer = self._buffer[low:]
+
+
 class Epoch(Node):
     """Event-triggered epoching.
 
