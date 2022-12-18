@@ -85,20 +85,20 @@ class Samples(Node):
             for index, epoch in enumerate(self._epochs):
                 if epoch["data"] is None:
                     # Discard if the event is outdated
-                    if epoch["meta"]["onset"] < self.i.data.index[0]:
+                    if epoch["meta"]["onset"] < self._buffer.index[0]:
                         self.logger.warning("Oudated event")
                         indices.append(index)
                     # Find the first sample and initialize the epoch
-                    mask = self.i.data.index >= epoch["meta"]["onset"]
-                    data = self.i.data[mask][: self._length_epoch]
+                    mask = self._buffer.index >= epoch["meta"]["onset"]
+                    data = self._buffer[mask][: self._length_epoch]
                     if len(data) > 0:
                         epoch["data"] = data
                 else:
                     # Append
-                    mask = self.i.data.index > epoch["data"].index[-1]
+                    mask = self._buffer.index > epoch["data"].index[-1]
                     remaining = self._length_epoch - len(epoch["data"])
                     epoch["data"] = pd.concat(
-                        [epoch["data"], self.i.data[mask][:remaining]]
+                        [epoch["data"], self._buffer[mask][:remaining]]
                     )
                 # Send if the epoch is complete
                 if (
