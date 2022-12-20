@@ -1,3 +1,4 @@
+import re
 import numpy as np
 from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.core.node import Node
@@ -231,3 +232,34 @@ class LocQuery(Node):
             self.o.data = self.i.data.loc[self._key, :]
         else:  # self._axis == 1:
             self.o.data = self.i.data.loc[:, self._key]
+
+
+class Match(Node):
+    """Extract columns matching a regular expression
+
+    Attributes:
+        i (Port): default data input, expects DataFrame.
+        o (Port): default output, provides DataFrame.
+
+    Args:
+       expression (str): Regular expression to match against.
+    """
+
+    def __init__(self, expression):
+        self._r = re.compile(expression)
+        self._columns = None
+
+    def update(self):
+
+        if not self.i.ready():
+            return
+
+        if not self._columns:
+            columns = list(self.i.data.columns)
+            self._columns = [column for column in columns if self._r.match(column)]
+            if not self._columns:
+                self.logger.error("No matching column")
+                raise WorkerInterrupt()
+
+        self.o = self.i
+        self.o.data = self.o.data[self._columns]

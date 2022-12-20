@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from timeflux.core.exceptions import WorkerInterrupt
 from timeflux.helpers.testing import DummyData
-from timeflux.nodes.query import LocQuery, SelectRange, XsQuery
+from timeflux.nodes.query import LocQuery, SelectRange, XsQuery, Match
 
 fs = 10
 data = DummyData(rate=fs, jitter=.05, num_cols=6)
@@ -82,3 +82,19 @@ def test_selectrange():
     )
 
     pd.testing.assert_frame_equal(node.o.data, expected_data)
+
+
+def test_match():
+    data = DummyData(cols=['Fp1', 'Fp2', 'F3', 'Fz', 'F4', 'C1', 'Cz', 'C2', 'P3', 'Pz', 'P4', 'O1', 'Oz', 'O2', 'T3', 'T4' ])
+    node = Match('^P|O')
+    node.i.data = data.next()
+    node.update()
+    assert (node.o.data.columns == ['P3', 'Pz', 'P4', 'O1', 'Oz', 'O2']).all()
+
+def test_match_no_match(caplog):
+    data = DummyData(cols=['Fp1', 'Fp2', 'F3', 'Fz', 'F4', 'C1', 'Cz', 'C2', 'P3', 'Pz', 'P4', 'O1', 'Oz', 'O2', 'T3', 'T4' ])
+    node = Match('^X')
+    node.i.data = data.next()
+    with pytest.raises(WorkerInterrupt):
+        node.update()
+    assert caplog.record_tuples[0][2].startswith('No matching column')
