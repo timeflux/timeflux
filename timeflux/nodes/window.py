@@ -80,6 +80,7 @@ class Slide(Node):
             if len(window) == self._length_samples:
                 o = getattr(self, "o_" + str(index))
                 o.data = window
+                o.meta = self.i.meta
                 complete += 1
         if complete > 0:
             del self._windows[:complete]  # Unqueue
