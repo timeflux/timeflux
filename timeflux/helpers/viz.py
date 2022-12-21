@@ -26,15 +26,6 @@ except ModuleNotFoundError:
     )
 
 
-def _init_env(file, vars):
-    load_dotenv(file)
-    if vars is not None:
-        for env in vars:
-            if "=" in env:
-                env = env.split("=", 1)
-                os.environ[env[0]] = env[1]
-
-
 def yaml_to_png(filename, format="png", sort=False):
     """Generate an image from a YAML application file.
 
