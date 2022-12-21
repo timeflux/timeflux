@@ -14,6 +14,7 @@ Example:
 
 import sys
 import os
+from dotenv import load_dotenv
 from timeflux.core.manager import Manager
 from timeflux.core.graph import Graph
 
@@ -23,6 +24,15 @@ except ModuleNotFoundError:
     raise SystemExit(
         "Graphviz is not installed. Optional dependencies can be installed with: 'pip install timeflux[opt]'."
     )
+
+
+def _init_env(file, vars):
+    load_dotenv(file)
+    if vars is not None:
+        for env in vars:
+            if "=" in env:
+                env = env.split("=", 1)
+                os.environ[env[0]] = env[1]
 
 
 def yaml_to_png(filename, format="png", sort=False):
@@ -35,6 +45,9 @@ def yaml_to_png(filename, format="png", sort=False):
                         that is used to run the application. Default: `False`.
 
     """
+
+    # Load environment data
+    load_dotenv(".env")
 
     # Load graphs
     graphs = Manager(filename)._graphs
