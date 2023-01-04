@@ -42,18 +42,19 @@ class Pipeline(Node):
 
     Args:
         steps (dict): Pipeline steps and settings (ignored if 'model' is set)
-        fit (bool):
+        fit (bool): Specify if the model is fitted on accumulated data (calibration)
         mode ('predict'|'predict_proba'|'predict_log_proba'|'transform'|'fit_predict'|'fit_transform'):
         meta_label (str|tuple|None):
-        event_start_accumulation (str):
-        event_stop_accumulation (str):
-        event_start_training (str):
-        event_reset (str):
+        event_start_accumulation (str): Label of event to start accumulating data to fit the model.
+        event_stop_accumulation (str): Label of event to stop accumulating data to fit the model.
+        event_start_training (str): Label of event to trigger the model calibration (ie. `fit` method).
+        event_reset (str): Label of event to reset the model's state.
         buffer_size (str):
         passthrough (bool):
         resample (bool):
         resample_direction ('right'|'left'|'both'):
         resample_rate (None|float):
+        output_names (None|list[str]): Name of columns for  the output data.
         warmup (str): Load a .npy or .npz file and bootstrap the model with initial data
         model (str): Load a pre-computed model, persisted with joblib
         cv: Cross-validation - NOT IMPLEMENTED
@@ -75,6 +76,7 @@ class Pipeline(Node):
         resample=False,
         resample_direction="right",
         resample_rate=None,
+        output_names=None,
         warmup=None,
         model=None,
         cv=None,
@@ -95,6 +97,7 @@ class Pipeline(Node):
         self.resample = resample
         self.resample_direction = resample_direction
         self.resample_rate = resample_rate
+        self.output_names = output_names
         self.warmup = warmup
         self.model = model
         self._buffer_size = pd.Timedelta(buffer_size)
@@ -499,7 +502,7 @@ class Pipeline(Node):
         """Convert numpy scalars and objects to native types."""
         return getattr(data, "tolist", lambda: data)()
 
-    def _reindex(self, data, times, columns):
+    def _reindex(self, data, times, input_columns):
 
         if len(data) != len(times):
 
@@ -529,4 +532,10 @@ class Pipeline(Node):
                 # Linearly arange between first and last
                 times = pd.date_range(start=times[0], end=times[-1], periods=len(data))
 
-        return pd.DataFrame(data, times, columns)
+        output_columns = self.output_names or input_columns
+
+        if output_columns and data.shape[1] != len(output_columns):
+            raise ValueError(
+                f"Number of output columns incosistent with data shape. {'Specify `output_names` if the data dimansion has been chanegd' if self.output_names is None else ''}"
+            )
+        return pd.DataFrame(data, times, output_columns)
