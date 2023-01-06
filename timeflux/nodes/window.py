@@ -1,12 +1,98 @@
 """Sliding windows"""
 
-from timeflux.core.node import Node
 import pandas as pd
+from timeflux.core.node import Node
+from timeflux.core.exceptions import WorkerInterrupt
+
+
+class Slide(Node):
+
+    """Sliding windows.
+
+    This node generates sliding windows from the default input stream.
+    The durations are given in seconds, but these are converted in samples. Therefore, the outputs will always have the same number of datapoints, even if there is jitter in the input stream.
+    Multiple, overlapping windows are authorized. Each concurrent window is assigned to a numbered `Port`. For convenience, the first window is bound to the default output, so you can avoid enumerating all output ports if you expects only one window.
+
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+        o (Port): Default output, provides DataFrame and meta.
+        o_* (Port): Dynamic outputs, provide DataFrame and meta.
+
+    Args:
+        length (float): The length of the window, in seconds.
+        step (float|None): The minimal sliding step, in seconds.
+            If None (the default), the step will be set to the length of the window.
+        rate (float): The rate of the input stream.
+            If None (the default), it will be taken from the meta data.
+
+    """
+
+    def __init__(self, length=0.6, step=None, rate=None):
+
+        if step == None or step <= 0:
+            step = length
+        self._rate = rate
+        self._length_seconds = length
+        self._step_seconds = step
+        self._length_samples = 0
+        self._step_samples = 0
+        self._index = None
+        self._windows = []
+
+    def update(self):
+
+        if not self.i.ready():
+            return
+
+        # We need a rate, either as an argument or from the input meta
+        if not self._rate:
+            if not "rate" in self.i.meta:
+                self.logger.error("Rate is not specified")
+                raise WorkerInterrupt()
+            self._rate = self.i.meta["rate"]
+
+        # Convert durations to samples
+        if self._index == None:
+            self._length_samples = round(self._length_seconds * self._rate)
+            self._step_samples = round(self._step_seconds * self._rate)
+            if self._length_samples == 0:
+                self._length_samples = 1
+            if self._step_samples == 0:
+                self._step_samples = 1
+            self._index = 0
+
+        # Append to existing windows
+        for index, window in enumerate(self._windows):
+            stop = self._length_samples - len(window)
+            self._windows[index] = pd.concat([window, self.i.data[0:stop]])
+
+        # Create new windows
+        for index in range(self._index, len(self.i.data), self._step_samples):
+            if index >= 0:
+                start = index
+                stop = index + self._length_samples
+                self._windows.append(self.i.data[start:stop])
+        self._index = index - len(self.i.data)
+
+        # Send complete windows
+        complete = 0
+        for index, window in enumerate(self._windows):
+            if len(window) == self._length_samples:
+                o = getattr(self, "o_" + str(index))
+                o.data = window
+                o.meta = self.i.meta
+                complete += 1
+        if complete > 0:
+            del self._windows[:complete]  # Unqueue
+            self.o = self.o_0  # Bind default output to the first epoch
 
 
 class Window(Node):
 
     """Provide sliding windows.
+
+    Attention:
+        This node is deprecated and will be removed in future versions. Use `Slide` instead.
 
     Attributes:
         i (Port): Default data input, expects DataFrame.
@@ -60,14 +146,14 @@ class TimeWindow(Node):
             return
 
         # Sanity check
-        if not self.i.data.index.is_monotonic:
+        if not self.i.data.index.is_monotonic_increasing:
             self.logger.warning("Indices are non-monotonic.")
 
         # Append new data
         if self._buffer is None:
             self._buffer = self.i.data
         else:
-            self._buffer = self._buffer.append(self.i.data)
+            self._buffer = pd.concat([self._buffer, self.i.data])
 
         # Update the default output if we have enough data
         low = self._buffer.index[0]
@@ -111,7 +197,7 @@ class SampleWindow(Node):
         if self._buffer is None:
             self._buffer = self.i.data
         else:
-            self._buffer = self._buffer.append(self.i.data)
+            self._buffer = pd.concat([self._buffer, self.i.data])
 
         # Make sure we have enough data
         if len(self._buffer) >= self._length:
