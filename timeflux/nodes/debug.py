@@ -2,8 +2,9 @@
 
 import csv
 import pandas as pd
+from datetime import timezone
 from timeflux.core.node import Node
-
+from timeflux.helpers.clock import now
 
 class Display(Node):
     """Display input."""
@@ -29,3 +30,14 @@ class Dump(Node):
         if self.i.ready():
             self.i.data["index"] = self.i.data.index.values.astype("float64") / 1e9
             self.writer.writerows(self.i.data.values.tolist())
+
+
+class Latency(Node):
+    """Mesure Latency."""
+
+    def update(self):
+        if self.i.ready():
+            now = pd.Timestamp.now(timezone.utc)
+            indices = self.i.data.index.tz_localize(timezone.utc)
+            latencies = list((now - indices).total_seconds())
+            self.logger.debug(f"{latencies[0]} ... {latencies[-1]} ({len(latencies)} datapoints)")
