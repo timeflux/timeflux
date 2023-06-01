@@ -148,7 +148,6 @@ class Manager:
         os.chdir(old_path)
 
     def _load_file(self, filename):
-
         # Read file as string
         with open(filename) as stream:
             app = stream.read()

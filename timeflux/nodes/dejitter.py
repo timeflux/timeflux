@@ -31,7 +31,6 @@ class Reindex(Node):
         self._index = None
 
     def update(self):
-
         if not self.i.ready():
             return
 
@@ -76,7 +75,6 @@ class Snap(Node):
         self._rate = rate
 
     def update(self):
-
         # copy the meta and the data
         self.o = self.i
 
@@ -118,7 +116,6 @@ class Interpolate(Node):
     """
 
     def __init__(self, rate=None, method="cubic", n_min=3, n_max=10):
-
         self._rate = rate
         if self._rate is not None:
             self._set_timedelta()
@@ -135,7 +132,6 @@ class Interpolate(Node):
         )  # sampling period of the interpolated signal
 
     def update(self):
-
         self.o.meta = self.i.meta
 
         # if the rate has not been set in the constructor, get it from the meta

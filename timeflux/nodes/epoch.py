@@ -31,7 +31,6 @@ class Samples(Node):
     """
 
     def __init__(self, trigger, length=0.6, rate=None, buffer=5):
-
         self._trigger = trigger
         self._duration_epoch = length
         self._duration_buffer = buffer
@@ -42,7 +41,6 @@ class Samples(Node):
         self._epochs = []
 
     def update(self):
-
         if self.i.ready():
             # We need a rate, either as an argument or from the input meta
             if not self._rate:
@@ -148,7 +146,6 @@ class Epoch(Node):
     """
 
     def __init__(self, event_trigger, before=0.2, after=0.6):
-
         self._event_trigger = event_trigger
         self._before = pd.Timedelta(seconds=before)
         self._after = pd.Timedelta(seconds=after)
@@ -156,7 +153,6 @@ class Epoch(Node):
         self._epochs = []
 
     def update(self):
-
         # Append to main buffer
         if self.i.data is not None:
             if not self.i.data.empty:
@@ -291,7 +287,6 @@ class ToXArray(Node):
     """
 
     def __init__(self, reporting="warn", output="DataArray", context_key=None):
-
         self._reporting = reporting
         self._output = output
         self._context_key = context_key
@@ -299,7 +294,6 @@ class ToXArray(Node):
         self._ready = False
 
     def update(self):
-
         if not self._ready:
             ports_ready = [port for _, _, port in self.iterate("i*") if port.ready()]
             if len(ports_ready) < 1:

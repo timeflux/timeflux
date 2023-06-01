@@ -10,7 +10,6 @@ RESOLVER = None
 
 
 def extend_with_defaults(validator_class):
-
     """Extends the validator class to set defaults automatically."""
 
     validate_properties = validator_class.VALIDATORS["properties"]

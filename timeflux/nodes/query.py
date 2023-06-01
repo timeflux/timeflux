@@ -45,13 +45,11 @@ class SelectRange(Node):
     """
 
     def __init__(self, ranges, axis=0, inclusive=False):
-
         self._ranges = ranges  # list of ranges per level
         self._inclusive = inclusive  # include boundaries.
         self._axis = axis
 
     def update(self):
-
         if not self.i.ready():
             return
 
@@ -142,7 +140,6 @@ class XsQuery(Node):
         self._ready = False
 
     def update(self):
-
         if not self.i.ready():
             return
         self.o.meta = self.i.meta
@@ -200,7 +197,6 @@ class LocQuery(Node):
     """
 
     def __init__(self, key, axis=1):
-
         self._axis = axis
         if not isinstance(key, (list, tuple)):
             self._key = [key]
@@ -209,7 +205,6 @@ class LocQuery(Node):
         self._ready = False
 
     def update(self):
-
         if not self.i.ready():
             return
         self.o = self.i
@@ -250,7 +245,6 @@ class Match(Node):
         self._columns = None
 
     def update(self):
-
         if not self.i.ready():
             return
 

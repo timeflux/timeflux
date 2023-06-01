@@ -30,7 +30,6 @@ class Handler:
 
 
 def init_listener(level_console="INFO", level_file="DEBUG", file=None):
-
     q = get_queue()
 
     level_styles = {
@@ -121,7 +120,6 @@ def terminate_listener():
 
 
 def init_worker(queue):
-
     config = {
         "version": 1,
         "handlers": {

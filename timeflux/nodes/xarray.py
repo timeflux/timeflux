@@ -22,11 +22,9 @@ class Transpose(Node):
     """
 
     def __init__(self, dims):
-
         self._dims = dims
 
     def update(self):
-
         if not self.i.ready():
             return
 
@@ -51,7 +49,6 @@ class ToDataFrame(Node):
     """
 
     def __init__(self, index_dim="time"):
-
         self._index_dim = index_dim
         self._indexes = None
 
@@ -61,7 +58,6 @@ class ToDataFrame(Node):
         ]
 
     def update(self):
-
         if not self.i.ready():
             return
 

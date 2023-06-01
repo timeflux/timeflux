@@ -9,7 +9,6 @@ from scipy import stats
 
 
 class Server:
-
     _buffer_size = 128
 
     def __init__(self, host="", port=12300, now=time.perf_counter):
@@ -39,7 +38,6 @@ class Server:
 
 
 class Client:
-
     _buffer_size = 128
 
     def __init__(

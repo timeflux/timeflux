@@ -28,7 +28,6 @@ class Slide(Node):
     """
 
     def __init__(self, length=0.6, step=None, rate=None):
-
         if step == None or step <= 0:
             step = length
         self._rate = rate
@@ -40,7 +39,6 @@ class Slide(Node):
         self._windows = []
 
     def update(self):
-
         if not self.i.ready():
             return
 
@@ -113,7 +111,6 @@ class Window(Node):
     """
 
     def __init__(self, length, step=None, index="time", epochs=False):
-
         if index not in ["time", "sample"]:
             raise ValueError("Invalid `index` value.")
         mixin = TimeWindow if index == "time" else SampleWindow
@@ -123,13 +120,11 @@ class Window(Node):
             self.bind("o", "o_0")
 
     def update(self):
-
         pass
 
 
 class TimeWindow(Node):
     def __init__(self, length, step=None):
-
         if step is None:
             step = length
         if step > length:
@@ -140,7 +135,6 @@ class TimeWindow(Node):
         self._buffer = None
 
     def update(self):
-
         # Return immediately if we don't have any data
         if not self.i.ready():
             return
@@ -181,7 +175,6 @@ class TimeWindow(Node):
 
 class SampleWindow(Node):
     def __init__(self, length, step=None):
-
         if step is None:
             step = length
         self._length = length
@@ -189,7 +182,6 @@ class SampleWindow(Node):
         self._buffer = None
 
     def update(self):
-
         if not self.i.ready():
             return
 

@@ -25,7 +25,6 @@ class Worker:
         return p
 
     def load(self):
-
         # Build the graph and compute the traversal path
         g = Graph(self._graph)
         graph = g.build()
@@ -43,7 +42,6 @@ class Worker:
         return path, nodes
 
     def _run(self, log_queue=None):
-
         # Initialize logging
         if log_queue:
             init_worker(log_queue)

@@ -79,7 +79,6 @@ class Pipeline(Node):
         model=None,
         cv=None,
     ):
-
         # TODO: validation
         # TODO: model loading from file
         # TODO: cross-validation
@@ -107,7 +106,6 @@ class Pipeline(Node):
         self._reset()
 
     def update(self):
-
         # Let's get ready
         self._clear()
 
@@ -196,13 +194,11 @@ class Pipeline(Node):
         self._send()
 
     def terminate(self):
-
         # Kill the fit subprocess
         if self._task is not None:
             self._task.stop()
 
     def _reset(self):
-
         self._X_train = None
         self._y_train = None
         self._X_train_indices = np.array([], dtype=np.datetime64)
@@ -225,7 +221,6 @@ class Pipeline(Node):
             self._status = READY
 
     def _clear(self):
-
         self._X = None
         self._y = None
         self._X_indices = []
@@ -234,7 +229,6 @@ class Pipeline(Node):
         self._out = None
 
     def _make_pipeline(self, steps):
-
         schema = {
             "type": "array",
             "minItems": 1,
@@ -275,7 +269,6 @@ class Pipeline(Node):
         self._pipeline = make_pipeline(*pipeline, memory=None, verbose=False)
 
     def _load_pipeline(self, path):
-
         try:
             self._pipeline = load(path)
         except:
@@ -283,7 +276,6 @@ class Pipeline(Node):
             raise WorkerInterrupt()
 
     def _warmup(self):
-
         if self.warmup:
             try:
                 data = np.load(self.warmup)
@@ -313,7 +305,6 @@ class Pipeline(Node):
                 raise WorkerInterrupt()
 
     def _accumulate(self, start, stop):
-
         # Do nothing if no fitting required
         if not self.fit:
             return
@@ -378,7 +369,6 @@ class Pipeline(Node):
                 self._y_train = self._y_train[mask]
 
     def _receive(self):
-
         # Continuous data
         if self._dimensions == 2:
             if self.i.ready():
@@ -420,7 +410,6 @@ class Pipeline(Node):
                         self._y.append(label)
 
     def _send(self):
-
         # Passthrough
         if self._status < READY and self.passthrough:
             inputs = []
@@ -500,9 +489,7 @@ class Pipeline(Node):
         return getattr(data, "tolist", lambda: data)()
 
     def _reindex(self, data, times, columns):
-
         if len(data) != len(times):
-
             if self.resample:
                 # Resample at a specific frequency
                 kwargs = {"periods": len(data)}

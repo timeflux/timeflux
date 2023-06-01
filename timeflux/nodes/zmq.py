@@ -51,11 +51,9 @@ class BrokerMonitored(Node):
         address_out="tcp://127.0.0.1:5560",
         timeout=5,
     ):
-
         self._timeout = timeout
 
         try:
-
             # Capture
             address_monitor = "inproc://monitor"
             context = zmq.Context.instance()

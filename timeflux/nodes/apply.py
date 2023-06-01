@@ -104,7 +104,6 @@ class ApplyMethod(Node):
         func=None,
         **kwargs,
     ):
-
         self._axis = axis
         self._closed = closed
         self._kwargs = kwargs
@@ -134,7 +133,6 @@ class ApplyMethod(Node):
                 self._kwargs["result_type"] = "reduce"
 
     def update(self):
-
         if not self.i.ready():
             return
 

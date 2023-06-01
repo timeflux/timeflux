@@ -23,7 +23,6 @@ class AppendDataFrame(Node):
     """
 
     def __init__(self, meta_keys=None, **kwargs):
-
         super().__init__()
         self._meta_keys = meta_keys
         self._kwargs = kwargs
@@ -47,7 +46,6 @@ class AppendDataFrame(Node):
                     self.o.meta[meta_key] += meta.get(meta_key, [])
 
     def update(self):
-
         gate_status = self.i.meta.get("gate_status")
 
         if self.i.ready():
@@ -82,7 +80,6 @@ class AppendDataArray(Node):
     """
 
     def __init__(self, dim, meta_keys=None, **kwargs):
-
         super().__init__()
         self._dim = dim
         self._meta_keys = meta_keys
@@ -108,7 +105,6 @@ class AppendDataArray(Node):
                     self.o.meta[meta_key] += meta.get(meta_key, [])
 
     def update(self):
-
         gate_status = self.i.meta.get("gate_status")
 
         # append the data

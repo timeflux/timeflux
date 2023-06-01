@@ -111,7 +111,6 @@ class Replay(Node):
         self._last = now
 
     def update(self):
-
         if self._current > self._stop:
             raise WorkerInterrupt("No more data.")
 
@@ -126,7 +125,6 @@ class Replay(Node):
             self._last = now
 
         for key, source in self._sources.items():
-
             # Select data
             data = self._store.select(key, "index >= min & index < max")
 

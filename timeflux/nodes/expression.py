@@ -96,7 +96,6 @@ class Expression(Node):
     """
 
     def __init__(self, expr, eval_on, **kwargs):
-
         if "global_dict" in kwargs:
             raise (
                 ValueError(
