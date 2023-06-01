@@ -7,6 +7,7 @@
 
 """
 
+import os
 import pandas as pd
 import numpy as np
 import uuid
@@ -35,6 +36,7 @@ class Send(Node):
         format (string): The format type for each channel. Currently, only ``double64`` and ``string`` are supported.
         rate (float): The nominal sampling rate. Set to ``0.0`` to indicate a variable sampling rate.
         source (string, None): The unique identifier for the stream. If ``None``, it will be auto-generated.
+        config_path (string, None): The path to an LSL config file.
 
     Example:
         .. literalinclude:: /../examples/lsl.yaml
@@ -44,7 +46,15 @@ class Send(Node):
 
     _dtypes = {"double64": np.number, "string": object}
 
-    def __init__(self, name, type="Signal", format="double64", rate=0.0, source=None):
+    def __init__(
+        self,
+        name,
+        type="Signal",
+        format="double64",
+        rate=0.0,
+        source=None,
+        config_path=None,
+    ):
         if not source:
             source = str(uuid.uuid4())
         self._name = name
@@ -53,6 +63,8 @@ class Send(Node):
         self._rate = rate
         self._source = source
         self._outlet = None
+        if config_path:
+            os.environ["LSLAPICFG"] = config_path
 
     def update(self):
         if isinstance(self.i.data, pd.core.frame.DataFrame):
@@ -77,7 +89,7 @@ class Send(Node):
             values = self.i.data.select_dtypes(
                 include=[self._dtypes[self._format]]
             ).values
-            stamps = self.i.data.index.values.astype(np.float64)
+            stamps = self.i.data.index.values.astype(np.float64) / 1e9
             for row, stamp in zip(values, stamps):
                 self._outlet.push_sample(row, stamp)
 
@@ -93,10 +105,13 @@ class Receive(Node):
         prop (string): The property to look for during stream resolution (e.g., ``name``, ``type``, ``source_id``).
         value (string): The value that the property should have (e.g., ``EEG`` for the type property).
         timeout (float): The resolution timeout, in seconds.
-        unit (string): Unit of the timestamps (e.g., ``s``, ``ms``, ``us``, ``ns``). The LSL library uses seconds by default. Timeflux uses nanoseconds. Default: ``s``.
-        sync (string, None): The method used to synchronize timestamps. Use ``local`` if you receive the stream from another application on the same computer. Use ``network`` if you receive from another computer. Use ``None`` if you receive from a Timeflux instance on the same computer.
         channels (list, None): Override the channel names. If ``None``, the names defined in the LSL stream will be used.
         max_samples (int): The maximum number of samples to return per call.
+        clocksync (bool): Perform automatic clock synchronization.
+        dejitter (bool): Remove jitter from timestamps using a smoothing algorithm to the received timestamps.
+        monotonize (bool): Force the timestamps to be monotonically ascending. Only makes sense if timestamps are dejittered.
+        threadsafe (bool): Same inlet can be read from by multiple threads.
+        config_path (string, None): The path to an LSL config file.
 
     Example:
         .. literalinclude:: /../examples/lsl_multiple.yaml
@@ -109,10 +124,13 @@ class Receive(Node):
         prop="name",
         value=None,
         timeout=1.0,
-        unit="s",
-        sync="local",
         channels=None,
         max_samples=1024,
+        clocksync=True,
+        dejitter=False,
+        monotonize=False,
+        threadsafe=True,
+        config_path=None,
     ):
         if not value:
             raise ValueError("Please specify a stream name or a property and value.")
@@ -120,12 +138,22 @@ class Receive(Node):
         self._value = value
         self._inlet = None
         self._labels = None
-        self._unit = unit
-        self._sync = sync
         self._channels = channels
         self._timeout = timeout
         self._max_samples = max_samples
-        self._offset = np.timedelta64(int((time() - pylsl.local_clock()) * 1e9), "ns")
+        self._flags = 0
+        self._offset = 0
+        if clocksync:
+            self._flags |= 1
+            self._offset = time() - pylsl.local_clock()
+        if dejitter:
+            self._flags |= 2
+        if monotonize:
+            self._flags |= 4
+        if threadsafe:
+            self._flags |= 8
+        if config_path:
+            os.environ["LSLAPICFG"] = config_path
 
     def update(self):
         if not self._inlet:
@@ -134,7 +162,8 @@ class Receive(Node):
             if not streams:
                 return
             self.logger.debug("Stream acquired")
-            self._inlet = StreamInlet(streams[0])
+            self._flags = pylsl.proc_clocksync | pylsl.proc_dejitter
+            self._inlet = StreamInlet(streams[0], processing_flags=self._flags)
             info = self._inlet.info()
             self._meta = {
                 "name": info.name(),
@@ -154,15 +183,8 @@ class Receive(Node):
         if self._inlet:
             values, stamps = self._inlet.pull_chunk(max_samples=self._max_samples)
             if stamps:
-                stamps = pd.to_datetime(stamps, format=None, unit=self._unit)
-                if self._sync == "local":
-                    stamps += self._offset
-                elif self._sync == "network":
-                    stamps = (
-                        stamps
-                        + np.timedelta64(
-                            round(self._inlet.time_correction() * 1e9), "ns"
-                        )
-                        + self._offset
-                    )
+                if self._offset != 0:
+                    self._offset
+                    stamps = np.array(stamps) + self._offset
+                stamps = pd.to_datetime(stamps, format=None, unit="s")
                 self.o.set(values, stamps, self._labels, self._meta)
