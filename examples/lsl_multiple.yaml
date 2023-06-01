@@ -38,8 +38,7 @@ graphs:
       params:
         prop: type
         value: random
-        unit: ns
-        sync: None
+        clocksync: false
     - id: display
       module: timeflux.nodes.debug
       class: Display
@@ -56,8 +55,7 @@ graphs:
       params:
         prop: name
         value: test_2
-        unit: ns
-        sync: None
+        clocksync: false
     - id: display
       module: timeflux.nodes.debug
       class: Display

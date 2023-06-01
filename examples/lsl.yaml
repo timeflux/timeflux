@@ -23,8 +23,6 @@ graphs:
       params:
         prop: name
         value: test
-        unit: ns
-        sync: null
     - id: display
       module: timeflux.nodes.debug
       class: Display
