@@ -6,6 +6,7 @@ from datetime import timezone
 from timeflux.core.node import Node
 from timeflux.helpers.clock import now
 
+
 class Display(Node):
     """Display input."""
 
@@ -40,4 +41,6 @@ class Latency(Node):
             now = pd.Timestamp.now(timezone.utc)
             indices = self.i.data.index.tz_localize(timezone.utc)
             latencies = list((now - indices).total_seconds())
-            self.logger.debug(f"{latencies[0]} ... {latencies[-1]} ({len(latencies)} datapoints)")
+            self.logger.debug(
+                f"{latencies[0]} ... {latencies[-1]} ({len(latencies)} datapoints)"
+            )
