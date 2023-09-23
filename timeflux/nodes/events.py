@@ -7,8 +7,10 @@ import random
 import string
 
 import numpy as np
+import pandas as pd
 
 from timeflux.core.node import Node
+from timeflux.helpers.clock import now
 
 
 class Events(Node):
@@ -108,8 +110,6 @@ class Periodic(Node):
     """
 
     def __init__(self, label="clock", data=None, interval=None, phase=None):
-        super().__init__()
-
         interval = interval or {}
         phase = phase or interval
         delta_interval = datetime.timedelta(**interval)
@@ -126,16 +126,16 @@ class Periodic(Node):
         self._data = data
 
     def update(self):
-        now = np.datetime64(datetime.datetime.now())
+        ts = now()
         if self._next_timestamp is None:
-            self._next_timestamp = now + self._phase
+            self._next_timestamp = ts + self._phase
             self.logger.debug(
                 "Periodic will start sending events at %s", self._next_timestamp
             )
 
         data = []
         times = []
-        while self._next_timestamp < now:
+        while self._next_timestamp < ts:
             content = copy.deepcopy(self._data)
             data.append([self._label, content])
             times.append(self._next_timestamp)
@@ -147,3 +147,32 @@ class Periodic(Node):
 
     def _set_next(self, reference):
         self._next_timestamp = reference + self._period
+
+
+class EventToSignal(Node):
+
+    """Transform an event stream into a signal stream.
+
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+
+    Args:
+        width (float): The pulse width, in seconds.
+        amplitude (float): The amplitude of the signal.
+        name (string): The name of the marker.
+
+    """
+
+    def __init__(self, width=0.01, amplitude=1, name="marker"):
+        self._delta = pd.Timedelta(width, unit="s")
+        self._amplitude = amplitude
+        self._name = name
+
+    def update(self):
+        if self.i.ready():
+            index = []
+            for timestamp in self.i.data.index:
+                index.append(timestamp)
+                index.append(timestamp + self._delta)
+            data = [self._amplitude, 0] * len(self.i.data.index)
+            self.o.data = pd.DataFrame({self._name: data}, index=index)
