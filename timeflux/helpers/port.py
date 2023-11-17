@@ -35,8 +35,11 @@ def match_events(port, label):
     """
     matches = None
     if port.ready():
-        matches = port.data[port.data["label"] == label]
-        if matches.empty:
+        try:
+            matches = port.data[port.data["label"] == label]
+            if matches.empty:
+                matches = None
+        except:
             matches = None
     return matches
 

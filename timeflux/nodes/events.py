@@ -11,6 +11,7 @@ import pandas as pd
 
 from timeflux.core.node import Node
 from timeflux.helpers.clock import now
+from timeflux.helpers.port import match_events, traverse
 
 
 class Events(Node):
@@ -149,6 +150,36 @@ class Periodic(Node):
         self._next_timestamp = reference + self._period
 
 
+class EventToPulse(Node):
+
+    """Transform an event stream into a pulsed signal stream.
+
+    Attributes:
+        i (Port): Default data input, expects DataFrame.
+
+    Args:
+        width (float): The pulse width, in seconds.
+        amplitude (float): The amplitude of the signal.
+        label (string): The name of the marker.
+
+    """
+
+    def __init__(self, width=0.01, amplitude=1, label="marker"):
+        self._delta = pd.Timedelta(width, unit="s")
+        self._amplitude = amplitude
+        self._name = label
+
+    def update(self):
+        if self.i.ready():
+            index = []
+            for timestamp in self.i.data.index:
+                index.append(timestamp - self._delta)
+                index.append(timestamp)
+                index.append(timestamp + self._delta)
+            data = [self._amplitude, 0] * len(self.i.data.index)
+            self.o.data = pd.DataFrame({self._name: data}, index=index)
+
+
 class EventToSignal(Node):
 
     """Transform an event stream into a signal stream.
@@ -157,22 +188,38 @@ class EventToSignal(Node):
         i (Port): Default data input, expects DataFrame.
 
     Args:
-        width (float): The pulse width, in seconds.
-        amplitude (float): The amplitude of the signal.
-        name (string): The name of the marker.
-
+        label (string): The name of the event.
+        keys (tuple|str): The hiearchical list of keys. If None, assume scalar. Default: None
     """
 
-    def __init__(self, width=0.01, amplitude=1, name="marker"):
-        self._delta = pd.Timedelta(width, unit="s")
-        self._amplitude = amplitude
-        self._name = name
+    def __init__(self, label="marker", keys=None):
+        self._label = label
+        self._keys = keys
 
     def update(self):
-        if self.i.ready():
-            index = []
-            for timestamp in self.i.data.index:
-                index.append(timestamp)
-                index.append(timestamp + self._delta)
-            data = [self._amplitude, 0] * len(self.i.data.index)
-            self.o.data = pd.DataFrame({self._name: data}, index=index)
+        if not self.i.ready():
+            return
+        events = match_events(self.i, self._label)
+        if events is None:
+            self.o.data = None
+            return
+        index = events.index
+        if self._keys is None:
+            # Assume scalar values
+            data = events["data"]
+        else:
+            data = []
+            for value in events["data"]:
+                if type(value) == str:
+                    # Assume JSON
+                    try:
+                        value = json.loads(value)
+                    except:
+                        value = None
+                if type(value) == dict:
+                    # Get the requested value
+                    data.append(traverse(value, self._keys))
+                else:
+                    # Unhandled type
+                    data.append(None)
+        self.o.data = pd.DataFrame({self._label: data}, index=index)
