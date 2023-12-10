@@ -27,7 +27,7 @@ class Pipeline(Node):
     Training on epoched data can either be supervised or unsupervised.
 
     If fit is `False`, input events are ignored, and initital training is not performed.
-    Automatically set to False if mode is either 'fit_predict' or fit_transform'.
+    Automatically set to False if mode is either 'fit_predict' or 'fit_transform'.
     Automatically set to True if mode is either 'predict', 'predict_proba' or 'predict_log_proba'.
 
     Attributes:
@@ -54,8 +54,10 @@ class Pipeline(Node):
         resample (bool):
         resample_direction ('right'|'left'|'both'):
         resample_rate (None|float):
+        preprocessing: A list of preprocessing steps
         warmup (str): Load a .npy or .npz file and bootstrap the model with initial data
         model (str): Load a pre-computed model, persisted with joblib
+        persist (str): Save the model - NOT IMPLEMENTED
         cv: Cross-validation - NOT IMPLEMENTED
 
     """
@@ -75,12 +77,14 @@ class Pipeline(Node):
         resample=False,
         resample_direction="right",
         resample_rate=None,
+        preprocessing=None,
         warmup=None,
         model=None,
+        persist=None,
         cv=None,
     ):
         # TODO: validation
-        # TODO: model loading from file
+        # TODO: save model to file
         # TODO: cross-validation
         # TODO: provide more context for errors
         self.fit = fit
@@ -103,6 +107,7 @@ class Pipeline(Node):
             self._make_pipeline(steps)
         else:
             raise ValueError("You must pass either a 'steps' or 'model' argument")
+        self._make_preprocessing(preprocessing)
         self._reset()
 
     def update(self):
@@ -157,6 +162,7 @@ class Pipeline(Node):
                 self._status = FITTING
                 self.logger.debug("Start training")
                 self._warmup()
+                self._run_preprocessing()
                 self._task = Task(
                     self._pipeline, "fit", self._X_train, self._y_train
                 ).start()
@@ -187,7 +193,7 @@ class Pipeline(Node):
                 args = [self._X]
                 if self.mode.startswith("fit"):
                     args.append(self._y)
-                # TODO: optionally loop through epochs instead of sending them all at once
+                self._run_preprocessing()
                 self._out = getattr(self._pipeline, self.mode)(*args)
 
         # Set output streams
@@ -228,7 +234,7 @@ class Pipeline(Node):
         self._X_meta = None
         self._out = None
 
-    def _make_pipeline(self, steps):
+    def _instantiate_pipeline(self, steps, param="steps"):
         schema = {
             "type": "array",
             "minItems": 1,
@@ -255,17 +261,19 @@ class Pipeline(Node):
                 i = c(**args)
                 pipeline.append(i)
             except ImportError as error:
-                raise ValidationError("steps", f"could not import '{step['module']}'")
+                raise ValidationError(param, f"could not import '{step['module']}'")
             except AttributeError as error:
-                raise ValidationError(
-                    "steps", f"could not find class '{step['class']}'"
-                )
+                raise ValidationError(param, f"could not find class '{step['class']}'")
             except TypeError as error:
                 raise ValidationError(
-                    "steps",
+                    param,
                     f"could not instantiate class '{step['class']}' with the given params",
                 )
+        return pipeline
+
+    def _make_pipeline(self, steps):
         # TODO: memory and verbose args
+        pipeline = self._instantiate_pipeline(steps)
         self._pipeline = make_pipeline(*pipeline, memory=None, verbose=False)
 
     def _load_pipeline(self, path):
@@ -274,6 +282,41 @@ class Pipeline(Node):
         except:
             self.logger.error("Could not load model")
             raise WorkerInterrupt()
+
+    def _make_preprocessing(self, steps):
+        if steps == None:
+            self._preprocessing = None
+            return
+        self._preprocessing = self._instantiate_pipeline(steps, "preprocessing")
+
+    def _run_preprocessing(self):
+        if self._preprocessing == None:
+            return
+        if self._status == READY:
+            mapping = {
+                "X": "_X",
+                "y": "_y",
+                "indices": "_X_indices",
+                "columns": "_X_columns",
+                "meta": "_X_meta",
+            }
+            fitted = True
+        else:
+            # TODO: columns and meta are missing during training
+            mapping = {
+                "X": "_X_train",
+                "y": "_y_train",
+                "indices": "_X_train_indices",
+                "columns": "_X_columns",
+                "meta": "_X_meta",
+            }
+            fitted = False
+        data = {key: getattr(self, value) for (key, value) in mapping.items()}
+        for step in self._preprocessing:
+            data["fitted"] = fitted
+            data = getattr(step, "run")(data)
+        for key, value in mapping.items():
+            setattr(self, value, data[key])
 
     def _warmup(self):
         if self.warmup:

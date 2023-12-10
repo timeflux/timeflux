@@ -84,9 +84,36 @@ class Shaper(BaseEstimator, TransformerMixin):
         return self.fit(X).transform(X)
 
 
+class RemoveFirstRow():
+
+    def run(self, data):
+        data['X'] = np.delete(data['X'], (0), axis=0)
+        data['y'] = np.delete(data['y'], (0), axis=0)
+        data['indices'] = np.delete(data['indices'], (0), axis=0)
+        return data
+
+
+class ReverseColumns():
+
+    def run(self, data):
+        data["columns"].reverse()
+        return data
+
+
+class UpdateMeta():
+
+    def __init__(self, meta):
+        self.meta = meta
+
+    def run(self, data):
+        data["meta"] = self.meta
+        return data
+
+
 dummy_classifier = [{'module': 'sklearn.dummy', 'class': 'DummyClassifier', 'args': {'strategy': 'most_frequent'}}]
 dummy_regressor = [{'module': 'sklearn.dummy', 'class': 'DummyRegressor'}]
 dummy_transformer = [{'module': 'test_ml', 'class': 'DummyTransformer'}]
+dummy_preprocessor = [{'module': 'test_ml', 'class': 'RemoveFirstRow'}, {'module': 'test_ml', 'class': 'ReverseColumns'}, {'module': 'test_ml', 'class': 'UpdateMeta', 'args': {'meta': 42}}]
 
 
 def test_validation():
@@ -709,4 +736,34 @@ def test_model_load():
     node.update()
     assert list(node._out) == [1, 1]
     unlink(path)
+
+def test_preprocessing_training():
+    node = Pipeline(steps=dummy_classifier, preprocessing=dummy_preprocessor)
+    node._X_train = np.array([[1, 2, 3], [4, 5, 6]])
+    node._y_train = np.array([1, 2])
+    node._X_train_indices = np.array([0, 1])
+    node._X_columns = ['A', 'B']
+    node._X_meta = 'foo'
+    node._status = 2
+    node._run_preprocessing()
+    assert node._X_train.shape == (1, 3)
+    assert len(node._y_train) == 1
+    assert len(node._X_train_indices) == 1
+    assert node._X_columns == ['B', 'A']
+    assert node._X_meta == 42
+
+def test_preprocessing_fitted():
+    node = Pipeline(steps=dummy_classifier, preprocessing=dummy_preprocessor)
+    node._X = np.array([[1, 2, 3], [4, 5, 6]])
+    node._y = np.array([1, 2])
+    node._X_indices = np.array([0, 1])
+    node._X_columns = ['A', 'B']
+    node._X_meta = 'foo'
+    node._status = 3
+    node._run_preprocessing()
+    assert node._X.shape == (1, 3)
+    assert len(node._y) == 1
+    assert len(node._X_indices) == 1
+    assert node._X_columns == ['B', 'A']
+    assert node._X_meta == 42
 
