@@ -71,7 +71,7 @@ class Pipeline(Node):
         event_start_accumulation="accumulation_starts",
         event_stop_accumulation="accumulation_stops",
         event_start_training="training_starts",
-        event_reset=None,
+        event_reset="reset",
         buffer_size="5s",
         passthrough=False,
         resample=False,
@@ -122,6 +122,7 @@ class Pipeline(Node):
                 if self._status == FITTING:
                     self._task.stop()
                 self._reset()
+                self.o_events.data = make_event("reset")
 
         # Are we dealing with continuous data or epochs?
         if self._dimensions is None:
