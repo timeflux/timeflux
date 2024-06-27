@@ -27,7 +27,7 @@ class Expand(BaseEstimator, TransformerMixin):
     def transform(self, X):
         X = np.asarray(X)
         if len(X.shape) < self._dimensions:
-            return np.expand_dims(X, axis=self.axis)
+            return np.expand_dims(X, axis=self._axis)
         else:
             return X
 
@@ -46,7 +46,7 @@ class Reduce(BaseEstimator, TransformerMixin):
         X = np.asarray(X)
         if X.ndim < 3:
             return X
-        return np.squeeze(X, axis=self.axis)
+        return np.squeeze(X, axis=self._axis)
 
     def fit_transform(self, X, y=None):
         return self.fit(X).transform(X)
