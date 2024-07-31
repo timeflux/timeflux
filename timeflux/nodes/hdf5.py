@@ -18,7 +18,7 @@ warnings.simplefilter("ignore", NaturalNameWarning)
 class Replay(Node):
     """Replay a HDF5 file."""
 
-    def __init__(self, filename, keys, speed=1, timespan=None, resync=True, start=0):
+    def __init__(self, filename, keys, speed=1, timespan=None, resync=True, start=0,verbose=False):
         """
         Initialize.
 
@@ -41,6 +41,9 @@ class Replay(Node):
         start: float
             Start directly at the given time offset, in seconds
             Default: 0
+        verbose: boolean
+            If True, log the file being read
+            Default: False
         """
 
         # Load store
@@ -48,6 +51,9 @@ class Replay(Node):
             self._store = pd.HDFStore(self._find_path(filename), mode="r")
         except IOError as e:
             raise WorkerInterrupt(e)
+        
+        if verbose:
+            self.logger.debug("Reading from %s", filename)
 
         # Init
         self._sources = {}
