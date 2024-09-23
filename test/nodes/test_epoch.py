@@ -260,15 +260,33 @@ def test_samples_unsynced_event():
     node = Samples(trigger='test', length=0.6, buffer=5, rate=10)
     node.i.data = helpers.DummyData().next(10)
     time = pd.Timestamp('2018-01-01')
-    time = node.i.data.index[1]
     event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])
     node.i_events.data = event
     node.update()
     assert node.o.meta['epoch']['onset'] == time
     assert node.o.data.index[0] == node.i.data.index[1]
 
+def test_samples_offset_positive():
+    # Apply a positive offset to the signal
+    node = Samples(trigger='test', length=0.3, buffer=5, rate=10, offset=0.2)
+    node.i.data = helpers.DummyData().next(10)
+    time = pd.Timestamp('2018-01-01')
+    event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])
+    node.i_events.data = event
+    node.update()
+    assert node.o.meta['epoch']['onset'] == time
+    assert node.o.data.index[0] == node.i.data.index[2]
 
-
+def test_samples_offset_negative():
+    # Apply a negative offset to the signal
+    node = Samples(trigger='test', length=0.3, buffer=5, rate=10, offset=-0.2)
+    node.i.data = helpers.DummyData().next(10)
+    time = pd.Timestamp('2018-01-01 00:00:00.5')
+    event = pd.DataFrame([['test', 'foobar']], [time], columns=['label', 'data'])
+    node.i_events.data = event
+    node.update()
+    assert node.o.meta['epoch']['onset'] == time
+    assert node.o.data.index[0] == node.i.data.index[3]
 
 
 data = helpers.DummyData()

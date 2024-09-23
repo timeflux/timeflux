@@ -15,6 +15,7 @@ class Samples(Node):
     This node produces equal-length epochs from the default input stream. These epochs are triggered from the `events` stream.
     Each epoch contains contextual metadata, making this node ideal in front of the `ml` node to train a model.
     Non-monotonic data, late data, late events, jittered data and jumbled events are all handled reasonably well.
+    It is also possible to specify an offset. For example, you might want to set up the offset to -0.2 if the signal has a constant latency of 200ms, or if you need to apply baseline correction.
     Multiple epochs are automatically assigned to dynamic outputs ports. For convenience, the first epoch is bound to the default output, so you can avoid enumerating all output ports if you expects only one epoch.
 
     Attributes:
@@ -28,12 +29,14 @@ class Samples(Node):
         length (float): The length of the epoch, in seconds.
         rate (float): The rate of the input stream. If None (the default), it will be taken from the meta data.
         buffer (float): The length of the buffer, in seconds (default: 5).
+        offset (float): The signal offset, in seconds (default: 0).
     """
 
-    def __init__(self, trigger, length=0.6, rate=None, buffer=5):
+    def __init__(self, trigger, length=0.6, rate=None, buffer=5, offset=0):
         self._trigger = trigger
         self._duration_epoch = length
         self._duration_buffer = buffer
+        self._offset = pd.Timedelta(offset, "s")
         self._rate = rate
         self._length_epoch = None
         self._length_buffer = None
@@ -81,13 +84,14 @@ class Samples(Node):
         if self._epochs and self.i.ready():
             indices = []
             for index, epoch in enumerate(self._epochs):
+                onset = epoch["meta"]["onset"] + self._offset
                 if epoch["data"] is None:
                     # Discard if the event is outdated
-                    if epoch["meta"]["onset"] < self._buffer.index[0]:
+                    if onset < self._buffer.index[0]:
                         self.logger.warning("Oudated event")
                         indices.append(index)
                     # Find the first sample and initialize the epoch
-                    mask = self._buffer.index >= epoch["meta"]["onset"]
+                    mask = self._buffer.index >= onset
                     data = self._buffer[mask][: self._length_epoch]
                     if len(data) > 0:
                         epoch["data"] = data
