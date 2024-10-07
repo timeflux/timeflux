@@ -51,7 +51,8 @@ class ToDataFrame(Node):
     def __init__(self, index_dim="time"):
         self._index_dim = index_dim
         self._indexes = None
-
+        self._indexes_to_unstack = None
+        
     def _set_indexes(self, data):
         self._indexes_to_unstack = [
             index for index in list(data.indexes.keys()) if index != self._index_dim
